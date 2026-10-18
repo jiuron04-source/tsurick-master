@@ -705,12 +705,31 @@ function buyBait(i){
 }
 
 function sellFish(){
- if(!state.inventory.length){say("売る魚がいないで！");return}
- let total=0;
- for(const id of state.inventory)total+=fishTypes[id].price;
- const count=state.inventory.length;
- state.inventory=[];
- state.gold+=total;
+ const inventory=Array.isArray(state.inventory)?state.inventory:[];
+ if(!inventory.length){say("売る魚がいないで！");return}
+
+ // 旧セーブの「魚ID」と、魚データを保存した形式の両方に対応
+ let total=0, count=0;
+ const remaining=[];
+ for(const entry of inventory){
+  const id=typeof entry==="string" ? entry :
+    (entry && (entry.id || entry.fishId || entry.fish));
+  const fish=(id && fishTypes[id]) || (entry && typeof entry==="object" ? entry : null);
+  const price=Number(fish && fish.price);
+  if(fish && Number.isFinite(price) && price>=0){
+   total+=price;
+   count++;
+  }else{
+   // 不明なデータは誤って消さず、持ち物に残す
+   remaining.push(entry);
+  }
+ }
+ if(count===0){
+  say("売却できる魚データが見つからなかったで。魚は消さずに残してあるで！");
+  return;
+ }
+ state.inventory=remaining;
+ state.gold=(Number(state.gold)||0)+total;
  say(count+"匹を売却！ "+total+"Gを獲得！");
  updateAll();
 }
