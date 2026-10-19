@@ -676,11 +676,19 @@ function drawFishList(){
   const known=state.discovered.includes(id);
   if(known){
    const photo=photos[id];
-   if(photo){
-    const img=document.createElement("img");img.src=photo.url;img.alt=f.name+"の実写写真";img.loading="lazy";
-    img.style.cssText="display:block;width:100%;height:90px;object-fit:cover;border-radius:6px;background:#123;";
-    img.onerror=()=>{img.style.display="none"};card.appendChild(img);
-   }
+   // 写真が未登録・URL切れ・通信失敗でも、全魚種に必ず図鑑用イラストを表示する
+   const makeFallbackFish=()=>{
+    const palettes=[['#c5e9ef','#4c9bb0','#e8f7f2'],['#f6d4a0','#bf8049','#fff0ce'],['#d2d8f6','#777fba','#f1f3ff'],['#c6e7c0','#5b9667','#edf7d9'],['#f2c6ce','#b75f76','#ffe8e9']];
+    const pal=palettes[(Array.from(id).reduce((a,c)=>a+c.charCodeAt(0),0))%palettes.length];
+    const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 150"><defs><linearGradient id="w" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e1f7fa"/><stop offset="1" stop-color="#8ccbd9"/></linearGradient><linearGradient id="b" x1="0" y1="0" x2="0.2" y2="1"><stop stop-color="${pal[0]}"/><stop offset=".55" stop-color="${pal[1]}"/><stop offset="1" stop-color="${pal[2]}"/></linearGradient></defs><rect width="320" height="150" rx="12" fill="url(#w)"/><path d="M20 112 Q85 96 140 115 T300 108" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="3"/><ellipse cx="158" cy="82" rx="83" ry="37" fill="url(#b)" stroke="#386d7d" stroke-width="3"/><path d="M77 82 L28 47 Q39 81 28 115Z" fill="${pal[1]}" stroke="#386d7d" stroke-width="3"/><path d="M134 50 Q158 23 184 48 L162 61Z" fill="${pal[1]}" stroke="#386d7d" stroke-width="2"/><path d="M137 111 Q161 133 184 111 L161 102Z" fill="${pal[1]}" stroke="#386d7d" stroke-width="2"/><path d="M103 65 Q150 44 203 65" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="4"/><g fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="2"><path d="M112 58l-4 48M132 49l-4 63M152 46l-4 69M172 47l-4 66M192 54l-4 53"/></g><circle cx="218" cy="74" r="7" fill="#fff"/><circle cx="220" cy="74" r="3.5" fill="#142d39"/><circle cx="221" cy="73" r="1.3" fill="#fff"/><path d="M232 87 Q244 92 251 84" fill="none" stroke="#386d7d" stroke-width="2.5" stroke-linecap="round"/><text x="160" y="139" text-anchor="middle" font-size="12" fill="#17485a" font-family="sans-serif">${String(f.name).replace(/[&<>"']/g,'')}</text></svg>`;
+    return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+   };
+   const img=document.createElement("img");img.alt=f.name+"の魚図鑑画像";img.loading="lazy";
+   img.style.cssText="display:block;width:100%;height:90px;object-fit:contain;border-radius:6px;background:#d7f0f4;";
+   const fallback=makeFallbackFish();
+   img.onerror=()=>{if(img.src!==fallback)img.src=fallback;};
+   img.src=photo?photo.url:fallback;
+   card.appendChild(img);
    const name=document.createElement("div");name.textContent="🐟 "+f.name;name.style.cssText="font-weight:bold;margin-top:5px";card.appendChild(name);
    const meta=document.createElement("div");meta.textContent="売値 "+f.price+"G・ポイント "+f.points;meta.style.cssText="font-size:11px;margin-top:3px";card.appendChild(meta);
    if(photo){const link=document.createElement("a");link.href=photo.page;link.target="_blank";link.rel="noopener";link.textContent="写真・作者・ライセンス";link.style.cssText="display:block;font-size:10px;margin-top:4px";card.appendChild(link)}
@@ -688,7 +696,7 @@ function drawFishList(){
   list.appendChild(card);
  }
  const note=document.createElement("p");note.className="small";note.style.cssText="width:100%;flex-basis:100%;";
- note.textContent="図鑑と水中の魚にはWikimedia Commonsの写真素材を使用（対応する魚種のみ）。画像ごとにライセンスが異なるため、公開・販売前にはリンク先で作者名・ライセンス・表示条件を確認してください。写真の表示にはインターネット接続が必要です。写真がない魚種や読み込みに失敗した場合はゲーム内描画に切り替わります。";
+ note.textContent="図鑑には利用条件を確認できるWikimedia Commonsの写真素材（対応魚種）を使用します。写真が未登録・読み込み失敗の場合も、魚種別のオリジナル図鑑イラストを表示します。写真リンクから作者・ライセンスを確認できます。";
  list.appendChild(note);
 }
 
