@@ -3,33 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>つりっくマスターPLUS</title>
+<title>つりっくマスターPLUS - 清流フィッシング改修版</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#102a3b;color:#f4f8fb;font-family:system-ui,sans-serif}
-header{padding:15px;text-align:center;background:linear-gradient(120deg,#126e82,#173c68)}
+body{margin:0;background:radial-gradient(ellipse at top,#174d68,#071d31 75%);color:#f4f8fb;font-family:system-ui,sans-serif}
+header{padding:15px;text-align:center;background:linear-gradient(120deg,#0d526c,#122e58);border-bottom:1px solid #5bb8d6;box-shadow:0 5px 20px #061a2c}
 h1{font-size:25px;margin:0}
 header p{margin:5px 0 0;color:#d5f4ff}
-main{max-width:1000px;margin:auto;padding:12px}
+main{max-width:1440px;margin:auto;padding:14px}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
-.stat,.panel{background:#1b3b4c;border:1px solid #31596a;border-radius:12px;padding:12px}
+.game-stats{grid-template-columns:repeat(3,minmax(0,1fr));padding:10px;background:rgba(8,35,56,.96);margin:0;border-top:1px solid #6eb7d1}
+.game-stats .stat{padding:7px;background:#244b5b}
+.game-stats .stat strong{font-size:16px}
+.stat,.panel{background:linear-gradient(145deg,rgba(24,67,91,.97),rgba(10,39,61,.97));border:1px solid #4c91ad;border-radius:14px;padding:12px;box-shadow:0 5px 16px rgba(0,0,0,.16)}
 .stat{text-align:center}
 .stat span{font-size:12px;color:#c5d9e2}
 .stat strong{display:block;color:#ffe08a;font-size:19px}
-.game{overflow:hidden;border:2px solid #4b8494;border-radius:14px;background:#78c5d5}
+.game{position:relative;overflow:hidden;border:2px solid #8bd7ed;border-radius:16px;background:#78c5d5;box-shadow:0 12px 32px rgba(0,0,0,.32)}
 canvas{display:block;width:100%;height:auto;touch-action:manipulation}
 .hint{padding:10px;text-align:center;line-height:1.6;background:#153849}
-.actions{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:8px;margin:10px 0}
-button,select{border:0;border-radius:9px;padding:12px;font-size:14px;font-weight:bold}
+.actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:10px 0}
+button,select{border:1px solid rgba(255,255,255,.28);border-radius:10px;padding:12px;font-size:14px;font-weight:bold;box-shadow:0 2px 6px rgba(0,0,0,.16)}
 button{background:#ffd166;color:#20313a;cursor:pointer}
 button:disabled{opacity:.45}
-#reelButton{background:#ff875e;color:white;min-height:52px;touch-action:none;user-select:none;-webkit-user-select:none}
-#status{min-height:52px;padding:12px;margin:10px 0;background:#234b5d;border-radius:10px;line-height:1.6}
-.meter{height:13px;background:#0d2530;border-radius:10px;overflow:hidden;margin:8px 0 14px}
-#tension,#progressBar{height:100%;width:0%;transition:width .08s linear}
+#reelButton{background:linear-gradient(145deg,#ff9a5d,#e94c68);color:white;min-height:58px;touch-action:none;user-select:none;-webkit-user-select:none;border:2px solid #ffd4a4;border-radius:999px}
+#status{min-height:52px;padding:12px;margin:0;background:#234b5d;border-top:1px solid #4b8494;line-height:1.6}
+.meter{height:10px;background:#0d2530;border-radius:10px;overflow:hidden;margin:5px 0 8px}
+#tension,#progressBar,#lineWearBar{height:100%;width:0%;transition:width .08s linear}
 #tension{background:#80d6a0}
 #progressBar{background:#63c7ff}
-.panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.panels{display:grid;grid-template-columns:1fr;gap:10px;margin-top:10px}
+.status-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.status-cell{background:#244b5b;border-radius:8px;padding:8px;font-size:12px;color:#c5d9e2}
+.status-cell strong{display:block;color:#ffe08a;font-size:14px;margin-top:3px}
+.fight-inline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;text-align:left;padding:10px 12px;background:#12384b}
+.fight-inline label{font-size:12px;color:#e7f7fc}
+.fight-inline .meter{margin:5px 0 0}
+.fight-inline .small{grid-column:1/-1}
 h2{font-size:18px;margin:0 0 10px}
 select{width:100%;background:#edf7fa;color:#173744}
 .small{font-size:12px;color:#c6dbe3;line-height:1.6}
@@ -57,8 +67,10 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
  h1{font-size:21px}
  .stats{grid-template-columns:repeat(2,1fr)}
  .panels{grid-template-columns:1fr}
- .actions{grid-template-columns:1fr 1fr}
- .actions button:last-child{grid-column:1/-1}
+ .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .actions button:last-child{grid-column:auto}
+ .status-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .fight-inline{grid-template-columns:1fr}
  .sound-row{grid-template-columns:100px 1fr 38px}
 }
 </style>
@@ -70,7 +82,44 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
 </header>
 
 <main>
-<div class="stats">
+
+
+
+
+<div class="actions">
+ <button id="saveButton">💾 セーブ</button>
+ <button id="loadButton" style="background:#a9def9">📂 ロード</button>
+ <button id="sellButton" style="background:#b9f0d0">🐟 魚を全部売る</button>
+</div>
+
+
+
+<section class="panel" id="equipmentPanel" style="margin-bottom:10px">
+ <h2>🐾 猫ちゃんの装備工房</h2>
+ <p class="small">ロッド・リール・仕掛け・お守りを各20種類。倍率と価格を見比べて選ぶと、その場で購入・装備できるで！釣具ショップはここに統合したで。</p>
+ <div class="gear-grid">
+  <label>🎣 ロッド<select id="gearRod"></select></label>
+  <label>⚙️ リール<select id="gearReel"></select></label>
+  <label>🪝 仕掛け<select id="gearTackle"></select></label>
+  <label>🐾 お守り<select id="gearCharm"></select></label>
+ </div>
+ <div id="gearInfo" class="small" style="margin-top:10px">装備を選んで釣りを有利にしよう！</div>
+ <div style="margin-top:12px">経験値ゲージ</div><div class="meter"><div id="expBar" style="width:0%;background:#ff83b8;height:100%"></div></div>
+</section>
+
+<div class="game">
+ <canvas id="gameCanvas" width="900" height="500"></canvas>
+ <div style="padding:10px 12px;background:#12384b;text-align:center">
+  <button id="reelButton" style="width:min(100%,420px);font-size:17px">🎣 リールを巻く（長押し）</button>
+ </div>
+ <div class="hint fight-inline">
+  <div><label>糸の張力：<span id="tensionLabel">待機中</span></label><div class="meter"><div id="tension"></div></div></div>
+  <div><label>引き寄せ進行度</label><div class="meter"><div id="progressBar"></div></div></div>
+  <div><label>釣り糸のダメージ：<span id="lineWearLabel">0%</span></label><div class="meter"><div id="lineWearBar"></div></div></div>
+  <p class="small">水面をタップ／クリックして仕掛けを投げよう。ウキが沈んだら「リールを巻く」を長押し。魚が走ったらボタンを離して糸を守ろう！</p>
+ </div>
+ <div id="status" role="status">川辺に到着！水面をタップ／クリックして仕掛けを投げよう！</div>
+<div class="stats game-stats">
  <div class="stat"><span>所持金</span><strong id="gold">100G</strong></div>
  <div class="stat"><span>釣った魚</span><strong id="caught">0匹</strong></div>
  <div class="stat"><span>猫レベル</span><strong id="levelLabel">Lv.1</strong></div>
@@ -78,6 +127,26 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
  <div class="stat"><span>釣りポイント</span><strong id="score">0</strong></div>
  <div class="stat"><span>装備中の竿</span><strong id="rodName">木の釣り竿</strong></div>
 </div>
+</div>
+
+<div class="panels">
+<section class="panel" style="grid-column:1/-1">
+ <h2>🗺️ 釣り場</h2>
+ <select id="locationSelect">
+  <option value="river">せせらぎ川・上流（初級）</option>
+  <option value="river_mid">せせらぎ川・中流（初級〜中級）</option>
+  <option value="river_lower">せせらぎ川・下流（中級）</option>
+  <option value="lake">神秘の湖（中級）</option>
+  <option value="sea">青の入り江・沿岸（上級）</option>
+  <option value="sea_deep">青の入り江・沖合（最上級）</option>
+ </select>
+ <p id="locationInfo" class="small">小魚が多い初心者向けの川。</p>
+ <h2 style="margin-top:18px">📖 魚図鑑</h2>
+ <div id="fishList"></div>
+</section>
+
+</div>
+
 
 <!-- 自然音コントロール -->
 <section class="sound-panel">
@@ -125,66 +194,6 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
   </p>
   <p>このゲームでのキツネの録音は、音源そのものを改変せずに使用する想定。再配布・販売時は各音源の説明ページとライセンス条件を再確認してな。</p>
  </details>
-</section>
-
-<div class="game">
- <canvas id="gameCanvas" width="900" height="500"></canvas>
- <div class="hint">
-  水面をクリックして仕掛けを投げよう。<br>
-  ウキが沈んだら「リールを巻く」を長押し。魚が抵抗したらボタンを離そう！
- </div>
-</div>
-
-<div class="actions">
- <button id="castButton">🎯 仕掛けを投げる</button>
- <button id="reelButton">🎣 リールを巻く（長押し）</button>
- <button id="saveButton">💾 セーブ</button>
-</div>
-
-<div id="status">川辺に到着！水面を狙って仕掛けを投げよう！</div>
-
-<section class="panel">
- <h2>🐟 ファイト状況</h2>
- <div>糸の張力：<span id="tensionLabel">待機中</span></div>
- <div class="meter"><div id="tension"></div></div>
- <div>魚を岸まで引き寄せる進行度</div>
- <div class="meter"><div id="progressBar"></div></div>
- <div>釣り糸のダメージ：<span id="lineWearLabel">0%</span></div>
- <div class="meter"><div id="lineWearBar"></div></div>
- <p class="small">魚が走ったり暴れたりすると糸にダメージ！張力が危険な時はリールを離して、魚が落ち着いたら巻こう。</p>
-</section>
-
-<div class="panels">
-<section class="panel">
- <h2>🗺️ 釣り場</h2>
- <select id="locationSelect">
-  <option value="river">せせらぎ川・初級</option>
-  <option value="lake">神秘の湖・中級</option>
-  <option value="sea">青の入り江・上級</option>
- </select>
- <p id="locationInfo" class="small">小魚が多い初心者向けの川。</p>
- <h2 style="margin-top:18px">📖 魚図鑑</h2>
- <div id="fishList"></div>
-</section>
-
-<section class="panel">
- <h2>🏪 釣具ショップ</h2>
- <div id="shop"></div>
- <button id="sellButton" style="width:100%;margin-top:12px">🐟 持っている魚を全部売る</button>
- <button id="loadButton" style="width:100%;margin-top:8px;background:#a9def9">📂 セーブを読み込む</button>
-</section>
-</div>
-<section class="panel" id="equipmentPanel" style="margin-top:10px">
- <h2>🐾 猫ちゃんの装備工房</h2>
- <p class="small">ロッド・リール・仕掛け・お守りを各20種類。選ぶと購入／装備できるで！</p>
- <div class="gear-grid">
-  <label>🎣 ロッド<select id="gearRod"></select></label>
-  <label>⚙️ リール<select id="gearReel"></select></label>
-  <label>🪝 仕掛け<select id="gearTackle"></select></label>
-  <label>🐾 お守り<select id="gearCharm"></select></label>
- </div>
- <div id="gearInfo" class="small" style="margin-top:10px">装備を選んで釣りを有利にしよう！</div>
- <div style="margin-top:12px">経験値ゲージ</div><div class="meter"><div id="expBar" style="width:0%;background:#ff83b8;height:100%"></div></div>
 </section>
 </main>
 
@@ -348,12 +357,12 @@ const ctx=canvas.getContext("2d");
 const $=id=>document.getElementById(id);
 
 const locations={
- river:{name:"せせらぎ川",difficulty:1,sky:"#9be2ed",water:"#2d9fba",
-  info:"小魚から川の大物まで出会える川。",fish:["minnow","ayu","carp","crucian","dace","catfish","yamame"]},
- lake:{name:"神秘の湖",difficulty:1.45,sky:"#b4d9ef",water:"#287da8",
-  info:"マス類やブラックバス、湖の大物が狙える。",fish:["ayu","carp","rainbow","bass","crucian","bluegill","catfish","pike"]},
- sea:{name:"青の入り江",difficulty:1.9,sky:"#8bd4f4",water:"#146a9c",
-  info:"海の魚や大物が潜む上級者向けの釣り場。",fish:["carp","rainbow","bass","tuna","mackerel","snapper","catfish"]}
+ river:{name:"せせらぎ川・上流",difficulty:1,sky:"#9be2ed",water:"#2d9fba",info:"冷たい清流。小魚や渓流魚が中心。",fish:[]},
+ river_mid:{name:"せせらぎ川・中流",difficulty:1.2,sky:"#9be2ed",water:"#2d9fba",info:"流れが穏やかになり、アユやフナなどが狙える。",fish:[]},
+ river_lower:{name:"せせらぎ川・下流",difficulty:1.4,sky:"#9be2ed",water:"#2d9fba",info:"深みのある川。コイやナマズなど大型の川魚もいる。",fish:[]},
+ lake:{name:"神秘の湖",difficulty:1.55,sky:"#b4d9ef",water:"#287da8",info:"湖にすむワカサギやマス類などが狙える。",fish:[]},
+ sea:{name:"青の入り江・沿岸",difficulty:1.9,sky:"#8bd4f4",water:"#146a9c",info:"沿岸の海魚が集まる釣り場。",fish:[]},
+ sea_deep:{name:"青の入り江・沖合",difficulty:2.35,sky:"#8bd4f4",water:"#146a9c",info:"沖合の大物や深場の魚が狙える上級ステージ。",fish:[]}
 };
 
 const fishTypes={
@@ -414,7 +423,7 @@ let particles=[];
 let waterFish=[];
 let approachFish=null;
 
-const ROD_TIP={x:478,y:224};
+const ROD_TIP={x:190,y:220};
 const RETURN_POINT={x:477,y:239};
 
 function currentRod(){return rods[state.rod]}
@@ -534,10 +543,20 @@ extraFishData.forEach(([id,name,hab],i)=>{
 const fishKeys=Object.keys(fishTypes);
 if(fishKeys.length>100){for(const id of fishKeys.slice(100))delete fishTypes[id]}
 const habitats={river:[],lake:[],sea:[]};
+// 追加魚だけでなく、初期の魚にも生息域を明示して混在を防ぐ
+const baseHabitat={minnow:"river",ayu:"river",carp:"river",crucian:"river",dace:"river",catfish:"river",yamame:"river",rainbow:"lake",bass:"lake",bluegill:"lake",pike:"lake",tuna:"sea",mackerel:"sea",snapper:"sea"};
+for(const [id,hab] of Object.entries(baseHabitat))habitatById[id]=hab;
 for(const [id,hab] of Object.entries(habitatById)){if(fishTypes[id]&&habitats[hab])habitats[hab].push(id)}
-locations.river.fish=[...new Set([...locations.river.fish,...habitats.river])];
-locations.lake.fish=[...new Set([...locations.lake.fish,...habitats.lake,...habitats.river])];
-locations.sea.fish=[...new Set([...locations.sea.fish,...habitats.sea])];
+const only=(ids)=>[...new Set(ids)].filter(id=>fishTypes[id]);
+const riverFish=habitats.river;
+const lakeFish=habitats.lake;
+const seaFish=habitats.sea;
+locations.river.fish=only([...riverFish.filter(id=>fishTypes[id].points<=50),"iwana","amago","yamame","char","goby","medaka","dojo","loach","oikawa","motsugo","tanago"]);
+locations.river_mid.fish=only([...riverFish.filter(id=>fishTypes[id].points>=20&&fishTypes[id].points<=90),"ayu","crucian","carp","ugui","moroko","hasu","unagi","shijimi"]);
+locations.river_lower.fish=only([...riverFish.filter(id=>fishTypes[id].points>=40),"ayu","carp","crucian","catfish","unagi","goby","shijimi","salmon"]);
+locations.lake.fish=only([...lakeFish,"wakasagi","rainbow","bluegill","pike","koi_gold","arowana","pirarucu","piranha","gar","sturgeon","smelt","nijimasu"]);
+locations.sea.fish=only([...seaFish.filter(id=>fishTypes[id].points<=115),"mackerel","snapper","aji","iwashi","kisu","haze","suzuki","tai","sardine","sawara","buri","mebaru","kasago","grouper"]);
+locations.sea_deep.fish=only([...seaFish.filter(id=>fishTypes[id].points>=65),"tuna","maguro","same","shark","ray","manbou","alfonsino","tilefish","grouper","rockfish","pollock","tara","hokke"]);
 
 const addRods=[
  ['渓流ロッド',180,1.55],['万能ロッド',260,1.7],['湖沼ロッド',390,1.85],['遠投ロッド',520,2.0],['海釣りロッド',700,2.2],['剛力ロッド',950,2.4],['軽量カーボン',1250,2.55],['トーナメントロッド',1650,2.75],['深海ロッド',2200,3.0],['ドラゴンロッド',3000,3.25],['星降りロッド',4200,3.5],['虹色ロッド',5800,3.8],['神獣ロッド',8000,4.1],['伝説の猫竿',12000,4.5],['銀河ロッド',18000,4.9],['にゃんこマスター竿',26000,5.4]
@@ -556,7 +575,7 @@ const charms=[
 state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number(state.charm)||0;
 // freshStateは既存セーブ互換のまま使い、ロード後に追加項目を補完する。
 const baseCurrentRod=currentRod;
-currentRod=function(){const r=baseCurrentRod();const reel=reels[state.reel]||reels[0];return {...r,power:r.power*reel.power}};
+currentRod=function(){return baseCurrentRod()};
 const baseWeightedFish=weightedFish;
 weightedFish=function(){
  const id=baseWeightedFish();
@@ -579,7 +598,7 @@ function grantExp(base){
 window.grantExp=grantExp;
 function populateGearSelect(id,items,key){
  const sel=$(id);if(!sel)return;sel.innerHTML='';
- items.forEach((item,i)=>{const opt=document.createElement('option');opt.value=i;opt.textContent=`${item.name} — ${item.price}G`;sel.appendChild(opt)});
+ items.forEach((item,i)=>{const opt=document.createElement('option');opt.value=i;let metric='';if(key==='rod')metric=`引き寄せ ${(Number(item.power)||1).toFixed(2)}倍`;else if(key==='reel')metric=`張力・糸耐久 ${(Number(item.power)||1).toFixed(2)}倍`;else if(key==='tackle')metric=`効果 ${(Number(item.bonus)||1).toFixed(2)}倍`;else if(key==='charm')metric=`効果 ${(Number(item.bonus)||1).toFixed(2)}倍`;opt.textContent=`${item.name}｜${metric}｜${item.price}G`;sel.appendChild(opt)});
  sel.value=String(state[key]||0);
  sel.onchange=()=>{
   const i=Number(sel.value),item=items[i];if(!item)return;
@@ -590,7 +609,15 @@ function populateGearSelect(id,items,key){
 }
 function setupGearUI(){
  populateGearSelect('gearRod',rods,'rod');populateGearSelect('gearReel',reels,'reel');populateGearSelect('gearTackle',tackles,'tackle');populateGearSelect('gearCharm',charms,'charm');
- const info=$('gearInfo');if(info)info.textContent=`ロッド ${rods[state.rod]?.name||'木の釣り竿'} ／ リール倍率 ${(reels[state.reel]?.power||1).toFixed(2)} ／ 仕掛け倍率 ${(tackles[state.tackle]?.bonus||1).toFixed(2)} ／ お守りEXP倍率 ${(charms[state.charm]?.bonus||1).toFixed(2)}`;
+ // reels は updateAll 内のローカル変数なので、釣りループ用に選択中の性能だけ公開する
+ window.__tsurickReelPower = Number(reels[state.reel]?.power) || 1;
+ const info=$('gearInfo');if(info)info.innerHTML=`<strong>装備中の性能・販売価格</strong><br>🎣 ${rods[state.rod]?.name||'木の釣り竿'}：引き寄せ ${(rods[state.rod]?.power||1).toFixed(2)}倍 ／ ${rods[state.rod]?.price||0}G<br>⚙️ ${reels[state.reel]?.name||'基本リール'}：張力・糸耐久 ${(reels[state.reel]?.power||1).toFixed(2)}倍 ／ ${reels[state.reel]?.price||0}G<br>🪝 ${tackles[state.tackle]?.name||'基本仕掛け'}：効果 ${(tackles[state.tackle]?.bonus||1).toFixed(2)}倍 ／ ${tackles[state.tackle]?.price||0}G<br>🐾 ${charms[state.charm]?.name||'基本のお守り'}：効果 ${(charms[state.charm]?.bonus||1).toFixed(2)}倍 ／ ${charms[state.charm]?.price||0}G<br><span class="small">選択欄には全商品の倍率と販売価格を表示。所持金が足りない商品は購入できへんで。</span>`;
+ const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
+ setText('statusRod',rods[state.rod]?.name||'木の釣り竿');
+ setText('statusReel',reels[state.reel]?.name||'基本リール');
+ setText('statusTackle',tackles[state.tackle]?.name||'基本のウキ仕掛け');
+ setText('statusCharm',charms[state.charm]?.name||'小さな肉球のお守り');
+ setText('statusStats',`竿の引き寄せ性能：${(rods[state.rod]?.power||1).toFixed(2)}倍 ／ リールの張力・糸耐久補助：${(reels[state.reel]?.power||1).toFixed(2)}倍 ／ 仕掛けの効果：${(tackles[state.tackle]?.bonus||1).toFixed(2)}倍 ／ お守りの効果：${(charms[state.charm]?.bonus||1).toFixed(2)}倍。数値が1.00なら基準値、1.00より大きいほど効果が高いで。レベルは釣り性能に影響せず、装備で性能が変わるで。`);
 }
 const oldUpdateAll=updateAll;
 updateAll=function(){oldUpdateAll();
@@ -620,7 +647,7 @@ playCatchVoice=function(isRare=false){
 
 $("locationSelect").value=state.location;
  drawFishList();
- drawShop();
+
 }
 
 function drawFishList(){
@@ -661,12 +688,13 @@ function drawFishList(){
   list.appendChild(card);
  }
  const note=document.createElement("p");note.className="small";note.style.cssText="width:100%;flex-basis:100%;";
- note.textContent="写真はWikimedia Commonsのファイル／分類ページを参照。画像ごとにライセンスが異なるため、公開・販売前にはリンク先で作者名と利用条件を確認してください。画像の表示にはインターネット接続が必要です。";
+ note.textContent="図鑑と水中の魚にはWikimedia Commonsの写真素材を使用（対応する魚種のみ）。画像ごとにライセンスが異なるため、公開・販売前にはリンク先で作者名・ライセンス・表示条件を確認してください。写真の表示にはインターネット接続が必要です。写真がない魚種や読み込みに失敗した場合はゲーム内描画に切り替わります。";
  list.appendChild(note);
 }
 
 function drawShop(){
  const shop=$("shop");
+ if(!shop)return;
  shop.innerHTML="";
  rods.forEach((rod,i)=>{
   const row=document.createElement("div");
@@ -773,20 +801,51 @@ $("loadButton").addEventListener("click",loadGame);
 
 function createWaterFish(){
  waterFish=[];
- for(let i=0;i<12;i++){
+ const pool=currentLocation().fish.filter(id=>fishTypes[id]);
+ if(!pool.length)return;
+ // 魚のポイント・魚種から体格をはっきり分ける。小魚は小さく、大物は画面でも大きく見せる。
+ const sizeByKind={minnow:.42,dace:.52,medaka:.30,motsugo:.40,moroko:.45,tanago:.43,dojo:.48,loach:.48,goby:.48,ayu:.66,yamame:.72,amago:.72,char:.78,crucian:.82,carp:1.02,catfish:1.18,bass:1.05,bluegill:.76,rainbow:.92,mackerel:.90,tuna:1.62,maguro:1.68,same:1.82,shark:1.85,ray:1.65,manbou:1.9,arowana:1.55,pirarucu:1.9,sturgeon:1.55,gar:1.48,pike:1.15,snapper:1.0};
+ // 種類を散らし、同じ魚ばかり並ばないようにする
+ const chosen=[];
+ for(let i=0;i<Math.min(16,pool.length);i++){
+  const kind=pool[Math.floor(Math.random()*pool.length)];
+  chosen.push(kind);
+ }
+ for(let i=0;i<chosen.length;i++){
+  const kind=chosen[i], data=fishTypes[kind]||{};
+  let base=sizeByKind[kind];
+  if(!base){const pts=Number(data.points)||20;base=pts<=10?.38+pts*.012:pts<=25?.52+(pts-10)*.012:pts<=55?.70+(pts-25)*.012:pts<=90?1.06+(pts-55)*.008:1.35+Math.min(.55,(pts-90)*.004);}
+  const scale=base*(.92+Math.random()*.16);
   waterFish.push({
-   x:50+Math.random()*800,y:275+Math.random()*180,
-   speed:10+Math.random()*20,
-   dir:Math.random()<.5?-1:1,
-   size:.5+Math.random()*.45,
-   phase:Math.random()*6.28,
-   kind:currentLocation().fish[Math.floor(Math.random()*currentLocation().fish.length)]
+   x:90+Math.random()*720,baseY:265+Math.random()*48,y:290,
+   speed:10+Math.random()*22,verticalSpeed:.55+Math.random()*.7,swimAmp:4+Math.random()*9,
+   dir:Math.random()<.5?-1:1,scale,
+   phase:Math.random()*6.28,kind
   });
  }
 }
 
+const freeFishPhotoURLs={
+ carp:"https://commons.wikimedia.org/wiki/Special:FilePath/Carassius_gibelio_(Seine_river).jpg",
+ bass:"https://commons.wikimedia.org/wiki/Special:FilePath/Black_bass.png",
+ crucian:"https://commons.wikimedia.org/wiki/Special:FilePath/Carassius_carassius.jpg",
+ bluegill:"https://commons.wikimedia.org/wiki/Special:FilePath/Bluegill_cleveland_aquarium_3.2018_DSC_0095_(cropped).jpg",
+ tuna:"https://commons.wikimedia.org/wiki/Special:FilePath/Thunnus_thynnus.jpg",
+ minnow:"https://commons.wikimedia.org/wiki/Special:FilePath/Motsugo_male_Topmouth_gudgeon_Pseudorasbora_parva.jpg",
+ ayu:"https://commons.wikimedia.org/wiki/Special:FilePath/Plecoglossus_altivelis.jpg",
+ rainbow:"https://commons.wikimedia.org/wiki/Special:FilePath/Rainbow_trout.jpg",
+ yamame:"https://commons.wikimedia.org/wiki/Special:FilePath/Oncorhynchus_masou.jpg",
+ catfish:"https://commons.wikimedia.org/wiki/Special:FilePath/Silurus_glanis.jpg",
+ mackerel:"https://commons.wikimedia.org/wiki/Special:FilePath/Scomber_japonicus.jpg",
+ snapper:"https://commons.wikimedia.org/wiki/Special:FilePath/Red_snapper.jpg",
+ dace:"https://commons.wikimedia.org/wiki/Special:FilePath/Leuciscus_waleckii.jpg",
+ pike:"https://commons.wikimedia.org/wiki/Special:FilePath/Esox_lucius.jpg"
+};
+const freeFishPhotoImages={};
+for(const [id,url] of Object.entries(freeFishPhotoURLs)){const img=new Image();img.crossOrigin="anonymous";img.src=url;freeFishPhotoImages[id]=img;}
+
 function drawFish(x,y,scale,color,dir=1,kind="ayu",phase=0,underwater=true){
- // 魚種ごとの体型・模様・ヒレをCanvasで描く（外部画像なし）
+ // 魚は外部画像に依存せずCanvasで描く。通信失敗や古い画像の残留で消えないようにする。
  const specs={
   minnow:{body:0.72,depth:.72,belly:"#d8e5dc",back:"#617e7b",spots:"none",tail:0.9},
   ayu:{body:.95,depth:.72,belly:"#d7e0bd",back:"#6b8d70",spots:"speckle",tail:1},
@@ -854,7 +913,7 @@ function drawCharacter(){
  const bounce=celebrating?Math.abs(Math.sin((catchAnimUntil-animationTime)*9))*5:Math.sin(animationTime*2.5)*1.2;
  const tailWag=Math.sin(animationTime*5)*8;
  const armWave=celebrating?Math.sin(animationTime*17)*3:0;
- ctx.save();ctx.translate(0,-bounce);
+ ctx.save();ctx.translate(0,100-bounce);
  // 影
  ctx.fillStyle="rgba(20,43,48,.24)";ctx.beginPath();ctx.ellipse(450,258,34,6,0,0,Math.PI*2);ctx.fill();
  // しっぽ（後ろでふりふり）
@@ -925,6 +984,48 @@ function drawCharacter(){
  ctx.restore();
 }
 
+// 横向きの猫ちゃん。水面側（右）を向いて、桟橋から竿を出す
+// 正面向きの旧キャラクターは使わず、釣り竿を持つ姿を横向きで描く
+ drawCharacter=function(){
+  const celebrating=animationTime<catchAnimUntil;
+  const bounce=celebrating?Math.abs(Math.sin((catchAnimUntil-animationTime)*9))*2:Math.sin(animationTime*2.5)*1.2;
+  const wag=Math.sin(animationTime*5)*5;
+  ctx.save();ctx.translate(0,bounce);
+  // 桟橋上の影
+  ctx.fillStyle="rgba(20,43,48,.24)";ctx.beginPath();ctx.ellipse(76,219,29,4,0,0,Math.PI*2);ctx.fill();
+  // しっぽ（後ろ側）
+  ctx.strokeStyle="#c5ccd9";ctx.lineWidth=8;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(53,190);ctx.quadraticCurveTo(32,183+wag,39,168+wag);ctx.stroke();
+  // 足
+  ctx.strokeStyle="#bfc6d5";ctx.lineWidth=10;ctx.beginPath();ctx.moveTo(63,202);ctx.lineTo(61,215);ctx.moveTo(82,202);ctx.lineTo(85,215);ctx.stroke();
+  ctx.fillStyle="#f4a9bb";ctx.beginPath();ctx.ellipse(60,216,7,3,0,0,Math.PI*2);ctx.ellipse(86,216,7,3,0,0,Math.PI*2);ctx.fill();
+  // 体とベスト
+  ctx.fillStyle="#dce1eb";ctx.beginPath();ctx.ellipse(73,187,22,23,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#3d8f9e";ctx.beginPath();ctx.moveTo(59,171);ctx.quadraticCurveTo(76,164,88,176);ctx.lineTo(92,201);ctx.quadraticCurveTo(74,209,56,199);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#ffd36a";ctx.fillRect(76,178,7,7);
+  // 首輪と鈴
+  ctx.strokeStyle="#ff6f91";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(70,168);ctx.quadraticCurveTo(82,176,91,169);ctx.stroke();
+  ctx.fillStyle="#ffd34d";ctx.beginPath();ctx.arc(85,174,3,0,Math.PI*2);ctx.fill();
+  // 横向きの頭・耳
+  const fur=ctx.createLinearGradient(53,0,99,0);fur.addColorStop(0,"#aab2c2");fur.addColorStop(.5,"#f1f2f7");fur.addColorStop(1,"#c5ccd8");ctx.fillStyle=fur;
+  ctx.beginPath();ctx.moveTo(56,151);ctx.lineTo(55,132);ctx.lineTo(70,143);ctx.lineTo(84,135);ctx.lineTo(84,149);ctx.quadraticCurveTo(99,157,96,169);ctx.quadraticCurveTo(91,181,73,177);ctx.quadraticCurveTo(56,174,54,162);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#f5a6ba";ctx.beginPath();ctx.moveTo(59,145);ctx.lineTo(58,137);ctx.lineTo(67,145);ctx.closePath();ctx.moveTo(75,145);ctx.lineTo(82,139);ctx.lineTo(81,149);ctx.closePath();ctx.fill();
+  // 横顔の目・鼻・口・ひげ（右向き）
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.ellipse(84,157,5,6,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#2587ad";ctx.beginPath();ctx.ellipse(86,158,2.5,4,0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#e987a4";ctx.beginPath();ctx.moveTo(96,163);ctx.lineTo(101,165);ctx.lineTo(96,167);ctx.closePath();ctx.fill();
+  ctx.strokeStyle="#596274";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(96,168);ctx.quadraticCurveTo(92,174,88,170);ctx.moveTo(97,168);ctx.quadraticCurveTo(99,172,101,169);ctx.stroke();
+  ctx.strokeStyle="#929bad";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(96,166);ctx.lineTo(108,163);ctx.moveTo(96,169);ctx.lineTo(108,171);ctx.stroke();
+  // 前足で握る竿。竿先は水面の右側へ向ける
+  ctx.strokeStyle="#c8cedb";ctx.lineWidth=9;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(80,184);ctx.quadraticCurveTo(94,186,103,190);ctx.stroke();
+  const rodStyle=[{base:"#78523a",accent:"#d5b18a",width:4},{base:"#9a633c",accent:"#f6d49a",width:4.5},{base:"#263a52",accent:"#57d5e8",width:4},{base:"#38205f",accent:"#ffe66d",width:5}][state.rod]||{base:"#78523a",accent:"#d5b18a",width:4};
+  ctx.strokeStyle=rodStyle.base;ctx.lineWidth=rodStyle.width;ctx.beginPath();ctx.moveTo(99,189);ctx.quadraticCurveTo(139,190,ROD_TIP.x,ROD_TIP.y);ctx.stroke();
+  ctx.strokeStyle=rodStyle.accent;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(99,188);ctx.quadraticCurveTo(139,189,ROD_TIP.x,ROD_TIP.y);ctx.stroke();
+  // リール
+  ctx.fillStyle="#9a8a79";ctx.beginPath();ctx.ellipse(104,191,4,6,-.3,0,Math.PI*2);ctx.fill();ctx.strokeStyle=rodStyle.accent;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(104,191,3,0,Math.PI*2);ctx.stroke();
+  if(celebrating){ctx.fillStyle="#ff7da9";ctx.font="bold 13px sans-serif";ctx.fillText("♪",48,130);ctx.fillText("!",103,143);}
+  ctx.restore();
+ };
+
 function splash(x,y){
  for(let i=0;i<14;i++){
   particles.push({x,y,vx:(Math.random()-.5)*100,
@@ -934,22 +1035,124 @@ function splash(x,y){
 
 function drawScene(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
-  const sky=ctx.createLinearGradient(0,0,0,300); sky.addColorStop(0,"#7edcf4"); sky.addColorStop(1,"#d7f7ff");
-  ctx.fillStyle=sky;ctx.fillRect(0,0,900,500);
-  ctx.fillStyle="#ffe78b";ctx.beginPath();ctx.arc(785,65,31,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="rgba(255,255,255,.85)";
-  for(const [x,y,r] of [[115,64,20],[139,57,25],[163,66,18],[310,83,16],[331,76,21],[354,84,15]]){ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
-  ctx.fillStyle="#6fbd8a";ctx.beginPath();ctx.moveTo(0,220);ctx.lineTo(125,105);ctx.lineTo(245,215);ctx.lineTo(365,120);ctx.lineTo(500,222);ctx.lineTo(650,112);ctx.lineTo(820,220);ctx.lineTo(900,170);ctx.lineTo(900,300);ctx.lineTo(0,300);ctx.closePath();ctx.fill();
-  const water=ctx.createLinearGradient(0,230,0,500);water.addColorStop(0,"#36b9d7");water.addColorStop(.45,"#087eae");water.addColorStop(1,"#075078");ctx.fillStyle=water;ctx.fillRect(0,225,900,275);
-  ctx.strokeStyle="rgba(201,249,255,.38)";ctx.lineWidth=2;
-  for(let i=0;i<17;i++){const y=245+i*15,x=(i*83+animationTime*22)%950-25;ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+24,y-3,x+50,y);ctx.stroke();}
-  ctx.fillStyle="#b9a16a";ctx.beginPath();ctx.moveTo(0,258);ctx.lineTo(210,246);ctx.lineTo(350,285);ctx.lineTo(0,315);ctx.closePath();ctx.fill();
-  ctx.fillStyle="#94663d";ctx.fillRect(0,292,300,18);ctx.fillStyle="#e7b879";for(let x=8;x<300;x+=38)ctx.fillRect(x,294,28,4);
-  for(const f of waterFish){const kind=f.kind||"ayu";drawFish(f.x,f.y,f.scale||.7,(fishTypes[kind]||fishTypes.ayu).color,f.dir||1,kind,animationTime,true);}
+  // 空と遠景：画像貼り付けではなく、パーツを毎フレーム描いてゲーム世界を作る
+  const stageKey=state.location||"river";
+  const isSea=stageKey==="sea"||stageKey==="sea_deep";
+  const isDeep=stageKey==="sea_deep";
+  const isLake=stageKey==="lake";
+  const isLower=stageKey==="river_lower";
+  const isMid=stageKey==="river_mid";
+  const palette=isSea
+    ? {skyTop:isDeep?"#174c7b":"#64c6ed",skyMid:isDeep?"#7db9d7":"#b8eaf2",skyLow:"#d8e9df",waterTop:isDeep?"#176d9b":"#24a9c5",waterMid:isDeep?"#07527e":"#087fa6",waterBottom:isDeep?"#031f42":"#073e65",hill:isDeep?"#426a79":"#7caaa0",hill2:isDeep?"#294e68":"#527f82",shore:"#8a9c98"}
+    : isLake
+    ? {skyTop:"#73b9e8",skyMid:"#c6e6ef",skyLow:"#e5f0df",waterTop:"#4cb6c2",waterMid:"#247f9d",waterBottom:"#123d63",hill:"#7eae91",hill2:"#547f77",shore:"#a6a88a"}
+    : isLower
+    ? {skyTop:"#65c1e8",skyMid:"#bce9ed",skyLow:"#e9f1d7",waterTop:"#31b5c8",waterMid:"#147f9f",waterBottom:"#063f63",hill:"#82bf91",hill2:"#4c9178",shore:"#a6a27a"}
+    : {skyTop:"#55b9ee",skyMid:"#b9f0f4",skyLow:"#f3f8d8",waterTop:"#37c6d6",waterMid:"#168fb5",waterBottom:"#06466f",hill:"#83cba0",hill2:"#4d9e82",shore:"#9caa83"};
+  const sky=ctx.createLinearGradient(0,0,0,245);
+  sky.addColorStop(0,palette.skyTop);sky.addColorStop(.62,palette.skyMid);sky.addColorStop(1,palette.skyLow);
+  ctx.fillStyle=sky;ctx.fillRect(0,0,900,245);
+  // ふわふわ流れる雲
+  for(let i=0;i<4;i++){
+    const x=((i*245+animationTime*5)%1080)-90, y=34+(i%3)*27;
+    ctx.fillStyle="rgba(255,255,255,.82)";
+    for(let j=0;j<3;j++){ctx.beginPath();ctx.arc(x+j*16,y+(j%2)*-4,11+(j===1?3:0),0,Math.PI*2);ctx.fill();}
+  }
+  // 遠い山並み
+  ctx.fillStyle=palette.hill;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(105,88);ctx.lineTo(215,190);ctx.lineTo(340,105);ctx.lineTo(470,190);ctx.lineTo(610,83);ctx.lineTo(760,190);ctx.lineTo(900,112);ctx.lineTo(900,235);ctx.lineTo(0,235);ctx.closePath();ctx.fill();
+  ctx.fillStyle=palette.hill2;ctx.beginPath();ctx.moveTo(0,207);ctx.lineTo(120,126);ctx.lineTo(230,210);ctx.lineTo(360,143);ctx.lineTo(490,213);ctx.lineTo(650,119);ctx.lineTo(790,210);ctx.lineTo(900,150);ctx.lineTo(900,238);ctx.lineTo(0,238);ctx.closePath();ctx.fill();
+  // 岸の木々と低木
+  for(let i=0;i<52;i++){
+    const x=i*18-8, base=222+(i%4)*3, r=10+(i%5)*2;
+    ctx.fillStyle=["#246f58","#348b62","#5ba66c","#287b68"][i%4];
+    ctx.beginPath();ctx.arc(x,base-r*.65,r,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="rgba(204,238,151,.35)";ctx.beginPath();ctx.arc(x-r*.25,base-r,Math.max(2,r*.28),0,Math.PI*2);ctx.fill();
+  }
+  // 水面から深みへ。水中も独立して動かせる
+  const water=ctx.createLinearGradient(0,218,0,500);
+  water.addColorStop(0,palette.waterTop);water.addColorStop(.28,palette.waterMid);water.addColorStop(1,palette.waterBottom);
+  ctx.fillStyle=water;ctx.fillRect(0,218,900,282);
+  // 湖や海では水中の光と色を変え、川との違いをはっきり出す
+  if(isSea){
+    const glint=ctx.createLinearGradient(0,220,0,310);glint.addColorStop(0,"rgba(211,250,255,.28)");glint.addColorStop(1,"rgba(80,190,220,0)");ctx.fillStyle=glint;ctx.fillRect(0,218,900,100);
+  } else if(isLake){
+    ctx.fillStyle="rgba(111,211,207,.12)";ctx.fillRect(0,218,900,282);
+  }
+  // 遠岸の小石と水中の岩
+  ctx.fillStyle=palette.shore;ctx.beginPath();ctx.moveTo(0,218);ctx.lineTo(900,218);ctx.lineTo(900,229);ctx.quadraticCurveTo(620,241,430,229);ctx.quadraticCurveTo(180,244,0,226);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#657f75";ctx.beginPath();ctx.moveTo(0,500);ctx.lineTo(0,474);ctx.quadraticCurveTo(115,438,205,468);ctx.quadraticCurveTo(300,489,390,500);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#496f72";ctx.beginPath();ctx.moveTo(610,500);ctx.quadraticCurveTo(690,450,775,473);ctx.quadraticCurveTo(850,451,900,470);ctx.lineTo(900,500);ctx.closePath();ctx.fill();
+  // 水草
+  for(let i=0;i<17;i++){
+    const x=(i*59+20)%900, base=492-(i%4)*7, sway=Math.sin(animationTime*1.8+i)*5;
+    ctx.strokeStyle=i%2?"#2c9b83":"#51b68b";ctx.lineWidth=3;
+    for(let j=0;j<3;j++){ctx.beginPath();ctx.moveTo(x+j*4,base);ctx.quadraticCurveTo(x-7+sway+j*5,base-17-j*7,x-5+sway+j*6,base-27-j*8);ctx.stroke();}
+  }
+  // 桟橋を岸の前に配置。山や水面と不自然に重ならない位置
+  ctx.fillStyle="#765036";ctx.fillRect(0,203,190,31);
+  ctx.fillStyle="#c99a61";ctx.fillRect(0,200,190,7);
+  for(let x=0;x<190;x+=28){ctx.fillStyle=x%2?"#bd8b55":"#d6aa70";ctx.fillRect(x,207,25,20);ctx.strokeStyle="#795337";ctx.lineWidth=1;ctx.strokeRect(x,207,25,20);}
+  ctx.fillStyle="#63452f";ctx.fillRect(0,228,190,6);
+  // 桟橋の杭
+  for(const x of [18,92,165]){ctx.fillStyle="#6c4c34";ctx.fillRect(x,228,9,30);ctx.fillStyle="#a8794d";ctx.fillRect(x+2,230,3,24);}
+  // 海のステージは海岸のテトラポッドと防波堤を追加。川・湖には出さない
+  if(isSea){
+    // 防波堤の岩場
+    ctx.fillStyle=isDeep?"#5d737c":"#718b8c";ctx.beginPath();ctx.moveTo(0,202);ctx.lineTo(205,202);ctx.lineTo(238,218);ctx.lineTo(0,226);ctx.closePath();ctx.fill();
+    function drawTetrapod(x,y,sc){
+      ctx.save();ctx.translate(x,y);ctx.scale(sc,sc);
+      const g=ctx.createLinearGradient(-14,-12,15,17);g.addColorStop(0,"#b4c0bc");g.addColorStop(.45,"#7c8d8c");g.addColorStop(1,"#4d6267");
+      ctx.lineCap="round";ctx.lineJoin="round";ctx.strokeStyle="#42585e";ctx.lineWidth=15;
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-18,-19);ctx.moveTo(0,0);ctx.lineTo(20,-17);ctx.moveTo(0,0);ctx.lineTo(1,22);ctx.moveTo(0,0);ctx.lineTo(17,9);ctx.stroke();
+      ctx.strokeStyle=g;ctx.lineWidth=11;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(-18,-19);ctx.moveTo(0,0);ctx.lineTo(20,-17);ctx.moveTo(0,0);ctx.lineTo(1,22);ctx.moveTo(0,0);ctx.lineTo(17,9);ctx.stroke();
+      ctx.fillStyle="#879997";ctx.beginPath();ctx.arc(0,0,8,0,Math.PI*2);ctx.fill();ctx.restore();
+    }
+    for(let i=0;i<5;i++){drawTetrapod(28+i*43,207+(i%2)*5,.72+(i%3)*.08);}
+    if(!isDeep){for(let i=0;i<3;i++)drawTetrapod(760+i*43,211+(i%2)*4,.64+(i%2)*.08);}
+    // 海らしい水平線の白波
+    ctx.strokeStyle="rgba(235,255,255,.62)";ctx.lineWidth=2;
+    for(let i=0;i<7;i++){const x=(i*139+animationTime*13)%960-30;ctx.beginPath();ctx.moveTo(x,220+(i%3)*3);ctx.quadraticCurveTo(x+13,216+(i%3)*3,x+27,220+(i%3)*3);ctx.stroke();}
+  } else if(isLake){
+    // 湖畔の丸い岩を岸辺に追加
+    for(let i=0;i<12;i++){const x=i*78+12;ctx.fillStyle=i%2?"#8b9b86":"#b1b39a";ctx.beginPath();ctx.ellipse(x,222+(i%3)*2,13+(i%3)*3,5,0,0,Math.PI*2);ctx.fill();}
+  }
+  // 水面のきらめき・波紋
+  ctx.save();
+  for(let i=0;i<13;i++){
+    const x=((i*83 + animationTime*(12+(i%4)*5))%960)-25;
+    const y=235+(i%4)*8+Math.sin(animationTime*1.7+i)*2;
+    ctx.strokeStyle=`rgba(206,250,255,${.16+(i%3)*.06})`;ctx.lineWidth=1.2;
+    ctx.beginPath();ctx.ellipse(x,y,9+(i%4)*5,1.2,0,0,Math.PI*2);ctx.stroke();
+  }
+  // 魚は詳細な共通描画関数で描き、魚種ごとの体型・模様・サイズを活かす
+  for(const f of waterFish){
+    const data=fishTypes[f.kind]||fishTypes.ayu;
+    const size=(f.scale||.7)*.82;
+    drawFish(f.x,f.y,size,data.color||"#8bc9c5",f.dir||1,f.kind,animationTime+(f.phase||0),true);
+    // レア魚は魚体の周りに控えめな金色のきらめき
+    if((Number(data.points)||0)>=80){
+      const pulse=.35+.3*Math.sin(animationTime*5+(f.phase||0));
+      ctx.fillStyle=`rgba(255,238,132,${pulse})`;
+      ctx.beginPath();ctx.arc(f.x-size*25,f.y-size*15,1.8+Math.sin(animationTime*7+(f.phase||0))*0.8,0,Math.PI*2);ctx.fill();
+    }
+  }
+  ctx.restore();
+  // 猫ちゃんを独立したキャラクターとして描画（背景画像には含めない）
   drawCharacter();
-  if(bobber){ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(ROD_TIP.x,ROD_TIP.y);ctx.quadraticCurveTo((ROD_TIP.x+bobber.x)/2,Math.min(ROD_TIP.y,bobber.y)-20,bobber.x,bobber.y);ctx.stroke();ctx.fillStyle="#f04d67";ctx.beginPath();ctx.ellipse(bobber.x,bobber.y,5,8,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#fff";ctx.fillRect(bobber.x-4,bobber.y,8,3);if(phase==="nibble"||phase==="bite"||phase==="reel"){ctx.strokeStyle="rgba(255,255,255,.8)";ctx.beginPath();ctx.arc(bobber.x,bobber.y,12+Math.sin(animationTime*12)*3,0,Math.PI*2);ctx.stroke();}}
-  ctx.fillStyle="rgba(3,24,44,.72)";ctx.fillRect(14,14,220,36);ctx.fillStyle="#fff";ctx.font="bold 18px sans-serif";ctx.fillText((currentLocation().name||"釣り場")+" · にゃんこ釣り",25,38);
-  if(phase==="bite"||phase==="reel"){ctx.fillStyle="#fff4a8";ctx.font="bold 20px sans-serif";ctx.fillText("ヒット！ リールを巻こう！",300,42);}
+  // ウキ・糸は投げた場所に合わせて動き、魚が掛かると波紋も強くなる
+  if(bobber){
+    ctx.strokeStyle="rgba(255,255,255,.95)";ctx.lineWidth=1.5;
+    ctx.beginPath();ctx.moveTo(ROD_TIP.x,ROD_TIP.y);
+    ctx.quadraticCurveTo((ROD_TIP.x+bobber.x)/2,Math.min(ROD_TIP.y,bobber.y)-20,bobber.x,bobber.y);ctx.stroke();
+    ctx.fillStyle="#f04d67";ctx.beginPath();ctx.ellipse(bobber.x,bobber.y,5,8,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#fff";ctx.fillRect(bobber.x-4,bobber.y,8,3);
+    if(phase==="nibble"||phase==="bite"||phase==="reel"){
+      ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=2;ctx.beginPath();ctx.arc(bobber.x,bobber.y,12+Math.sin(animationTime*12)*3,0,Math.PI*2);ctx.stroke();
+    }
+  }
+  if(phase==="bite"||phase==="reel"){
+    ctx.fillStyle="rgba(4,35,60,.85)";ctx.fillRect(300,18,300,38);ctx.fillStyle="#fff4a8";ctx.font="bold 20px sans-serif";ctx.fillText("ヒット！ リールを巻こう！",315,43);
+  }
 }
 
 function drawParticles(dt){
@@ -1048,6 +1251,7 @@ function updateFight(dt){
 
  fightClock+=dt;
  const f=biteFish.type;
+ const reelPower=(Number(window.__tsurickReelPower)||1);
  // 魚が周期的に突っ走る。大型・俊敏な魚ほど強く暴れる
  const surgeCycle=(fightClock*f.speed*1.7)%(4.2);
  const surge=surgeCycle>3.25 ? Math.sin((surgeCycle-3.25)/.95*Math.PI) : 0;
@@ -1066,10 +1270,10 @@ function updateFight(dt){
   if(Math.random()<dt*8)reelClick();
   // 巻いている間は進むが、魚が突っ走ると進行度を押し戻される
   progress+=dt*(.43+currentRod().power*.17);
-  tension+=dt*(.045+f.speed*.022+f.power*.022+run*.025+fishSurge*.22);
+  tension+=dt*(.045+f.speed*.022+f.power*.022+run*.025+fishSurge*.22)/(0.75+reelPower*.25);
   if(isSurging){
    progress-=dt*(.12+f.power*.035)*fishSurge;
-   lineWear+=dt*(2.8+f.power*1.5+fishSurge*12);
+   lineWear+=dt*(2.8+f.power*1.5+fishSurge*12)/(0.8+reelPower*.2);
   }
  }else{
   // リールを休めると張力が落ちる。ただし魚が暴れると少し糸が傷む
@@ -1184,11 +1388,6 @@ canvas.addEventListener("pointerdown",event=>{
  castAt(p.x,p.y);
 });
 
-$("castButton").addEventListener("click",()=>{
- if(phase!=="idle"){say("今は釣りの最中やで！");return}
- castAt(240+Math.random()*430,280+Math.random()*145);
-});
-
 const reelButton=$("reelButton");
 reelButton.addEventListener("pointerdown",event=>{
  event.preventDefault();startReeling();
@@ -1204,9 +1403,13 @@ function loop(now){
  lastFrame=now;animationTime+=dt;
 
  for(const f of waterFish){
+  // 画面内で左右に折り返し、上下にもゆっくり泳ぐ。画面外へワープさせない。
   f.x+=f.speed*f.dir*dt;
-  if(f.x< -50){f.x=950;f.dir=1}
-  if(f.x>950){f.x=-40;f.dir=-1}
+  const margin=52*(f.scale||.8);
+  if(f.x<margin){f.x=margin;f.dir=1}
+  if(f.x>900-margin){f.x=900-margin;f.dir=-1}
+  f.y=f.baseY+Math.sin(animationTime*(f.verticalSpeed||.8)+(f.phase||0))*(f.swimAmp||8);
+  f.y=Math.max(260,Math.min(320,f.y));
  }
 
  if(approachFish&&bobber&&(phase==="approach"||phase==="nibble")){
