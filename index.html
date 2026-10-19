@@ -732,6 +732,38 @@ function buyBait(i){
  say(baits[i].name+"を用意した！");updateAll();
 }
 
+// 魚を売ったときの「ピロン♪」通知音（外部音源不要）
+function playSaleChime(){
+ // 売却時の「ピロン♪」＋猫ちゃんの「売るにゃーん！」
+ try{
+  const AC=window.AudioContext||window.webkitAudioContext;
+  if(AC){
+   const ac=audioContext();
+   if(ac){
+    const now=ac.currentTime;
+    [[880,0,0.12],[1174.66,0.10,0.16],[1567.98,0.22,0.20]].forEach(([freq,delay,dur],i)=>{
+     const osc=ac.createOscillator(), gain=ac.createGain();
+     osc.type='sine';osc.frequency.setValueAtTime(freq,now+delay);
+     gain.gain.setValueAtTime(0.0001,now+delay);
+     gain.gain.exponentialRampToValueAtTime(i===2?0.13:0.10,now+delay+0.015);
+     gain.gain.exponentialRampToValueAtTime(0.0001,now+delay+dur);
+     osc.connect(gain);gain.connect(ac.destination);
+     osc.start(now+delay);osc.stop(now+delay+dur+0.02);
+    });
+   }
+  }
+ }catch(e){/* 音声非対応でも売却処理は続行 */}
+ // ブラウザに日本語音声がある場合は、軽い猫っぽい口調でひとこと
+ try{
+  if('speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined'){
+   window.speechSynthesis.cancel();
+   const voiceLine=new SpeechSynthesisUtterance('売るにゃーん！');
+   voiceLine.lang='ja-JP';voiceLine.rate=1.18;voiceLine.pitch=1.55;voiceLine.volume=0.85;
+   setTimeout(()=>window.speechSynthesis.speak(voiceLine),260);
+  }
+ }catch(e){/* 音声合成非対応ならチャイムのみ */}
+}
+
 function sellFish(){
  const inventory=Array.isArray(state.inventory)?state.inventory:[];
  if(!inventory.length){say("売る魚がいないで！");return}
@@ -758,6 +790,7 @@ function sellFish(){
  }
  state.inventory=remaining;
  state.gold=(Number(state.gold)||0)+total;
+ playSaleChime();
  say(count+"匹を売却！ "+total+"Gを獲得！");
  updateAll();
 }
@@ -1001,6 +1034,9 @@ function drawCharacter(){
   // 体とベスト
   ctx.fillStyle="#dce1eb";ctx.beginPath();ctx.ellipse(73,187,22,23,0,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#3d8f9e";ctx.beginPath();ctx.moveTo(59,171);ctx.quadraticCurveTo(76,164,88,176);ctx.lineTo(92,201);ctx.quadraticCurveTo(74,209,56,199);ctx.closePath();ctx.fill();
+  // ベストの小さなポケットと肉球マーク
+  ctx.fillStyle="#286c7b";ctx.beginPath();ctx.roundRect(61,185,11,9,2);ctx.fill();
+  ctx.fillStyle="#f4b0c5";ctx.beginPath();ctx.arc(66.5,188,1.8,0,Math.PI*2);ctx.arc(64,185.5,1.1,0,Math.PI*2);ctx.arc(68.5,185.5,1.1,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#ffd36a";ctx.fillRect(76,178,7,7);
   // 首輪と鈴
   ctx.strokeStyle="#ff6f91";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(70,168);ctx.quadraticCurveTo(82,176,91,169);ctx.stroke();
@@ -1015,6 +1051,10 @@ function drawCharacter(){
   ctx.fillStyle="#e987a4";ctx.beginPath();ctx.moveTo(96,163);ctx.lineTo(101,165);ctx.lineTo(96,167);ctx.closePath();ctx.fill();
   ctx.strokeStyle="#596274";ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(96,168);ctx.quadraticCurveTo(92,174,88,170);ctx.moveTo(97,168);ctx.quadraticCurveTo(99,172,101,169);ctx.stroke();
   ctx.strokeStyle="#929bad";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(96,166);ctx.lineTo(108,163);ctx.moveTo(96,169);ctx.lineTo(108,171);ctx.stroke();
+  // ほっぺの桜色と目のハイライトで、表情をやわらかく可愛らしく
+  ctx.fillStyle="rgba(255,126,166,.58)";ctx.beginPath();ctx.ellipse(77,166,4.5,2.8,-.15,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(84.5,155.2,1.7,0,Math.PI*2);ctx.fill();
+  ctx.strokeStyle="#8994a8";ctx.lineWidth=1.5;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(66,151);ctx.lineTo(69,153);ctx.moveTo(71,149);ctx.lineTo(73,151);ctx.stroke();
   // 前足で握る竿。竿先は水面の右側へ向ける
   ctx.strokeStyle="#c8cedb";ctx.lineWidth=9;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(80,184);ctx.quadraticCurveTo(94,186,103,190);ctx.stroke();
   const rodStyle=[{base:"#78523a",accent:"#d5b18a",width:4},{base:"#9a633c",accent:"#f6d49a",width:4.5},{base:"#263a52",accent:"#57d5e8",width:4},{base:"#38205f",accent:"#ffe66d",width:5}][state.rod]||{base:"#78523a",accent:"#d5b18a",width:4};
