@@ -529,7 +529,9 @@ const extraFishData = [
  ['hokkigai','ホッキガイ','sea'],['takoyaki','マダコ','sea'],['ika','スルメイカ','sea'],['yariika','ヤリイカ','sea'],['hotaruika','ホタルイカ','sea'],['ebi','クルマエビ','sea'],['iseebi','イセエビ','sea'],['kani','ズワイガニ','sea'],['watari','ワタリガニ','sea'],['shijimi','シジミ','river'],
  ['asari','アサリ','sea'],['hamaguri','ハマグリ','sea'],['hotate','ホタテ','sea'],['awabi','アワビ','sea'],['sazae','サザエ','sea'],['uni','ウニ','sea'],['kurage','クラゲ','sea'],['manbou','マンボウ','sea'],['same','シュモクザメ','sea'],['shark','ホホジロザメ','sea'],
  ['ray','エイ','sea'],['dolphin','イルカ','sea'],['seahorse','タツノオトシゴ','sea'],['koi_gold','ニシキゴイ','lake'],['arowana','アロワナ','lake'],['pirarucu','ピラルク','lake'],['piranha','ピラニア','lake'],['gar','ガー','lake'],['sturgeon','チョウザメ','lake'],['salmon','キングサーモン','river'],
- ['char','オショロコマ','river'],['smelt','チカ','lake'],['goby','ヨシノボリ','river'],['shishamo','シシャモ','sea'],['redfish','キンメダイ','sea'],['alfonsino','アカムツ','sea'],['tilefish','アマダイ','sea'],['grouper','クエ','sea'],['rockfish','ソイ','sea'],['pollock','スケトウダラ','sea'],['flounder','マコガレイ','sea'],['puffer','トラフグ','sea'],['sea_bream','チダイ','sea'],['needlefish','サヨリ','sea'],['squid','コウイカ','sea']
+ ['char','オショロコマ','river'],['smelt','チカ','lake'],['goby','ヨシノボリ','river'],['shishamo','シシャモ','sea'],['redfish','キンメダイ','sea'],['alfonsino','アカムツ','sea'],['tilefish','アマダイ','sea'],['grouper','クエ','sea'],['rockfish','ソイ','sea'],['pollock','スケトウダラ','sea'],['flounder','マコガレイ','sea'],['puffer','トラフグ','sea'],['sea_bream','チダイ','sea'],['needlefish','サヨリ','sea'],['squid','コウイカ','sea'],
+ // 最終ステージ限定の古代魚たち
+ ['coelacanth','シーラカンス','sea'],['megalodon','メガロドン','sea'],['dunkleosteus','ダンクルオステウス','sea'],['mosasaurus','モササウルス','sea'],['plesiosaur','プレシオサウルス','sea'],['ancient_shark','古代巨大ザメ','sea'],['helicoprion','ヘリコプリオン','sea'],['livyatan','リヴィアタン','sea']
 ];
 const habitatById={};
 extraFishData.forEach(([id,name,hab],i)=>{
@@ -539,9 +541,21 @@ extraFishData.forEach(([id,name,hab],i)=>{
  fishTypes[id]={name,price,points,speed:.62+((i*13)%75)/100,power:.55+((i*17)%100)/100,color:`hsl(${hue} 42% 67%)`};
  habitatById[id]=hab;
 });
-// 既存14種 + 追加86種で、図鑑をちょうど100種にそろえる
+// 古代魚を含めて全108種に拡張
+const ancientFish={
+ coelacanth:{name:"シーラカンス",price:12000,points:650,speed:1.35,power:4.4,color:"#648da1"},
+ megalodon:{name:"メガロドン",price:50000,points:1800,speed:1.55,power:8.5,color:"#536f82"},
+ dunkleosteus:{name:"ダンクルオステウス",price:36000,points:1300,speed:1.25,power:7.2,color:"#788b91"},
+ mosasaurus:{name:"モササウルス",price:65000,points:2200,speed:1.65,power:9.2,color:"#568b86"},
+ plesiosaur:{name:"プレシオサウルス",price:42000,points:1550,speed:1.4,power:7.8,color:"#6b9b9c"},
+ ancient_shark:{name:"古代巨大ザメ",price:58000,points:2000,speed:1.75,power:9,color:"#728ca2"},
+ helicoprion:{name:"ヘリコプリオン",price:32000,points:1150,speed:1.5,power:6.8,color:"#8c9baf"},
+ livyatan:{name:"リヴィアタン",price:72000,points:2500,speed:1.6,power:9.8,color:"#657f94"}
+};
+Object.assign(fishTypes,ancientFish);
+for(const id of Object.keys(ancientFish))habitatById[id]="sea";
 const fishKeys=Object.keys(fishTypes);
-if(fishKeys.length>100){for(const id of fishKeys.slice(100))delete fishTypes[id]}
+if(fishKeys.length>108){for(const id of fishKeys.slice(108))delete fishTypes[id]}
 const habitats={river:[],lake:[],sea:[]};
 // 追加魚だけでなく、初期の魚にも生息域を明示して混在を防ぐ
 const baseHabitat={minnow:"river",ayu:"river",carp:"river",crucian:"river",dace:"river",catfish:"river",yamame:"river",rainbow:"lake",bass:"lake",bluegill:"lake",pike:"lake",tuna:"sea",mackerel:"sea",snapper:"sea"};
@@ -556,7 +570,7 @@ locations.river_mid.fish=only([...riverFish.filter(id=>fishTypes[id].points>=20&
 locations.river_lower.fish=only([...riverFish.filter(id=>fishTypes[id].points>=40),"ayu","carp","crucian","catfish","unagi","goby","shijimi","salmon"]);
 locations.lake.fish=only([...lakeFish,"wakasagi","rainbow","bluegill","pike","koi_gold","arowana","pirarucu","piranha","gar","sturgeon","smelt","nijimasu"]);
 locations.sea.fish=only([...seaFish.filter(id=>fishTypes[id].points<=115),"mackerel","snapper","aji","iwashi","kisu","haze","suzuki","tai","sardine","sawara","buri","mebaru","kasago","grouper"]);
-locations.sea_deep.fish=only([...seaFish.filter(id=>fishTypes[id].points>=65),"tuna","maguro","same","shark","ray","manbou","alfonsino","tilefish","grouper","rockfish","pollock","tara","hokke"]);
+locations.sea_deep.fish=only([...seaFish.filter(id=>fishTypes[id].points>=65),"tuna","maguro","same","shark","ray","manbou","alfonsino","tilefish","grouper","rockfish","pollock","tara","hokke","coelacanth","megalodon","dunkleosteus","mosasaurus","plesiosaur","ancient_shark","helicoprion","livyatan"]);
 
 const addRods=[
  ['渓流ロッド',180,1.55],['万能ロッド',260,1.7],['湖沼ロッド',390,1.85],['遠投ロッド',520,2.0],['海釣りロッド',700,2.2],['剛力ロッド',950,2.4],['軽量カーボン',1250,2.55],['トーナメントロッド',1650,2.75],['深海ロッド',2200,3.0],['ドラゴンロッド',3000,3.25],['星降りロッド',4200,3.5],['虹色ロッド',5800,3.8],['神獣ロッド',8000,4.1],['伝説の猫竿',12000,4.5],['銀河ロッド',18000,4.9],['にゃんこマスター竿',26000,5.4]
@@ -846,11 +860,13 @@ function createWaterFish(){
  if(!pool.length)return;
  // 魚のポイント・魚種から体格をはっきり分ける。小魚は小さく、大物は画面でも大きく見せる。
  const sizeByKind={minnow:.42,dace:.52,medaka:.30,motsugo:.40,moroko:.45,tanago:.43,dojo:.48,loach:.48,goby:.48,ayu:.66,yamame:.72,amago:.72,char:.78,crucian:.82,carp:1.02,catfish:1.18,bass:1.05,bluegill:.76,rainbow:.92,mackerel:.90,tuna:1.62,maguro:1.68,same:1.82,shark:1.85,ray:1.65,manbou:1.9,arowana:1.55,pirarucu:1.9,sturgeon:1.55,gar:1.48,pike:1.15,snapper:1.0};
- // 種類を散らし、同じ魚ばかり並ばないようにする
- const chosen=[];
- for(let i=0;i<Math.min(16,pool.length);i++){
-  const kind=pool[Math.floor(Math.random()*pool.length)];
-  chosen.push(kind);
+ // 水中を泳ぐ魚を増やし、まず魚種が重複しないように選ぶ。
+ // 釣り場ごとの生息魚プールから最大24匹を選び、見た目の種類を増やす。
+ const shuffled=[...new Set(pool)].sort(()=>Math.random()-.5);
+ const chosen=shuffled.slice(0,Math.min(24,shuffled.length));
+ // 魚種が少ない釣り場だけ、画面が寂しくならないように追加分を補う。
+ while(chosen.length<Math.min(24,pool.length+4)){
+  chosen.push(pool[Math.floor(Math.random()*pool.length)]);
  }
  for(let i=0;i<chosen.length;i++){
   const kind=chosen[i], data=fishTypes[kind]||{};
@@ -901,7 +917,24 @@ function drawFish(x,y,scale,color,dir=1,kind="ayu",phase=0,underwater=true){
   bluegill:{body:1.0,depth:1.22,belly:"#d6d3a8",back:"#526f65",spots:"bass",tail:.85},
   pike:{body:1.5,depth:.7,belly:"#d5d8b7",back:"#657a53",spots:"bass",tail:1.1},
   mackerel:{body:1.25,depth:.72,belly:"#d4e2e8",back:"#456e83",spots:"trout",tail:1.25},
-  snapper:{body:1.15,depth:1.0,belly:"#f2c4b3",back:"#b7655c",spots:"speckle",tail:1}
+  snapper:{body:1.15,depth:1.0,belly:"#f2c4b3",back:"#b7655c",spots:"speckle",tail:1},
+  medaka:{body:.62,depth:.55,belly:"#e3e9d7",back:"#8da8a0",spots:"none",tail:.72},
+  dojo:{body:.9,depth:.48,belly:"#c9bca4",back:"#7d7468",spots:"speckle",tail:.75},
+  loach:{body:.96,depth:.46,belly:"#d5c6a8",back:"#81725c",spots:"speckle",tail:.78},
+  wakasagi:{body:.84,depth:.52,belly:"#e7eee9",back:"#6f9aa4",spots:"none",tail:.95},
+  iwana:{body:1.08,depth:.76,belly:"#e0dfca",back:"#5c796e",spots:"trout",tail:1.05},
+  amago:{body:1.02,depth:.75,belly:"#e5dfcc",back:"#718a70",spots:"trout",tail:1.02},
+  oikawa:{body:.92,depth:.62,belly:"#dce5d9",back:"#6b8e86",spots:"speckle",tail:1.02},
+  dojo:{body:.9,depth:.48,belly:"#c9bca4",back:"#7d7468",spots:"speckle",tail:.75},
+  unagi:{body:1.45,depth:.42,belly:"#b9b7a1",back:"#596b50",spots:"speckle",tail:.65},
+  eel:{body:1.45,depth:.42,belly:"#b9b7a1",back:"#596b50",spots:"speckle",tail:.65},
+  piranha:{body:.95,depth:.82,belly:"#d7c9a7",back:"#7f8e70",spots:"speckle",tail:1},
+  arowana:{body:1.5,depth:.76,belly:"#e4c78e",back:"#a27c42",spots:"scale",tail:1.15},
+  manbou:{body:1.15,depth:1.55,belly:"#d4d7d1",back:"#7f9ba0",spots:"none",tail:.35},
+  ray:{body:1.25,depth:1.0,belly:"#c7c7b6",back:"#6b7f83",spots:"speckle",tail:.45},
+  shark:{body:1.55,depth:.72,belly:"#c8d5d9",back:"#536e7b",spots:"none",tail:1.25},
+  maguro:{body:1.52,depth:.78,belly:"#c5d8e2",back:"#3f6688",spots:"none",tail:1.35},
+  koi_gold:{body:1.22,depth:1.12,belly:"#f4dfb4",back:"#d88748",spots:"scale",tail:1.1}
  };
  const s=specs[kind]||specs.ayu, flap=Math.sin(animationTime*8+phase)*3;
  ctx.save();ctx.translate(x,y+Math.sin(animationTime*2+phase)*1.4);ctx.scale(scale*dir,scale);
@@ -1180,7 +1213,7 @@ function drawScene(){
     // レア魚は魚体の周りに控えめな金色のきらめき
     if((Number(data.points)||0)>=80){
       const pulse=.35+.3*Math.sin(animationTime*5+(f.phase||0));
-      ctx.fillStyle=`rgba(255,238,132,${pulse})`;
+      ctx.fillStyle=(Number(data.power)||0)>=4?`rgba(94,224,255,${pulse})`:`rgba(255,238,132,${pulse})`;
       ctx.beginPath();ctx.arc(f.x-size*25,f.y-size*15,1.8+Math.sin(animationTime*7+(f.phase||0))*0.8,0,Math.PI*2);ctx.fill();
     }
   }
@@ -1246,6 +1279,7 @@ function weightedFish(){
  const weights=ids.map(id=>{
   let w=1;
   if(id==="minnow"||id==="ayu")w*=currentBait().bonus;
+  if(["coelacanth","megalodon","dunkleosteus","mosasaurus","plesiosaur","ancient_shark","helicoprion","livyatan"].includes(id))w*=0.12;
   return w;
  });
  let r=Math.random()*weights.reduce((a,b)=>a+b,0);
@@ -1257,7 +1291,8 @@ function triggerBite(){
  if(phase!=="waiting")return;
  const id=weightedFish(),f=fishTypes[id];
  const needed=(4.5+f.power*1.5)*currentLocation().difficulty/currentRod().power;
- biteFish={id,type:f,needed:Math.max(3.5,needed)};
+ const ancient=["coelacanth","megalodon","dunkleosteus","mosasaurus","plesiosaur","ancient_shark","helicoprion","livyatan"].includes(id);
+ biteFish={id,type:f,needed:Math.max(3.5,needed)*(ancient?1.55:1),ancient};
  // いきなりウキが沈むのではなく、魚が近づき、餌をつついてから食いつく
  approachFish=waterFish.length?waterFish.reduce((best,fish)=>{
   const d=Math.hypot(fish.x-bobber.x,fish.y-bobber.y);
@@ -1274,7 +1309,20 @@ function triggerBite(){
    if(phase!=="nibble")return;
    phase="bite";fightClock=0;tension=.12;
    if(bobber) {bobber.y+=12;splash(bobber.x,bobber.y)}
-   say("‼️ 食いついた！今や！『リールを巻く』を長押しして引き寄せよう！");
+   if(biteFish&&biteFish.ancient){
+    say("🌊💥 とてつもない古代魚が食いついた！！竿が持っていかれる！強力な竿とリールで慎重に戦え！");
+    // 古代魚が掛かった瞬間、猫ちゃんがびっくりして叫ぶ
+    if("speechSynthesis" in window && typeof SpeechSynthesisUtterance!=="undefined"){
+     try{
+      window.speechSynthesis.cancel();
+      const ancientVoice=new SpeechSynthesisUtterance("にゃああああ、これは！！？");
+      ancientVoice.lang="ja-JP";ancientVoice.rate=1.08;ancientVoice.pitch=1.75;ancientVoice.volume=1;
+      setTimeout(()=>window.speechSynthesis.speak(ancientVoice),80);
+     }catch(e){}
+    }
+   }else{
+    say("‼️ 食いついた！今や！『リールを巻く』を長押しして引き寄せよう！");
+   }
    biteTimer=setTimeout(()=>{
     if(phase==="bite"&&!reeling){
      say("🐟 合わせるのが遅れて魚が逃げてしまった……ウキが沈んだ瞬間を狙おう！");
@@ -1299,12 +1347,13 @@ function updateFight(dt){
 
  fightClock+=dt;
  const f=biteFish.type;
+ const ancient=!!biteFish.ancient;
  const reelPower=(Number(window.__tsurickReelPower)||1);
  // 魚が周期的に突っ走る。大型・俊敏な魚ほど強く暴れる
- const surgeCycle=(fightClock*f.speed*1.7)%(4.2);
- const surge=surgeCycle>3.25 ? Math.sin((surgeCycle-3.25)/.95*Math.PI) : 0;
+ const surgeCycle=(fightClock*f.speed*(ancient?2.15:1.7))%(ancient?3.5:4.2);
+ const surge=surgeCycle>(ancient?2.35:3.25) ? Math.sin((surgeCycle-(ancient?2.35:3.25))/(ancient?1.15:.95)*Math.PI) : 0;
  const run=Math.max(0,Math.sin(fightClock*f.speed*3));
- fishSurge=Math.max(0,surge);
+ fishSurge=Math.max(0,surge)*(ancient?1.35:1);
  const isSurging=fishSurge>.12;
  if(isSurging && fightClock-lastSurge>.55){
   lastSurge=fightClock;
@@ -1318,10 +1367,10 @@ function updateFight(dt){
   if(Math.random()<dt*8)reelClick();
   // 巻いている間は進むが、魚が突っ走ると進行度を押し戻される
   progress+=dt*(.43+currentRod().power*.17);
-  tension+=dt*(.045+f.speed*.022+f.power*.022+run*.025+fishSurge*.22)/(0.75+reelPower*.25);
+  tension+=dt*(.045+f.speed*.022+f.power*.022+run*.025+fishSurge*(ancient?.34:.22))/(0.75+reelPower*.25);
   if(isSurging){
-   progress-=dt*(.12+f.power*.035)*fishSurge;
-   lineWear+=dt*(2.8+f.power*1.5+fishSurge*12)/(0.8+reelPower*.2);
+   progress-=dt*(.12+f.power*.035+(ancient?.12:0))*fishSurge;
+   lineWear+=dt*(2.8+f.power*1.5+fishSurge*(ancient?18:12))/(0.8+reelPower*.2);
   }
  }else{
   // リールを休めると張力が落ちる。ただし魚が暴れると少し糸が傷む
@@ -1400,6 +1449,24 @@ function catchFish(){
   say("🎉 "+f.name+"を釣り上げた！ +"+f.points+"ポイント！");
  }
  playCatchVoice(isRare);
+ // 釣り成功時は、猫ちゃんが6種類のセリフからランダムにお祝い！
+ const catCatchLines=[
+  "にゃーーーーん",
+  "やったーにゃーーーん",
+  "にゃんにゃんにゃーーーーん",
+  "にゃにゃにゃにゃにゃ！",
+  "ごろごろごろにゃん",
+  "ごろごろごろにゃんにゃん"
+ ];
+ const catCatchLine=catCatchLines[Math.floor(Math.random()*catCatchLines.length)];
+ if("speechSynthesis" in window && typeof SpeechSynthesisUtterance!=="undefined"){
+  try{
+   window.speechSynthesis.cancel();
+   const catVoice=new SpeechSynthesisUtterance(catCatchLine);
+   catVoice.lang="ja-JP";catVoice.rate=0.92+Math.random()*0.18;catVoice.pitch=1.65;catVoice.volume=0.95;
+   setTimeout(()=>window.speechSynthesis.speak(catVoice),180);
+  }catch(e){}
+ }
  const expResult=window.grantExp(15+Math.round((Number(f.points)||0)*.7));
  updateAll();
  resetFishing(false);
