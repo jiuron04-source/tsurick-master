@@ -105,8 +105,8 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
 
 
 <section class="panel" id="equipmentPanel" style="margin-bottom:10px">
- <h2>🐾 猫ちゃんの装備工房</h2>
- <p class="small">ロッド・リール・仕掛け・お守りを各20種類。数値性能と価格を見比べて選ぶと、その場で購入・装備できるで！釣具ショップはここに統合したで。</p>
+ <h2>🐱 ねこちゃんの釣具装備</h2>
+ <p class="small">ここでは、所持している釣り竿・リール・仕掛け・お守りを選んで装備するで。購入や修理は下の「装備工房」で行うで！</p>
  <div class="gear-grid">
   <label>🎣 ロッド<select id="gearRod"></select></label>
   <label>⚙️ リール<select id="gearReel"></select></label>
@@ -647,8 +647,11 @@ window.tackles=[
 window.charms=[
  ['小さな肉球のお守り',0,1],['幸運のお守り',120,1.03],['経験値のお守り',240,1.12],['魚寄せのお守り',360,1.08],['大物のお守り',500,1.1],['レア魚のお守り',680,1.12],['川守りのお守り',850,1.14],['湖守りのお守り',1050,1.16],['海守りのお守り',1300,1.18],['金運のお守り',1600,1.2],['集中のお守り',2000,1.22],['耐久のお守り',2500,1.25],['経験値アップ札',3200,1.3],['虹色の肉球',4100,1.34],['星降りのお守り',5300,1.38],['幻魚のお守り',6900,1.43],['大漁祈願のお守り',9000,1.48],['七福猫のお守り',12000,1.55],['神獣の首輪',16000,1.65],['伝説のにゃんこ守',22000,1.8]
 ].map(([name,price,bonus])=>({name,price,bonus}));
+// 装備工房（別パネル）からも道具データを参照できるように共有する
+window.rods=rods;window.reels=reels;window.tackles=tackles;window.charms=charms;
 // 旧セーブデータとの互換性を維持。レベルは記録用で、釣り能力には影響しない
 state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number(state.charm)||0;
+state.ownedRods=Array.isArray(state.ownedRods)?state.ownedRods:[0,Number(state.rod)||0];state.ownedReels=Array.isArray(state.ownedReels)?state.ownedReels:[0,Number(state.reel)||0];if(!state.ownedRods.includes(0))state.ownedRods.unshift(0);if(!state.ownedReels.includes(0))state.ownedReels.unshift(0);if(!state.ownedRods.includes(Number(state.rod)||0))state.ownedRods.push(Number(state.rod)||0);if(!state.ownedReels.includes(Number(state.reel)||0))state.ownedReels.push(Number(state.reel)||0);
 // freshStateは既存セーブ互換のまま使い、ロード後に追加項目を補完する。
 const baseCurrentRod=currentRod;
 currentRod=function(){return baseCurrentRod()};
@@ -675,20 +678,18 @@ function grantExp(base){
 window.grantExp=grantExp;
 function populateGearSelect(id,items,key){
  const sel=$(id);if(!sel)return;sel.innerHTML='';
- items.forEach((item,i)=>{const opt=document.createElement('option');opt.value=i;let metric='';if(key==='rod')metric=`引き寄せ力 +${Number(item.power)||0}`;else if(key==='reel')metric=`糸保護 +${Number(item.power)||0}`;else if(key==='tackle')metric=`魚寄せ +${Number(item.bonus)||0}`;else if(key==='charm')metric=`効果 ${(Number(item.bonus)||1).toFixed(2)}倍`;opt.textContent=`${item.name}｜${metric}｜${item.price}G`;sel.appendChild(opt)});
+ if(key==='rod'||key==='reel'){
+  const owned=key==='rod'?(state.ownedRods||[0]):(state.ownedReels||[0]);
+  [...new Set([0,...owned,Number(state[key])||0])].filter(i=>items[i]).forEach(i=>{const item=items[i],opt=document.createElement('option');opt.value=i;opt.textContent=`${item.name}｜${key==='rod'?'引き寄せ力':'糸保護'} +${Number(item.power)||0}｜耐久 ${key==='rod'?(state.rodDurability??100):(state.reelDurability??100)}/100`;sel.appendChild(opt)});
+ }else{items.forEach((item,i)=>{const opt=document.createElement('option');opt.value=i;const metric=key==='tackle'?`魚寄せ +${Number(item.bonus)||0}`:`効果 ${(Number(item.bonus)||1).toFixed(2)}倍`;opt.textContent=`${item.name}｜${metric}${key==='tackle'?'｜選択装備':''}`;sel.appendChild(opt)});}
  sel.value=String(state[key]||0);
- sel.onchange=()=>{
-  const i=Number(sel.value),item=items[i];if(!item)return;
-  if(i===0||i<=(state[key]||0)){state[key]=i;updateAll();say(item.name+'を装備したで！');return;}
-  if(state.gold<item.price){say('お金が足りないで！魚を売って貯めよう。');sel.value=String(state[key]||0);return;}
-  state.gold-=item.price;state[key]=i;updateAll();say(item.name+'を購入して装備したで！');
- };
+ sel.onchange=()=>{const i=Number(sel.value),item=items[i];if(!item)return;state[key]=i;updateAll();say(item.name+'を装備したで！');};
 }
 function setupGearUI(){
  populateGearSelect('gearRod',rods,'rod');populateGearSelect('gearReel',reels,'reel');populateGearSelect('gearTackle',tackles,'tackle');populateGearSelect('gearCharm',charms,'charm');
  // reels は updateAll 内のローカル変数なので、釣りループ用に選択中の性能だけ公開する
  window.__tsurickReelPower = Number(reels[state.reel]?.power) || 0;
- const info=$('gearInfo');if(info)info.innerHTML=`<strong>装備中の性能・販売価格</strong><br>🎣 ${rods[state.rod]?.name||'木の釣り竿'}：引き寄せ力 +${Number(rods[state.rod]?.power)||0} ／ ${rods[state.rod]?.price||0}G<br>⚙️ ${reels[state.reel]?.name||'基本リール'}：糸保護 +${Number(reels[state.reel]?.power)||0} ／ ${reels[state.reel]?.price||0}G<br>🪝 ${tackles[state.tackle]?.name||'基本仕掛け'}：魚寄せ +${Number(tackles[state.tackle]?.bonus)||0} ／ ${tackles[state.tackle]?.price||0}G<br>🐾 ${charms[state.charm]?.name||'小さな肉球のお守り'}：効果 ${(charms[state.charm]?.bonus||1).toFixed(2)}倍 ／ ${charms[state.charm]?.price||0}G<br><span class="small">竿・リール・仕掛けは数値加算式。お守りのみ倍率式。所持金が足りない商品は購入できへんで。</span>`;
+ const info=$('gearInfo');if(info)info.innerHTML=`<strong>現在の装備</strong><br>🎣 ${rods[state.rod]?.name||'木の釣り竿'}：引き寄せ力 +${Number(rods[state.rod]?.power)||0} ／ 耐久 ${state.rodDurability??100}/100<br>⚙️ ${reels[state.reel]?.name||'基本リール'}：糸保護 +${Number(reels[state.reel]?.power)||0} ／ 耐久 ${state.reelDurability??100}/100<br>🪝 ${tackles[state.tackle]?.name||'基本仕掛け'}：魚寄せ +${Number(tackles[state.tackle]?.bonus)||0} ／ 購入不要・選択装備<br>🐾 ${charms[state.charm]?.name||'小さな肉球のお守り'}：効果 ${(charms[state.charm]?.bonus||1).toFixed(2)}倍 ／ ${charms[state.charm]?.price||0}G<br><span class="small">竿・リール・仕掛けは数値加算式。お守りのみ倍率式。所持金が足りない商品は購入できへんで。</span>`;
  const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
  setText('statusRod',rods[state.rod]?.name||'木の釣り竿');
  setText('statusReel',reels[state.reel]?.name||'基本リール');
@@ -706,7 +707,8 @@ updateAll=function(){oldUpdateAll();
 const oldDrawShop=drawShop;
 drawShop=function(){oldDrawShop();};
 const oldLoadGame=loadGame;
-loadGame=function(){oldLoadGame();state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number(state.charm)||0;updateAll();};
+loadGame=function(){oldLoadGame();state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number(state.charm)||0;
+state.ownedRods=Array.isArray(state.ownedRods)?state.ownedRods:[0,Number(state.rod)||0];state.ownedReels=Array.isArray(state.ownedReels)?state.ownedReels:[0,Number(state.reel)||0];if(!state.ownedRods.includes(0))state.ownedRods.unshift(0);if(!state.ownedReels.includes(0))state.ownedReels.unshift(0);if(!state.ownedRods.includes(Number(state.rod)||0))state.ownedRods.push(Number(state.rod)||0);if(!state.ownedReels.includes(Number(state.reel)||0))state.ownedReels.push(Number(state.reel)||0);updateAll();};
 // 長めの「にゃーーーーーん！」をブラウザ内合成で再生。外部音源不要。
 playCatchVoice=function(isRare=false){
  const a=audioContext();if(!a)return;
@@ -1822,6 +1824,7 @@ requestAnimationFrame(loop);
  const oldFreshState=freshState;
  // 既存セーブとの互換性を保ち、追加データだけ補完する
  function ensureGearState(){
+  state.ownedRods=Array.isArray(state.ownedRods)?state.ownedRods:[0,Number(state.rod)||0];state.ownedReels=Array.isArray(state.ownedReels)?state.ownedReels:[0,Number(state.reel)||0];if(!state.ownedRods.includes(0))state.ownedRods.unshift(0);if(!state.ownedReels.includes(0))state.ownedReels.unshift(0);
   if(!state.consumableStock || typeof state.consumableStock!=='object') state.consumableStock={worm:10};
   if(!Object.prototype.hasOwnProperty.call(state.consumableStock,'worm'))state.consumableStock.worm=10;
   if(!state.activeRig)state.activeRig='float';
@@ -1873,9 +1876,10 @@ requestAnimationFrame(loop);
  function activeBait(){return getItem(state.activeBait||'worm')}
  function eligibleIds(){
   const rig=activeRig(),bait=activeBait();
+  const usesBait=rig.id==='float';
   return (currentLocation().fish||[]).filter(id=>{
    if(!fishTypes[id])return false;
-   if(!['fossil','dragon'].includes(rig.id)&&!matches(id,bait))return false;
+   if(usesBait&&!matches(id,bait))return false;
    const rarity=getFishRarity(id,fishTypes[id]).code;
    if(rig.id==='float')return !['KR','GR'].includes(rarity);
    return matches(id,rig);
@@ -1893,7 +1897,7 @@ requestAnimationFrame(loop);
    const bonus=Math.max(0,Number(tackles[state.tackle]?.bonus)||0);
    const rarity=getFishRarity(id,fishTypes[id]).code;
    if(['SR','SSR','UR','LR','KR','GR'].includes(rarity))w*=1+Math.min(.35,bonus*.008);
-   if(id==='minnow'||id==='ayu')w*=Math.max(1,Number(currentBait()?.bonus)||1);
+   if(activeRig().id==='float'&&(id==='minnow'||id==='ayu'))w*=Math.max(1,Number(currentBait()?.bonus)||1);
    return w;
   });
   let r=Math.random()*weights.reduce((a,b)=>a+b,0);
@@ -1905,16 +1909,17 @@ requestAnimationFrame(loop);
   if(phase!=='idle'){say('今は釣りの最中やで！');return}
   ensureGearState();
   const item=activeBait(),rig=activeRig();
+  const usesBait=rig.id==='float';
   const count=stock(item.id),rigCount=stock(rig.id);
   if(state.location==='ancient_stage'&&rig.id!=='fossil'){say('🦴 この海域では古代魚専用・化石仕掛けが必要やで！');return}
   if(state.location==='mythical_stage'&&rig.id!=='dragon'){say('🐉 この海域では幻魚・龍神仕掛けが必要やで！');return}
   if(rig.id!=='float'&&rigCount<=0){say('🧺 '+rig.name+'の在庫がないで！買い足してな。');return}
   if(state.rodDurability<=0){say('🎣 竿の耐久値が0や！装備工房で修理してな。');return}
   if(state.reelDurability<=0){say('⚙️ リールの耐久値が0や！装備工房で修理してな。');return}
-  if(!['fossil','dragon'].includes(rig.id)&&count<=0){say('🧺 '+item.name+'の在庫がないで！買い足してな。');return}
+  if(usesBait&&count<=0){say('🧺 '+item.name+'の在庫がないで！買い足してな。');return}
   const eligible=eligibleIds();
-  if(!eligible.length){say('🐟 この釣り場には「'+item.name+'」に食いつく魚がおらへんみたいや。魚の好物に合うエサ・仕掛けへ替えてな！');return}
-  if(!['fossil','dragon'].includes(rig.id))state.consumableStock[item.id]=count-1;
+  if(!eligible.length){say(usesBait?'🐟 この釣り場には「'+item.name+'」に食いつく魚がおらへんみたいや。別のエサを選んでな！':'🐟 この仕掛けに合う魚がこの釣り場にはおらへんみたいや。仕掛けを替えてな！');return}
+  if(usesBait)state.consumableStock[item.id]=count-1;
   if(rig.id!=='float'){
    if(rig.kind==='rig'&&rig.breakChance===0){state.consumableStock[rig.id]=Math.max(0,rigCount-1);}
    else if(rig.breakChance>0&&Math.random()<rig.breakChance){state.consumableStock[rig.id]=Math.max(0,rigCount-1);say('💥 '+rig.name+'が壊れてしもた！残り '+state.consumableStock[rig.id]+'個');}
@@ -1947,11 +1952,10 @@ requestAnimationFrame(loop);
   rigSel.innerHTML=rigs.map(item=>`<option value="${item.id}">${item.name}｜所持 ${item.id==='float'?'無限':stock(item.id)+'/10'}｜${item.price}G</option>`).join('');
   baitSel.innerHTML=baitsOnly.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stock(item.id)}/10｜${item.price}G</option>`).join('');
   rigSel.value=state.activeRig||'float';baitSel.value=state.activeBait||'worm';
-  document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。エサは投げるたび1個消費。通常仕掛けも1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。魚の好物と仕掛けの両方が合わないと食いつかへんで。';
+  document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
   document.getElementById('consumableStockList').innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${item.id==='float'?'無限':stock(item.id)+'/10'}</strong></div>`).join('');
   document.getElementById('durabilityInfo').innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに各1減少。釣れた魚が強いほど追加で減るで。</small>`;
-  document.getElementById('repairRod').disabled=state.rodDurability>=100;
-  document.getElementById('repairReel').disabled=state.reelDurability>=100;
+  const rodCost=Math.round((rods[state.rod]?.price||0)*.5),reelCost=Math.round((reels[state.reel]?.price||0)*.5);document.getElementById('repairRod').textContent='🎣 竿を修理（'+rodCost+'G）';document.getElementById('repairReel').textContent='⚙️ リールを修理（'+reelCost+'G）';document.getElementById('repairRod').disabled=state.rodDurability>=100;document.getElementById('repairReel').disabled=state.reelDurability>=100;refreshWorkshopChoices();
  }
  function buyConsumable(which){
   ensureGearState();const id=which==='rig'?state.activeRig:state.activeBait;const item=getItem(id);const n=stock(item.id);
@@ -1960,9 +1964,15 @@ requestAnimationFrame(loop);
   if(state.gold<item.price){say('💰 お金が足りへんで！購入できず、お金も変わらへん。');return}
   state.gold-=item.price;state.consumableStock[item.id]=n+1;updateAll();say('🧺 '+item.name+'を1個購入！所持 '+(n+1)+'/10');
  }
+ function refreshWorkshopChoices(){
+  const rs=document.getElementById('buyRodSelect'),es=document.getElementById('buyReelSelect');if(!rs||!es)return;
+  const fill=(sel,items,owned)=>{sel.innerHTML='';items.forEach((it,i)=>{if(owned.includes(i))return;const o=document.createElement('option');o.value=i;o.textContent=it.name+'｜'+it.price+'G';sel.appendChild(o)});if(!sel.options.length){const o=document.createElement('option');o.value='';o.textContent='すべて購入済み';sel.appendChild(o)}};
+  fill(rs,rods,state.ownedRods||[0]);fill(es,reels,state.ownedReels||[0]);
+ }
+ function buyGearItem(part){ensureGearState();const isRod=part==='rod',sel=document.getElementById(isRod?'buyRodSelect':'buyReelSelect'),items=isRod?rods:reels,owned=isRod?state.ownedRods:state.ownedReels;if(!sel||sel.value===''){say('購入できる商品はもうないで！');return;}const i=Number(sel.value),item=items[i];if(!item||owned.includes(i)){say('その道具はすでに購入済みやで！');return;}if(state.gold<item.price){say('お金が足りへんで！所持金は変わらへんよ。');return;}state.gold-=item.price;owned.push(i);state[part]=i;if(isRod)state.rodDurability=100;else state.reelDurability=100;updateAll();renderConsumables();refreshWorkshopChoices();say(item.name+'を購入したで！装備にも反映したで。');}
  function repair(part){
   ensureGearState();const isRod=part==='rod',key=isRod?'rodDurability':'reelDurability';
-  const price=Math.max(5,Math.round((isRod?rods[state.rod]?.price:reels[state.reel]?.price||0)*.12));
+  const price=Math.max(0,Math.round(((isRod?rods[state.rod]?.price:reels[state.reel]?.price)||0)*.5));
   if(state[key]>=100){say('耐久値は満タンやで！');return}
   if(state.gold<price){say('修理代 '+price+'Gが足りへんで。お金は減ってへんよ。');return}
   state.gold-=price;state[key]=100;updateAll();say((isRod?'🎣 竿':'⚙️ リール')+'を修理したで！耐久値100/100');
@@ -1983,12 +1993,13 @@ requestAnimationFrame(loop);
  function installPanel(){
   if(document.getElementById('consumablePanel'))return;
   const panel=document.createElement('section');panel.id='consumablePanel';panel.className='panel';panel.style.marginTop='10px';
-  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">基本のウキは無限使用。ミミズ・練りエサ等は投げるたびに1個消費。ルアー・ワーム・エギ等は確率で壊れる方式やで。魚の好物のエサと、魚種に合う仕掛けの両方を選ぼう。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><button id="buyRigButton" style="margin-top:6px">🛒 選択中の仕掛けを1個購入</button><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを1個購入</button><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div><h2 style="margin-top:18px">🛠️ 釣具の耐久・修理</h2><div id="durabilityInfo" class="small"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="repairRod">🎣 竿を修理</button><button id="repairReel">⚙️ リールを修理</button></div>`;
-  const gear=document.getElementById('equipmentPanel');gear.parentNode.insertBefore(panel,gear.nextSibling);
+  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><p class="small" style="margin-top:6px">仕掛けは購入不要。選択するとそのまま装備されるで。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを1個購入</button><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
+  const workshop=document.createElement('section');workshop.id='gearWorkshopPanel';workshop.className='panel';workshop.style.marginTop='10px';workshop.innerHTML=`<h2>🛠️ 装備工房</h2><p class="small">釣り竿・リールは同じ商品を1つまで購入可能。購入済みの商品はもう買えへんけど、所持している道具は「ねこちゃんの釣具装備」で切り替えられるで。修理費は購入価格の半額や。</p><div class="gear-grid"><label>🎣 購入する釣り竿<select id="buyRodSelect"></select><button id="buyRodGearButton" type="button" style="margin-top:6px">釣り竿を購入</button></label><label>⚙️ 購入するリール<select id="buyReelSelect"></select><button id="buyReelGearButton" type="button" style="margin-top:6px">リールを購入</button></label></div><h3 style="margin-top:16px">🔧 耐久・修理</h3><div id="durabilityInfo" class="small"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="repairRod">🎣 竿を修理（費用確認中）</button><button id="repairReel">⚙️ リールを修理（費用確認中）</button></div><p class="small">修理すると耐久値が100/100に戻るで。</p>`;
+  const gear=document.getElementById('equipmentPanel');gear.parentNode.insertBefore(workshop,gear.nextSibling);workshop.parentNode.insertBefore(panel,workshop.nextSibling);
   document.getElementById('rigSelect').addEventListener('change',e=>{state.activeRig=e.target.value;renderConsumables()});
   document.getElementById('baitSelect').addEventListener('change',e=>{state.activeBait=e.target.value;renderConsumables()});
-  document.getElementById('buyRigButton').addEventListener('click',()=>buyConsumable('rig'));
   document.getElementById('buyBaitButton').addEventListener('click',()=>buyConsumable('bait'));
+  document.getElementById('buyRodGearButton').addEventListener('click',()=>buyGearItem('rod'));document.getElementById('buyReelGearButton').addEventListener('click',()=>buyGearItem('reel'));
   document.getElementById('repairRod').addEventListener('click',()=>repair('rod'));
   document.getElementById('repairReel').addEventListener('click',()=>repair('reel'));
   renderConsumables();
