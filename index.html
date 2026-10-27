@@ -58,6 +58,22 @@ select{width:100%;background:#edf7fa;color:#173744}
 .gear-grid label{display:block;font-size:13px;font-weight:bold;color:#ffe6a8}
 .gear-grid select{margin-top:6px}
 @media(max-width:400px){.gear-grid{grid-template-columns:1fr}}
+/* v11: ねこちゃんの釣具装備パネルを初期画面でも必ず表示 */
+#equipmentPanel,
+#equippedHud {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 5 !important;
+  width: 100%;
+  min-height: 1px;
+}
+#equipmentPanel h2 { color: #ffe08a; }
+#equipmentPanel .gear-grid label { color: #ffe6a8; }
+#equipmentPanel select { display: block !important; visibility: visible !important; min-height: 42px; }
+#equipmentPanel #gearInfo { display: block !important; visibility: visible !important; }
+
 .fish-chip{background:#294f60;border-radius:8px;padding:7px;font-size:12px}
 .shop-item{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid #365a69}
 .shop-item button{padding:8px}
@@ -104,7 +120,7 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
 
 
 
-<section class="panel" id="equipmentPanel" style="margin-bottom:10px">
+<section class="panel" id="equipmentPanel" style="display:block;visibility:visible;opacity:1;margin-bottom:10px;border:2px solid #ffe08a;box-shadow:0 0 0 2px rgba(255,224,138,.16),0 5px 16px rgba(0,0,0,.2)">
  <h2>🐱 ねこちゃんの釣具装備</h2>
  <p class="small">ここでは、所持している釣り竿・リール・仕掛け・お守りを選んで装備するで。購入や修理は下の「装備工房」で行うで！</p>
  <div class="gear-grid">
@@ -117,6 +133,16 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
  <div style="margin-top:12px">経験値ゲージ</div><div class="meter"><div id="expBar" style="width:0%;background:#ff83b8;height:100%"></div></div>
 </section>
 
+<section id="equippedHud" class="panel" style="margin-bottom:10px;padding:10px 12px;background:linear-gradient(120deg,rgba(32,79,94,.98),rgba(35,48,85,.98))">
+ <strong style="display:block;margin-bottom:6px;color:#ffe08a">🐱 初期装備・装備中の釣具</strong>
+ <div class="gear-grid" style="gap:6px">
+  <div class="fish-chip">🎣 竿：<strong id="hudRod">木の釣り竿</strong></div>
+  <div class="fish-chip">⚙️ リール：<strong id="hudReel">木製リール</strong></div>
+  <div class="fish-chip">🪝 仕掛け：<strong id="hudTackle">基本のウキ仕掛け</strong></div>
+  <div class="fish-chip">🐾 お守り：<strong id="hudCharm">小さな肉球のお守り</strong></div>
+ </div>
+ <p class="small" style="margin:6px 0 0">装備を変更すると、この表示と猫ちゃんの釣具の見た目も更新されるで！</p>
+</section>
 <div class="game">
  <canvas id="gameCanvas" width="900" height="500"></canvas>
  <div style="padding:10px 12px;background:#12384b;text-align:center">
@@ -617,7 +643,7 @@ const ancientFish={
 Object.assign(fishTypes,ancientFish);
 for(const id of Object.keys(ancientFish))habitatById[id]="sea";
 const fishKeys=Object.keys(fishTypes);
-if(fishKeys.length>108){for(const id of fishKeys.slice(108))delete fishTypes[id]}
+// 108種上限で後半の魚（古代魚など）が削除されないよう、登録済み魚種は保持する。
 const habitats={river:[],lake:[],sea:[]};
 // 追加魚だけでなく、初期の魚にも生息域を明示して混在を防ぐ
 const baseHabitat={minnow:"river",ayu:"river",carp:"river",crucian:"river",dace:"river",catfish:"river",yamame:"river",rainbow:"lake",bass:"lake",bluegill:"lake",pike:"lake",tuna:"sea",mackerel:"sea",snapper:"sea"};
@@ -691,6 +717,10 @@ function setupGearUI(){
  window.__tsurickReelPower = Number(reels[state.reel]?.power) || 0;
  const info=$('gearInfo');if(info)info.innerHTML=`<strong>現在の装備</strong><br>🎣 ${rods[state.rod]?.name||'木の釣り竿'}：引き寄せ力 +${Number(rods[state.rod]?.power)||0} ／ 耐久 ${state.rodDurability??100}/100<br>⚙️ ${reels[state.reel]?.name||'基本リール'}：糸保護 +${Number(reels[state.reel]?.power)||0} ／ 耐久 ${state.reelDurability??100}/100<br>🪝 ${tackles[state.tackle]?.name||'基本仕掛け'}：魚寄せ +${Number(tackles[state.tackle]?.bonus)||0} ／ 購入不要・選択装備<br>🐾 ${charms[state.charm]?.name||'小さな肉球のお守り'}：効果 ${(charms[state.charm]?.bonus||1).toFixed(2)}倍 ／ ${charms[state.charm]?.price||0}G<br><span class="small">竿・リール・仕掛けは数値加算式。お守りのみ倍率式。所持金が足りない商品は購入できへんで。</span>`;
  const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
+ setText('hudRod',rods[state.rod]?.name||'木の釣り竿');
+ setText('hudReel',reels[state.reel]?.name||'木製リール');
+ setText('hudTackle',tackles[state.tackle]?.name||'基本のウキ仕掛け');
+ setText('hudCharm',charms[state.charm]?.name||'小さな肉球のお守り');
  setText('statusRod',rods[state.rod]?.name||'木の釣り竿');
  setText('statusReel',reels[state.reel]?.name||'基本リール');
  setText('statusTackle',tackles[state.tackle]?.name||'基本のウキ仕掛け');
@@ -912,7 +942,11 @@ function setLocation(id){
   $("locationSelect").value=state.location;
   say("釣りを終えてから移動してな。");return;
  }
- state.location=id;createWaterFish();updateAll();
+ state.location=id;
+ // 専用仕掛けを所持している場合は、専用エリアに入った時点で選択状態も合わせる。
+ if(id==='ancient_stage' && Number(state.consumableStock?.fossil)>0)state.activeRig='fossil';
+ if(id==='mythical_stage' && Number(state.consumableStock?.dragon)>0)state.activeRig='dragon';
+ createWaterFish();updateAll();
  say(currentLocation().name+"に移動したで！");
 }
 
@@ -1249,11 +1283,19 @@ function drawCharacter(){
   ctx.strokeStyle="#8994a8";ctx.lineWidth=1.5;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(66,151);ctx.lineTo(69,153);ctx.moveTo(71,149);ctx.lineTo(73,151);ctx.stroke();
   // 前足で握る竿。竿先は水面の右側へ向ける
   ctx.strokeStyle="#c8cedb";ctx.lineWidth=9;ctx.lineCap="round";ctx.beginPath();ctx.moveTo(80,184);ctx.quadraticCurveTo(94,186,103,190);ctx.stroke();
-  const rodStyle=[{base:"#78523a",accent:"#d5b18a",width:4},{base:"#9a633c",accent:"#f6d49a",width:4.5},{base:"#263a52",accent:"#57d5e8",width:4},{base:"#38205f",accent:"#ffe66d",width:5}][state.rod]||{base:"#78523a",accent:"#d5b18a",width:4};
+  const rodStyles=[{base:"#78523a",accent:"#d5b18a",width:4},{base:"#9a633c",accent:"#f6d49a",width:4.5},{base:"#263a52",accent:"#57d5e8",width:4},{base:"#38205f",accent:"#ffe66d",width:5},{base:"#24745d",accent:"#a8ffd6",width:4.5},{base:"#a63f69",accent:"#ffd4e8",width:5}];
+  const rodStyle=rodStyles[Math.min(rodStyles.length-1,Math.floor((Number(state.rod)||0)/3))]||rodStyles[0];
   ctx.strokeStyle=rodStyle.base;ctx.lineWidth=rodStyle.width;ctx.beginPath();ctx.moveTo(99,189);ctx.quadraticCurveTo(139,190,ROD_TIP.x,ROD_TIP.y);ctx.stroke();
   ctx.strokeStyle=rodStyle.accent;ctx.lineWidth=1.3;ctx.beginPath();ctx.moveTo(99,188);ctx.quadraticCurveTo(139,189,ROD_TIP.x,ROD_TIP.y);ctx.stroke();
-  // リール
-  ctx.fillStyle="#9a8a79";ctx.beginPath();ctx.ellipse(104,191,4,6,-.3,0,Math.PI*2);ctx.fill();ctx.strokeStyle=rodStyle.accent;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(104,191,3,0,Math.PI*2);ctx.stroke();
+  // リールの色・形は装備中のリールに合わせて変わる
+  const reelPalette=["#9a8a79","#d6b46d","#5ce0e8","#a9b7d8","#4fb38a","#f08fbb","#d8d8e8"];
+  const reelColor=reelPalette[Math.min(reelPalette.length-1,Math.floor((Number(state.reel)||0)/3))];
+  ctx.fillStyle=reelColor;ctx.beginPath();ctx.ellipse(104,191,4+(Number(state.reel)>5?1:0),6,-.3,0,Math.PI*2);ctx.fill();ctx.strokeStyle=rodStyle.accent;ctx.lineWidth=1.2;ctx.beginPath();ctx.arc(104,191,3,0,Math.PI*2);ctx.stroke();
+  // お守りを首輪に見える小さなチャームとして表示
+  const charmPalette=["#ffd34d","#75e4ff","#9d8bff","#ff8fc5","#8ff0b0","#fff0a0"];
+  const charmColor=charmPalette[Math.min(charmPalette.length-1,Math.floor((Number(state.charm)||0)/4))];
+  ctx.fillStyle=charmColor;ctx.strokeStyle="#fff6d8";ctx.lineWidth=1;ctx.beginPath();ctx.arc(85,174,3.6+(Number(state.charm)>8?1:0),0,Math.PI*2);ctx.fill();ctx.stroke();
+  if((Number(state.charm)||0)>=10){ctx.fillStyle="rgba(255,245,170,.85)";ctx.beginPath();ctx.arc(85,174,7+Math.sin(animationTime*5),0,Math.PI*2);ctx.strokeStyle=charmColor;ctx.lineWidth=1;ctx.stroke();}
   if(celebrating){ctx.fillStyle="#ff7da9";ctx.font="bold 13px sans-serif";ctx.fillText("♪",48,130);ctx.fillText("!",103,143);}
   ctx.restore();
  };
@@ -1269,12 +1311,19 @@ function drawScene(){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   // 空と遠景：画像貼り付けではなく、パーツを毎フレーム描いてゲーム世界を作る
   const stageKey=state.location||"river";
-  const isSea=stageKey==="sea"||stageKey==="sea_deep";
-  const isDeep=stageKey==="sea_deep";
+  const isAncient=stageKey==="ancient_stage";
+  const isMythical=stageKey==="mythical_stage";
+  const isMystic=isAncient||isMythical;
+  const isSea=stageKey==="sea"||stageKey==="sea_deep"||isMystic;
+  const isDeep=stageKey==="sea_deep"||isAncient||isMythical;
   const isLake=stageKey==="lake";
   const isLower=stageKey==="river_lower";
   const isMid=stageKey==="river_mid";
-  const palette=isSea
+  const palette=isAncient
+    ? {skyTop:"#111b38",skyMid:"#293d67",skyLow:"#697c9a",waterTop:"#315b78",waterMid:"#173954",waterBottom:"#07182f",hill:"#394b65",hill2:"#202f4a",shore:"#667b86"}
+    : isMythical
+    ? {skyTop:"#170d3c",skyMid:"#4d347e",skyLow:"#9a78c5",waterTop:"#4c4a9d",waterMid:"#252b72",waterBottom:"#0b123d",hill:"#675a9b",hill2:"#382e70",shore:"#9b8bbd"}
+    : isSea
     ? {skyTop:isDeep?"#174c7b":"#64c6ed",skyMid:isDeep?"#7db9d7":"#b8eaf2",skyLow:"#d8e9df",waterTop:isDeep?"#176d9b":"#24a9c5",waterMid:isDeep?"#07527e":"#087fa6",waterBottom:isDeep?"#031f42":"#073e65",hill:isDeep?"#426a79":"#7caaa0",hill2:isDeep?"#294e68":"#527f82",shore:"#8a9c98"}
     : isLake
     ? {skyTop:"#73b9e8",skyMid:"#c6e6ef",skyLow:"#e5f0df",waterTop:"#4cb6c2",waterMid:"#247f9d",waterBottom:"#123d63",hill:"#7eae91",hill2:"#547f77",shore:"#a6a88a"}
@@ -1289,6 +1338,29 @@ function drawScene(){
     const x=((i*245+animationTime*5)%1080)-90, y=34+(i%3)*27;
     ctx.fillStyle="rgba(255,255,255,.82)";
     for(let j=0;j<3;j++){ctx.beginPath();ctx.arc(x+j*16,y+(j%2)*-4,11+(j===1?3:0),0,Math.PI*2);ctx.fill();}
+  }
+  // 古代魚・幻魚エリアは星空、月、神秘的な光で専用の雰囲気にする
+  if(isMystic){
+    ctx.save();
+    for(let i=0;i<72;i++){
+      const sx=(i*137+31)%900, sy=(i*47+17)%185;
+      const twinkle=.35+.55*(.5+.5*Math.sin(animationTime*1.7+i));
+      ctx.fillStyle=isMythical?`rgba(226,211,255,${twinkle})`:`rgba(196,226,255,${twinkle})`;
+      ctx.beginPath();ctx.arc(sx,sy, i%9===0?2:1,0,Math.PI*2);ctx.fill();
+    }
+    const moonX=isMythical?710:735, moonY=62;
+    const moon=ctx.createRadialGradient(moonX,moonY,4,moonX,moonY,58);
+    moon.addColorStop(0,isMythical?"rgba(255,225,255,.42)":"rgba(195,228,255,.35)");moon.addColorStop(1,"rgba(160,180,255,0)");
+    ctx.fillStyle=moon;ctx.beginPath();ctx.arc(moonX,moonY,58,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=isMythical?"#f3e4ff":"#d7e8ff";ctx.beginPath();ctx.arc(moonX,moonY,19,0,Math.PI*2);ctx.fill();
+    // オーロラのような帯
+    for(let j=0;j<3;j++){
+      ctx.strokeStyle=isMythical?`rgba(220,133,255,${.12+j*.035})`:`rgba(100,211,235,${.12+j*.035})`;
+      ctx.lineWidth=13-j*3;ctx.beginPath();ctx.moveTo(-20,105+j*16);
+      ctx.bezierCurveTo(190,55+j*24,350,155+j*15,520,88+j*20);
+      ctx.bezierCurveTo(660,45+j*18,760,130+j*12,930,75+j*20);ctx.stroke();
+    }
+    ctx.restore();
   }
   // 遠い山並み
   ctx.fillStyle=palette.hill;ctx.beginPath();ctx.moveTo(0,190);ctx.lineTo(105,88);ctx.lineTo(215,190);ctx.lineTo(340,105);ctx.lineTo(470,190);ctx.lineTo(610,83);ctx.lineTo(760,190);ctx.lineTo(900,112);ctx.lineTo(900,235);ctx.lineTo(0,235);ctx.closePath();ctx.fill();
@@ -1309,6 +1381,24 @@ function drawScene(){
     const glint=ctx.createLinearGradient(0,220,0,310);glint.addColorStop(0,"rgba(211,250,255,.28)");glint.addColorStop(1,"rgba(80,190,220,0)");ctx.fillStyle=glint;ctx.fillRect(0,218,900,100);
   } else if(isLake){
     ctx.fillStyle="rgba(111,211,207,.12)";ctx.fillRect(0,218,900,282);
+  }
+  if(isMystic){
+    // 水中に沈む遺跡の柱と、底から昇る光の筋
+    ctx.save();
+    for(let i=0;i<7;i++){
+      const x=55+i*132, top=290+(i%3)*25, w=17+(i%2)*8;
+      ctx.fillStyle=isMythical?"rgba(171,142,225,.24)":"rgba(143,181,197,.22)";
+      ctx.fillRect(x,top,w,500-top);
+      ctx.fillRect(x-5,top,w+10,7);ctx.fillRect(x-4,top+19,w+8,4);
+      const beam=ctx.createLinearGradient(x,225,x,390);beam.addColorStop(0,isMythical?"rgba(224,157,255,.16)":"rgba(130,225,255,.15)");beam.addColorStop(1,"rgba(120,190,255,0)");
+      ctx.fillStyle=beam;ctx.fillRect(x-24,220,w+48,180);
+    }
+    for(let i=0;i<14;i++){
+      const bx=(i*73+animationTime*9)%900, by=280+((i*37+Math.floor(animationTime*8))%190);
+      ctx.fillStyle=isMythical?"rgba(255,208,255,.48)":"rgba(165,236,255,.42)";
+      ctx.beginPath();ctx.arc(bx,by,1.5+(i%3)*.7,0,Math.PI*2);ctx.fill();
+    }
+    ctx.restore();
   }
   // 遠岸の小石と水中の岩
   ctx.fillStyle=palette.shore;ctx.beginPath();ctx.moveTo(0,218);ctx.lineTo(900,218);ctx.lineTo(900,229);ctx.quadraticCurveTo(620,241,430,229);ctx.quadraticCurveTo(180,244,0,226);ctx.closePath();ctx.fill();
@@ -1465,7 +1555,13 @@ function configureTimingZones(fish, rarityCode){
 }
 function triggerBite(){
  if(phase!=="waiting")return;
- const id=weightedFish(),f=fishTypes[id];
+ const id=weightedFish();
+ if(!id || !fishTypes[id]){
+  resetFishing(false);
+  say("🐟 この仕掛けで狙える魚が見つからへんかったで。専用エリアでは対応する仕掛けを選んでな。");
+  return;
+ }
+ const f=fishTypes[id];
  const needed=Math.max(1,(4.5+f.power*1.5)*currentLocation().difficulty-(Number(currentRod().power)||0)*.25);
  const ancient=["coelacanth","megalodon","dunkleosteus","mosasaurus","plesiosaur","ancient_shark","helicoprion","livyatan"].includes(id);
  biteFish={id,type:f,needed:Math.max(3.5,needed)*(ancient?1.55:1),ancient};
@@ -1806,20 +1902,20 @@ requestAnimationFrame(loop);
 (function(){
  const itemDefs=[
   {id:'float',name:'基本のウキ（無限）',price:0,kind:'rig',breakChance:0,desc:'初期装備。消費・破損なし。低ランクの一般魚向け'},
-  {id:'worm',name:'ミミズ',price:8,kind:'bait',breakChance:0,desc:'川魚・小型魚向け。1投ごとに1個消費'},
-  {id:'dough',name:'練りエサ',price:12,kind:'bait',breakChance:0,desc:'コイ・フナなど底魚向け。1投ごとに1個消費'},
-  {id:'shrimp',name:'エビ餌',price:25,kind:'bait',breakChance:0,desc:'海の底魚・甲殻類・根魚向け。1投ごとに1個消費'},
-  {id:'squid',name:'イカ餌',price:28,kind:'bait',breakChance:0,desc:'タコ・イカ・大型海魚向け。1投ごとに1個消費'},
-  {id:'sabiki',name:'サビキ仕掛け',price:35,kind:'rig',breakChance:0,desc:'アジ・イワシなど群れの小魚向け。消耗品'},
-  {id:'cast',name:'投げ釣り仕掛け',price:45,kind:'rig',breakChance:0,desc:'キス・カレイなど砂地の魚向け。消耗品'},
-  {id:'worm_lure',name:'ワーム',price:70,kind:'lure',breakChance:.12,desc:'ブラックバス・根魚向け。使用時12%で破損'},
-  {id:'lure',name:'ルアー',price:100,kind:'lure',breakChance:.10,desc:'バス・パイク・捕食魚向け。使用時10%で破損'},
-  {id:'jig',name:'メタルジグ',price:160,kind:'lure',breakChance:.14,desc:'沖合の回遊魚向け。使用時14%で破損'},
-  {id:'eging',name:'エギング用エギ',price:140,kind:'lure',breakChance:.13,desc:'イカ類専用。使用時13%で破損'},
-  {id:'live',name:'泳がせ仕掛け',price:90,kind:'rig',breakChance:.08,desc:'大型捕食魚向け。使用時8%で破損'},
-  {id:'deep',name:'深海仕掛け',price:240,kind:'rig',breakChance:.12,desc:'深海・沖合の大型魚向け。使用時12%で破損'},
-  {id:'fossil',name:'古代魚・化石仕掛け',price:420,kind:'special',breakChance:.18,desc:'古代魚専用。使用時18%で破損'},
-  {id:'dragon',name:'幻魚・龍神仕掛け',price:650,kind:'special',breakChance:.20,desc:'幻の魚専用。使用時20%で破損'}
+  {id:'worm',name:'ミミズ',price:350,kind:'bait',breakChance:0,desc:'川魚・小型魚向け。1投ごとに1個消費'},
+  {id:'dough',name:'練りエサ',price:400,kind:'bait',breakChance:0,desc:'コイ・フナなど底魚向け。1投ごとに1個消費'},
+  {id:'shrimp',name:'エビ餌',price:600,kind:'bait',breakChance:0,desc:'海の底魚・甲殻類・根魚向け。1投ごとに1個消費'},
+  {id:'squid',name:'イカ餌',price:650,kind:'bait',breakChance:0,desc:'タコ・イカ・大型海魚向け。1投ごとに1個消費'},
+  {id:'sabiki',name:'サビキ仕掛け',price:350,kind:'rig',breakChance:0,desc:'アジ・イワシなど群れの小魚向け。消耗品'},
+  {id:'cast',name:'投げ釣り仕掛け',price:500,kind:'rig',breakChance:0,desc:'キス・カレイなど砂地の魚向け。消耗品'},
+  {id:'worm_lure',name:'ワーム',price:650,kind:'lure',breakChance:.12,desc:'ブラックバス・根魚向け。使用時12%で破損'},
+  {id:'lure',name:'ルアー',price:1200,kind:'lure',breakChance:.10,desc:'バス・パイク・捕食魚向け。使用時10%で破損'},
+  {id:'jig',name:'メタルジグ',price:1000,kind:'lure',breakChance:.14,desc:'沖合の回遊魚向け。使用時14%で破損'},
+  {id:'eging',name:'エギング用エギ',price:900,kind:'lure',breakChance:.13,desc:'イカ類専用。使用時13%で破損'},
+  {id:'live',name:'泳がせ仕掛け',price:450,kind:'rig',breakChance:.08,desc:'大型捕食魚向け。使用時8%で破損'},
+  {id:'deep',name:'深海仕掛け',price:1200,kind:'rig',breakChance:.12,desc:'深海・沖合の大型魚向け。使用時12%で破損'},
+  {id:'fossil',name:'古代魚・化石仕掛け',price:3000,kind:'special',breakChance:.18,desc:'古代魚専用。使用時18%で破損'},
+  {id:'dragon',name:'幻魚・龍神仕掛け',price:5000,kind:'special',breakChance:.20,desc:'幻の魚専用。使用時20%で破損'}
  ];
  const oldFreshState=freshState;
  // 既存セーブとの互換性を保ち、追加データだけ補完する
@@ -1836,11 +1932,13 @@ requestAnimationFrame(loop);
  }
  ensureGearState();
  const oldUpdateAll=updateAll;
- updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();};
+ updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();if(typeof updateExploreUI==='function')updateExploreUI();};
  const oldLoadGame=loadGame;
  loadGame=function(){oldLoadGame();ensureGearState();renderConsumables();};
  function getItem(id){return itemDefs.find(x=>x.id===id)||itemDefs[0]}
  function stock(id){return Math.max(0,Number(state.consumableStock[id])||0)}
+ function maxStock(id){const item=getItem(id);return item.id==='float'?Infinity:99}
+ function stockLabel(id){return id==='float'?'無限':stock(id)+'/'+maxStock(id)}
  function fishGroup(id,f){
   const key=String(id||'').toLowerCase();
   if(ancientFishIds.has(key))return 'ancient';
@@ -1877,7 +1975,15 @@ requestAnimationFrame(loop);
  function eligibleIds(){
   const rig=activeRig(),bait=activeBait();
   const usesBait=rig.id==='float';
-  return (currentLocation().fish||[]).filter(id=>{
+  const pool=(currentLocation()&&Array.isArray(currentLocation().fish))?currentLocation().fish:[];
+  // 専用エリアは仕掛けIDと魚の対応を優先し、通常魚の相性判定に巻き込まれないようにする。
+  if(state.location==='ancient_stage' && rig.id==='fossil'){
+   return pool.filter(id=>!!fishTypes[id]&&ancientFishIds.has(String(id).toLowerCase()));
+  }
+  if(state.location==='mythical_stage' && rig.id==='dragon'){
+   return pool.filter(id=>!!fishTypes[id]&&mythicalFishIds.has(String(id).toLowerCase()));
+  }
+  return pool.filter(id=>{
    if(!fishTypes[id])return false;
    if(usesBait&&!matches(id,bait))return false;
    const rarity=getFishRarity(id,fishTypes[id]).code;
@@ -1949,20 +2055,36 @@ requestAnimationFrame(loop);
   const rigSel=document.getElementById('rigSelect'),baitSel=document.getElementById('baitSelect');if(!rigSel||!baitSel)return;
   const rigs=itemDefs.filter(x=>['rig','lure','special'].includes(x.kind));
   const baitsOnly=itemDefs.filter(x=>x.kind==='bait');
-  rigSel.innerHTML=rigs.map(item=>`<option value="${item.id}">${item.name}｜所持 ${item.id==='float'?'無限':stock(item.id)+'/10'}｜${item.price}G</option>`).join('');
-  baitSel.innerHTML=baitsOnly.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stock(item.id)}/10｜${item.price}G</option>`).join('');
+  rigSel.innerHTML=rigs.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stockLabel(item.id)}｜${item.price}G</option>`).join('');
+  baitSel.innerHTML=baitsOnly.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stockLabel(item.id)}｜${item.price}G</option>`).join('');
   rigSel.value=state.activeRig||'float';baitSel.value=state.activeBait||'worm';
+  refreshPurchaseQuantities();
   document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
-  document.getElementById('consumableStockList').innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${item.id==='float'?'無限':stock(item.id)+'/10'}</strong></div>`).join('');
+  document.getElementById('consumableStockList').innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${stockLabel(item.id)}</strong></div>`).join('');
   document.getElementById('durabilityInfo').innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに各1減少。釣れた魚が強いほど追加で減るで。</small>`;
   const rodCost=Math.round((rods[state.rod]?.price||0)*.5),reelCost=Math.round((reels[state.reel]?.price||0)*.5);document.getElementById('repairRod').textContent='🎣 竿を修理（'+rodCost+'G）';document.getElementById('repairReel').textContent='⚙️ リールを修理（'+reelCost+'G）';document.getElementById('repairRod').disabled=state.rodDurability>=100;document.getElementById('repairReel').disabled=state.reelDurability>=100;refreshWorkshopChoices();
  }
+ function refreshPurchaseQuantities(){
+  [['rigBuyQty','rigSelect'],['baitBuyQty','baitSelect']].forEach(([qtyId,selectId])=>{
+   const qty=document.getElementById(qtyId),sel=document.getElementById(selectId);if(!qty||!sel)return;
+   const item=getItem(sel.value),remaining=Math.max(0,maxStock(item.id)-stock(item.id));
+   const old=Math.max(1,Number(qty.value)||1);qty.innerHTML='';
+   const max=Math.min(99,remaining);
+   for(let i=1;i<=max;i++){const opt=document.createElement('option');opt.value=String(i);opt.textContent=i+'個';qty.appendChild(opt);}
+   if(max===0){const opt=document.createElement('option');opt.value='0';opt.textContent='購入不可（上限）';qty.appendChild(opt);qty.disabled=true;}
+   else {qty.disabled=false;qty.value=String(Math.min(old,max));}
+  });
+ }
  function buyConsumable(which){
-  ensureGearState();const id=which==='rig'?state.activeRig:state.activeBait;const item=getItem(id);const n=stock(item.id);
+  ensureGearState();const isRig=which==='rig';const id=isRig?state.activeRig:state.activeBait;const item=getItem(id);const n=stock(item.id);
+  const qtyEl=document.getElementById(isRig?'rigBuyQty':'baitBuyQty');const qty=Math.max(0,Number(qtyEl?.value)||0);
   if(item.id==='float'){say('基本のウキは無限に使えるから購入不要やで！');return}
-  if(n>=10){say('🚫 '+item.name+'は所持上限の10個やで！購入してもお金は減らへん。');return}
-  if(state.gold<item.price){say('💰 お金が足りへんで！購入できず、お金も変わらへん。');return}
-  state.gold-=item.price;state.consumableStock[item.id]=n+1;updateAll();say('🧺 '+item.name+'を1個購入！所持 '+(n+1)+'/10');
+  if(item.id==='fossil'||item.id==='dragon'){say('🔒 '+item.name+'は購入できへんで！専用エリアで探索して見つけよう！');return}
+  const cap=maxStock(item.id);
+  if(qty<1||n+qty>cap){say('🚫 '+item.name+'は最大 '+cap+'個までやで！所持数を超える購入はできへん。');refreshPurchaseQuantities();return}
+  const total=item.price*qty;
+  if(state.gold<total){say('💰 '+qty+'個で'+total+'G必要やけど、お金が足りへんで！所持金は変わらへん。');return}
+  state.gold-=total;state.consumableStock[item.id]=n+qty;updateAll();say('🧺 '+item.name+'を'+qty+'個購入！ 合計 '+total+'G／所持 '+(n+qty)+'/'+cap);
  }
  function refreshWorkshopChoices(){
   const rs=document.getElementById('buyRodSelect'),es=document.getElementById('buyReelSelect');if(!rs||!es)return;
@@ -1990,25 +2112,195 @@ requestAnimationFrame(loop);
    const a=document.createElement('option');a.value='ancient_stage';a.textContent='太古の化石海域（古代魚専用）';locationSelect.appendChild(a);
    const m=document.createElement('option');m.value='mythical_stage';m.textContent='幻影の竜宮海域（幻の魚専用）';locationSelect.appendChild(m);
   }
+ function ensureExploreState(){
+  const level=Math.max(1,Number(state.level)||1),maxHp=99+level;
+  if(!Number.isFinite(Number(state.exploreHpMax))||Number(state.exploreHpMax)<1){state.exploreHpMax=maxHp;state.exploreHp=maxHp;state.exploreLastRegenAt=Date.now();}
+  else if(maxHp>Number(state.exploreHpMax)){const gain=maxHp-Number(state.exploreHpMax);state.exploreHp=Math.min(maxHp,Math.max(0,Number(state.exploreHp)||0)+gain);state.exploreHpMax=maxHp;}
+  else {state.exploreHpMax=maxHp;state.exploreHp=Math.max(0,Math.min(maxHp,Number(state.exploreHp)||0));}
+  const now=Date.now();
+  if(!Number.isFinite(Number(state.exploreLastRegenAt))||Number(state.exploreLastRegenAt)<=0)state.exploreLastRegenAt=now;
+  if(state.exploreHp>=state.exploreHpMax){state.exploreHp=state.exploreHpMax;state.exploreLastRegenAt=now;}
+  else {
+   const last=Number(state.exploreLastRegenAt)||now;
+   const minutes=Math.floor(Math.max(0,now-last)/60000);
+   if(minutes>0){state.exploreHp=Math.min(state.exploreHpMax,state.exploreHp+minutes);state.exploreLastRegenAt=last+minutes*60000;if(state.exploreHp>=state.exploreHpMax)state.exploreLastRegenAt=now;}
+  }
+ }
+ function updateExploreUI(){
+  ensureExploreState();
+  const hp=document.getElementById('exploreHpLabel'),bar=document.getElementById('exploreHpBar'),loc=document.getElementById('exploreLocationLabel'),btn=document.getElementById('exploreButton');
+  if(hp)hp.textContent=state.exploreHp+' / '+state.exploreHpMax;
+  if(bar)bar.style.width=(state.exploreHpMax?100*state.exploreHp/state.exploreHpMax:0)+'%';
+  if(loc)loc.textContent=(locations[state.location]?.name||state.location||'現在の釣り場')+'を探索するで。';
+  if(btn)btn.disabled=state.exploreHp<=0;
+  const level=document.getElementById('exploreLevelLabel');if(level)level.textContent='Lv.'+(Number(state.level)||1)+'（最大体力 '+state.exploreHpMax+'）';
+ }
+ function installExplorePanel(){
+  if(document.getElementById('explorePanel')){updateExploreUI();return;}
+  const panel=document.createElement('section');panel.id='explorePanel';panel.className='panel';panel.style.margin='12px 0';
+  panel.innerHTML=`<h2>🧭 釣り場探索</h2><p id="exploreLocationLabel" class="small">釣り場の周りを探索してみよう。</p><p class="small">探索1回につき体力を1消費。何も見つからないことが一番多いけど、エサ・仕掛け・ゴールド・役立つ物が見つかることもあるで。</p><div class="small" style="margin:8px 0">体力：<strong id="exploreHpLabel">100 / 100</strong>　<span id="exploreLevelLabel">Lv.1（最大体力 100）</span></div><div class="meter"><div id="exploreHpBar" style="width:100%;height:100%;background:#67d6a0"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button id="exploreButton" type="button">🔎 周辺を探索する（体力 -1）</button><span class="small" style="align-self:center">⏱️ リアルタイム1分ごとに体力1回復</span></div><p id="exploreResult" class="small" role="status" style="margin-top:10px">探索すると、見つかったものがここに表示されるで。</p><details style="margin-top:8px"><summary>探索の発見率</summary><p class="small">何も見つからない 65% ／ エサ 14% ／ 仕掛け 8%（専用エリアでは専用仕掛け）／ ゴールド 8% ／ お役立ちアイテム 3% ／ 小さな幸運 1% ／ お宝ゴールド 1%</p></details>`;
+  const locInfo=document.getElementById('locationInfo');
+  if(locInfo&&locInfo.parentNode)locInfo.parentNode.insertBefore(panel,locInfo.nextSibling);
+  else {const area=document.querySelector('.panels');if(area)area.prepend(panel);}
+  document.getElementById('exploreButton').addEventListener('click',exploreOnce);
+  updateExploreUI();
+ }
+ function exploreOnce(){
+  ensureGearState();ensureExploreState();
+  const result=document.getElementById('exploreResult');
+  if(state.exploreHp<=0){if(result)result.textContent='体力が足りへんで。リアルタイムで1分経つごとに体力が1回復するのを待ってな。';updateExploreUI();return;}
+  state.exploreHp=Math.max(0,state.exploreHp-1);
+  const r=Math.random()*100;let message='';
+  const baitItems=(itemDefs||[]).filter(x=>x.kind==='bait'&&x.id!=='float');
+  const inAncientArea=state.location==='ancient_stage';
+  const inMythicalArea=state.location==='mythical_stage';
+  const specialRigId=inAncientArea?'fossil':(inMythicalArea?'dragon':null);
+  const rigItems=(itemDefs||[]).filter(x=>['rig','lure'].includes(x.kind)&&x.id!=='float');
+  const giveStock=(item)=>{if(!item)return false;const n=stock(item.id);if(n>=maxStock(item.id))return false;state.consumableStock=state.consumableStock||{};state.consumableStock[item.id]=n+1;return true;};
+  if(r<65){message='🍃 周りを探したけど、今回は何も見つからへんかった……。';}
+  else if(r<79){const item=baitItems[Math.floor(Math.random()*baitItems.length)];if(item&&giveStock(item))message='🪱 '+item.name+'を1個見つけた！ 所持 '+stockLabel(item.id);else {state.gold+=12;message='🪱 エサは持ちきれへんかったので、代わりに落ちていた小銭12Gを拾った！';}}
+  else if(r<87){
+   const item=specialRigId?getItem(specialRigId):rigItems[Math.floor(Math.random()*rigItems.length)];
+   if(item&&giveStock(item))message=(specialRigId?'✨ 専用エリアで発見！ ':'🪝 ')+item.name+'を1個手に入れた！ 所持 '+stockLabel(item.id);
+   else if(specialRigId){state.gold+=30;message='✨ '+item.name+'は所持上限やった。代わりに30Gを見つけた！';}
+   else {state.gold+=18;message='🪝 仕掛けは持ちきれへんかったので、代わりに小銭18Gを拾った！';}
+  }
+  else if(r<95){const amount=10+Math.floor(Math.random()*26);state.gold+=amount;message='🪙 草むらで '+amount+'G を見つけた！';}
+  else if(r<98){const item=[...baitItems,...rigItems].filter(x=>stock(x.id)<maxStock(x.id)).sort(()=>Math.random()-.5)[0];if(item&&giveStock(item))message='🎁 使えそうな道具を発見！ '+item.name+'を1個手に入れたで。';else {const amount=25+Math.floor(Math.random()*26);state.gold+=amount;message='🎁 小さな宝袋を発見！ '+amount+'G 入っていたで！';}}
+  else if(r<99){const amount=10+Math.floor(Math.random()*11);state.gold+=amount;message='🍀 小さな幸運！ '+amount+'G を見つけたで。';}
+  else {const amount=50+Math.floor(Math.random()*51);state.gold+=amount;message='✨ ラッキー！光る小箱を見つけた！中には '+amount+'G！';}
+  if(result)result.textContent=message;
+  updateExploreUI();
+  if(typeof updateAll==='function')updateAll();
+  if(typeof renderConsumables==='function')renderConsumables();
+  if(typeof saveGame==='function')saveGame();
+ }
+ // リアルタイム回復。タブを開き直した場合も、保存済み時刻から経過分を反映する。
+ let lastShownExploreHp=null;
+ setInterval(()=>{
+  if(!state||typeof state!=='object')return;
+  const before=Number(state.exploreHp)||0;
+  ensureExploreState();
+  if(Number(state.exploreHp)!==before){updateExploreUI();if(typeof saveGame==='function')saveGame();}
+ },10000);
  function installPanel(){
+  installExplorePanel();
   if(document.getElementById('consumablePanel'))return;
   const panel=document.createElement('section');panel.id='consumablePanel';panel.className='panel';panel.style.marginTop='10px';
-  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><p class="small" style="margin-top:6px">仕掛けは購入不要。選択するとそのまま装備されるで。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを1個購入</button><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
+  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="rigBuyQty" style="margin-top:4px"></select></label><button id="buyRigButton" type="button" style="margin-top:6px">🛒 選択中の仕掛けを購入</button><p class="small" style="margin-top:6px">通常の仕掛け・ルアーはここで購入。古代魚・化石仕掛けと幻魚・龍神仕掛けだけは、それぞれの専用エリアで探索して入手するんやで。消耗品（エサ・仕掛け・ルアーなど）は種類ごとに最大99個。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="baitBuyQty" style="margin-top:4px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを購入</button><p class="small">消耗品はエサ・仕掛け・ルアーなど、各種類99個まで持てるで。</p><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
   const workshop=document.createElement('section');workshop.id='gearWorkshopPanel';workshop.className='panel';workshop.style.marginTop='10px';workshop.innerHTML=`<h2>🛠️ 装備工房</h2><p class="small">釣り竿・リールは同じ商品を1つまで購入可能。購入済みの商品はもう買えへんけど、所持している道具は「ねこちゃんの釣具装備」で切り替えられるで。修理費は購入価格の半額や。</p><div class="gear-grid"><label>🎣 購入する釣り竿<select id="buyRodSelect"></select><button id="buyRodGearButton" type="button" style="margin-top:6px">釣り竿を購入</button></label><label>⚙️ 購入するリール<select id="buyReelSelect"></select><button id="buyReelGearButton" type="button" style="margin-top:6px">リールを購入</button></label></div><h3 style="margin-top:16px">🔧 耐久・修理</h3><div id="durabilityInfo" class="small"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="repairRod">🎣 竿を修理（費用確認中）</button><button id="repairReel">⚙️ リールを修理（費用確認中）</button></div><p class="small">修理すると耐久値が100/100に戻るで。</p>`;
   const gear=document.getElementById('equipmentPanel');gear.parentNode.insertBefore(workshop,gear.nextSibling);workshop.parentNode.insertBefore(panel,workshop.nextSibling);
   document.getElementById('rigSelect').addEventListener('change',e=>{state.activeRig=e.target.value;renderConsumables()});
   document.getElementById('baitSelect').addEventListener('change',e=>{state.activeBait=e.target.value;renderConsumables()});
   document.getElementById('buyBaitButton').addEventListener('click',()=>buyConsumable('bait'));
+  document.getElementById('buyRigButton').addEventListener('click',()=>buyConsumable('rig'));
   document.getElementById('buyRodGearButton').addEventListener('click',()=>buyGearItem('rod'));document.getElementById('buyReelGearButton').addEventListener('click',()=>buyGearItem('reel'));
   document.getElementById('repairRod').addEventListener('click',()=>repair('rod'));
   document.getElementById('repairReel').addEventListener('click',()=>repair('reel'));
   renderConsumables();
  }
  installPanel();
+ installExplorePanel();
+ // デバッグ用：最後尾に、全アイテムを所持状態にするボタンを配置
+ if(!document.getElementById('debugAllItemsPanel')){
+  const debugPanel=document.createElement('section');debugPanel.id='debugAllItemsPanel';debugPanel.className='panel';debugPanel.style.marginTop='12px';
+  debugPanel.innerHTML='<h2>🧪 デバッグ用</h2><p class="small">テスト専用。押すと通常アイテム・仕掛け・エサ・釣り竿・リール・お守りを一括で所持状態にするで。所持金も十分な額にする。</p><button id="debugAllItemsButton" type="button" style="width:100%;background:#ffb3c7">🧪 デバッグ：アイテムを全部所持する</button>';
+  const main=document.querySelector('main');if(main)main.appendChild(debugPanel);else document.body.appendChild(debugPanel);
+  document.getElementById('debugAllItemsButton').addEventListener('click',()=>{
+   ensureGearState();
+   itemDefs.forEach(item=>{if(item.id!=='float')state.consumableStock[item.id]=99;});
+   state.ownedRods=rods.map((_,i)=>i);state.ownedReels=reels.map((_,i)=>i);
+   state.gold=Math.max(Number(state.gold)||0,99999999);
+   state.rodDurability=100;state.reelDurability=100;
+   // デバッグ中は全装備を切り替えられるようにし、古代魚・幻魚の仕掛けも所持状態にする
+   updateAll();renderConsumables();refreshWorkshopChoices();
+   say('🧪 デバッグ用：全アイテムを所持状態にしたで！所持金・竿・リールも補充済みや。');
+   if(typeof saveGame==='function')saveGame();
+  });
+ }
+
+ // 専用エリアの魚データ登録後に水中の魚を作り直す。初期画面も魚が泳ぐ状態にする。
+ if(typeof createWaterFish==='function')createWaterFish();
  // 新規ゲームにも初期ミミズ10個を用意。旧セーブにも不足時のみ追加。
  renderConsumables();
 })();
 
 </script>
+
+<script>
+// v12: 装備リストが空になる場合に備え、画面側から独立して選択肢を初期化する。
+(function(){
+  const fallback = {
+    rod:[{name:'木の釣り竿',price:0,power:0}],
+    reel:[{name:'木製リール',price:0,power:0}],
+    tackle:[{name:'基本のウキ仕掛け',price:0,bonus:0}],
+    charm:[{name:'小さな肉球のお守り',price:0,bonus:1}]
+  };
+  function tryInit(){
+    const panel=document.getElementById('equipmentPanel');
+    if(!panel) return false;
+    panel.hidden=false;
+    panel.style.setProperty('display','block','important');
+    panel.style.setProperty('visibility','visible','important');
+    panel.style.setProperty('opacity','1','important');
+    panel.style.setProperty('height','auto','important');
+    panel.style.setProperty('overflow','visible','important');
+    const currentState = (typeof state !== 'undefined') ? state : null;
+    const configs=[
+      ['gearRod','rod','ownedRods','竿の引き寄せ力'],
+      ['gearReel','reel','ownedReels','リールの糸保護'],
+      ['gearTackle','tackle',null,'魚寄せ'],
+      ['gearCharm','charm',null,'効果']
+    ];
+    let waiting=false;
+    for(const [id,key,ownedKey,label] of configs){
+      const sel=document.getElementById(id); if(!sel) continue;
+      const list=(window[key+'s'] && window[key+'s'].length) ? window[key+'s'] : fallback[key];
+      if((!window[key+'s'] || !window[key+'s'].length) && key!=='tackle' && key!=='charm') waiting=true;
+      const active=currentState ? (Number(currentState[key])||0) : 0;
+      let indexes=list.map((_,i)=>i);
+      if(ownedKey && currentState){
+        const owned=Array.isArray(currentState[ownedKey])?currentState[ownedKey]:[0,active];
+        indexes=[...new Set([0,...owned,active])].filter(i=>list[i]);
+      }
+      const signature=indexes.map(i=>i+':'+(list[i]?.name||'')).join('|');
+      if(sel.dataset.gearSignature!==signature || sel.options.length===0){
+        sel.innerHTML='';
+        indexes.forEach(i=>{
+          const item=list[i]; if(!item) return;
+          const opt=document.createElement('option'); opt.value=String(i);
+          const stat=key==='charm' ? `効果 ${Number(item.bonus||1).toFixed(2)}倍` : `${label} +${Number(key==='tackle'?item.bonus:item.power)||0}`;
+          opt.textContent=`${item.name}｜${stat}`;
+          sel.appendChild(opt);
+        });
+        sel.dataset.gearSignature=signature;
+      }
+      sel.value=String(indexes.includes(active)?active:(indexes[0]||0));
+      if(!sel.dataset.gearHandler){
+        sel.addEventListener('change',function(){
+          if(currentState) currentState[key]=Number(this.value)||0;
+          try { if(typeof updateAll==='function') updateAll(); } catch(e) { console.error('装備表示更新エラー',e); }
+          const info=document.getElementById('gearInfo');
+          if(info && currentState) info.textContent='装備を変更したで。釣り竿・リール・仕掛け・お守りの選択を確認してな。';
+        });
+        sel.dataset.gearHandler='1';
+      }
+    }
+    return !waiting;
+  }
+  function start(){
+    let attempts=0;
+    const timer=setInterval(function(){
+      attempts++;
+      const ready=tryInit();
+      if(ready || attempts>=60) clearInterval(timer);
+    },150);
+    tryInit();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+})();
+</script>
+
 </body>
 </html>
