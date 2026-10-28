@@ -40,14 +40,30 @@ button:disabled{opacity:.45}
 .fight-inline label{font-size:12px;color:#e7f7fc}
 .fight-inline .meter{margin:5px 0 0}
 .fight-inline .small{grid-column:1/-1}
-.timing-panel{display:none;padding:12px;background:#102f42;border-top:1px solid #4b8494}
-.timing-panel.active{display:block}
-.timing-track{position:relative;height:30px;border-radius:8px;overflow:hidden;display:flex;border:2px solid #d7edf5;background:#18323f;touch-action:manipulation}
-.timing-zone{height:100%;display:block;position:absolute;top:0}
-.timing-bad{background:#e34d5b}
-.timing-good{background:#f4c84b}
-.timing-great{background:#47d58a}
-.timing-marker{position:absolute;top:-2px;bottom:-2px;left:50%;width:5px;background:#fff;box-shadow:0 0 6px #fff;transform:translateX(-50%);border-radius:3px;pointer-events:none}
+.timing-panel{display:none;padding:9px;background:rgba(16,47,66,.92);border:1px solid #7bc9e2;border-radius:12px;box-shadow:0 5px 18px rgba(0,0,0,.35)}
+/* 魚が泳ぐ水面の上に、ルーレットと3つの状態ゲージをリング状に重ねる */
+.timing-panel.active{display:block;position:absolute;left:50%;top:49%;right:auto;bottom:auto;transform:translate(-50%,-50%);z-index:18;width:min(520px,76%);box-sizing:border-box;background:rgba(8,31,46,.78);border:1px solid rgba(123,201,226,.72);backdrop-filter:blur(3px);padding:10px 12px 8px}
+.timing-orbit{position:relative;width:100%;min-height:210px;padding:30px 6px 42px;box-sizing:border-box}
+.timing-orbit .timing-track{width:min(100%,460px);margin:0 auto;position:relative;z-index:1}
+.orbit-meter{position:absolute;z-index:2;width:35%;max-width:170px;padding:6px 8px;border:1px solid rgba(123,201,226,.75);border-radius:10px;background:rgba(8,28,42,.94);box-shadow:0 2px 10px rgba(0,0,0,.28);box-sizing:border-box}
+.orbit-meter label{display:block;font-size:11px;line-height:1.2;color:#f1fbff}
+.orbit-meter .meter{height:7px;margin:4px 0 0}
+.orbit-tension{left:0;top:0}
+.orbit-damage{right:0;top:0}
+.orbit-progress{left:50%;bottom:0;transform:translateX(-50%);width:42%;max-width:210px;text-align:center}
+.orbit-progress label{text-align:center}
+.timing-panel .timing-meta{display:flex;justify-content:space-between;gap:8px;font-size:12px}
+.timing-panel .orbit-help{font-size:10px;line-height:1.35;margin:5px 0 0;text-align:center}
+@media(max-width:560px){.timing-panel.active{width:94%;padding:7px 6px 5px;top:48%}.timing-orbit{min-height:165px;padding:27px 2px 36px}.orbit-meter{width:38%;padding:4px 5px}.orbit-meter label{font-size:9px}.orbit-meter .meter{height:6px}.orbit-progress{width:45%}.timing-panel .orbit-help{font-size:9px}.timing-panel .timing-track{width:100%}}
+@media(max-width:560px){.timing-panel .small{font-size:10px;line-height:1.35}.timing-meta{font-size:11px}.timing-track{margin:4px auto}}
+ .timing-track{position:relative;width:min(100%,460px);height:auto;aspect-ratio:2.25/1;margin:8px auto;overflow:visible;touch-action:manipulation;filter:drop-shadow(0 0 8px rgba(92,205,255,.18))}
+.timing-track svg{display:block;width:100%;height:100%;overflow:visible}
+.timing-track .oval-base{fill:none;stroke:#18323f;stroke-width:24}
+.timing-track .oval-edge{fill:none;stroke:#d7edf5;stroke-width:2.5}
+.timing-track .timing-bad{fill:none;stroke:#e34d5b;stroke-width:20;stroke-linecap:butt}
+.timing-track .timing-good{fill:none;stroke:#f4c84b;stroke-width:20;stroke-linecap:butt}
+.timing-track .timing-great{fill:none;stroke:#47d58a;stroke-width:20;stroke-linecap:butt}
+.timing-track .timing-marker{fill:#fff;stroke:#78eaff;stroke-width:2;filter:drop-shadow(0 0 4px #fff)}
 .timing-meta{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;font-size:13px;margin-bottom:7px}
 .timing-panel .small{margin-top:7px}
 h2{font-size:18px;margin:0 0 10px}
@@ -99,20 +115,132 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
  .fight-inline{grid-template-columns:1fr}
  .sound-row{grid-template-columns:100px 1fr 38px}
 }
+
+/* コンパクトな固定メニュー：長いページをスクロールせずに各機能へ移動 */
+#gameMenu{position:sticky;top:0;z-index:1000;background:rgba(5,25,40,.97);border-bottom:1px solid #5bb8d6;box-shadow:0 4px 14px #0005;padding:6px max(10px,calc((100% - 1440px)/2));backdrop-filter:blur(8px)}
+#gameMenu details{max-width:1440px;margin:auto}
+#gameMenu summary{cursor:pointer;list-style:none;padding:9px 12px;border:1px solid #4c91ad;border-radius:10px;background:#12384b;color:#e8faff;font-weight:800}
+#gameMenu summary::-webkit-details-marker{display:none}
+#gameMenu summary:after{content:' ▾';float:right;color:#ffe08a}
+#gameMenu details[open] summary:after{content:' ▴'}
+#gameMenu .menu-links{display:flex;flex-direction:column;gap:6px;padding:9px 0 3px;max-height:min(58vh,460px);overflow-y:auto}
+#gameMenu .menu-links a,#gameMenu .menu-links button{display:flex;align-items:center;justify-content:space-between;width:100%;box-sizing:border-box;min-height:42px;padding:10px 12px;border:1px solid #477f95;border-radius:9px;background:#1a465b;color:#f2fbff;text-decoration:none;font-size:13px;font-weight:700;box-shadow:none;text-align:left}
+#gameMenu .menu-links a:after{content:'›';font-size:20px;color:#ffe08a;margin-left:10px}
+#gameMenu .menu-links a:active,#gameMenu .menu-links a:hover{background:#2c6177}
+#gameMenu .menu-links button{background:#ffe08a;color:#243541}
+html{scroll-behavior:smooth;scroll-padding-top:100px}
+#quickActions,#equipmentPanel,#equippedHud,#fishingGamePanel,#gameLogPanel,#statsPanel,#slotPanel,#catchLedgerPanel,#fishingAreaPanel,#gearWorkshopPanel,#soundPanel,#explorePanel{scroll-margin-top:100px}
+@media(max-width:650px){#gameMenu .menu-links a,#gameMenu .menu-links button{font-size:13px;padding:10px 11px}}
+
+
+/* 各インターフェースを見出しバーにまとめ、押すと展開・再押下で折りたたむ */
+.interface-accordion{margin:10px 0;border:1px solid #4c91ad;border-radius:12px;overflow:hidden;background:linear-gradient(145deg,rgba(24,67,91,.97),rgba(10,39,61,.97));box-shadow:0 5px 16px rgba(0,0,0,.16)}
+.interface-accordion>summary{cursor:pointer;list-style:none;padding:13px 14px;background:linear-gradient(120deg,#16485d,#173753);color:#f4fbff;font-weight:800;line-height:1.45;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.interface-accordion>summary::-webkit-details-marker{display:none}
+.interface-accordion>summary:after{content:'＋';color:#ffe08a;font-size:20px;flex-shrink:0}
+.interface-accordion[open]>summary:after{content:'−'}
+.interface-accordion>.interface-content{padding:10px}
+.interface-accordion>.interface-content>.panel,.interface-accordion>.interface-content>.sound-panel{margin:0!important}
+.interface-accordion #statsPanel{margin:0!important}
+
+
+/* 改修：ストップボタンを楕円ゲージの中央に配置し、ゲージ全体を上へ */
+.timing-panel.active{top:32% !important;width:min(520px,76%);}
+.timing-orbit{min-height:230px;}
+.timing-stop-button{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:5;width:clamp(116px,34%,180px);height:clamp(42px,20%,62px);min-height:0!important;padding:5px 12px;border-radius:999px!important;border:2px solid #ffe5a3!important;background:linear-gradient(145deg,#ffb15c,#e94c68)!important;color:#fff!important;font-size:clamp(12px,2.8vw,16px)!important;font-weight:800;box-shadow:0 3px 12px rgba(0,0,0,.42),inset 0 1px 2px rgba(255,255,255,.45);touch-action:manipulation;}
+.timing-stop-button:active{transform:translate(-50%,-50%) scale(.96);}
+@media(max-width:560px){.timing-panel.active{top:29% !important;width:94%;}.timing-orbit{min-height:180px;}.timing-stop-button{width:34%;height:38px;padding:3px 5px;font-size:11px!important;}}
+
+/* 改修：ゲームログを釣り画面上に透明オーバーレイ表示 */
+#fishingGamePanel #gameLogPanel{position:absolute!important;left:8px!important;bottom:8px!important;z-index:18!important;width:min(360px,48%)!important;margin:0!important;border:1px solid rgba(190,235,255,.32)!important;border-radius:9px!important;background:rgba(3,22,36,.20)!important;box-shadow:0 1px 5px rgba(0,0,0,.14)!important;backdrop-filter:none!important;overflow:hidden!important;pointer-events:auto;}
+#fishingGamePanel #gameLogPanel>div:first-child{padding:4px 7px!important;background:rgba(3,22,36,.10)!important;color:rgba(240,250,255,.88)!important;font-size:11px!important;text-shadow:0 1px 3px #00131f;}
+#fishingGamePanel #gameLogPanel #status{height:5.2em!important;min-height:5.2em!important;max-height:5.2em!important;padding:4px 7px!important;background:rgba(3,22,36,.12)!important;border-top:1px solid rgba(190,235,255,.16)!important;color:#fff!important;font-size:11px!important;line-height:1.4!important;text-shadow:0 1px 3px #00131f;}
+#fishingGamePanel #gameLogPanel details{border-top:1px solid rgba(190,235,255,.18)!important;background:rgba(3,22,36,.08)!important;}
+#fishingGamePanel #gameLogPanel details summary{padding:4px 7px!important;color:rgba(220,245,255,.9)!important;font-size:10px!important;text-shadow:0 1px 3px #00131f;}
+#fishingGamePanel #gameLogPanel #logHistory{background:rgba(3,22,36,.35)!important;color:#fff!important;}
+@media(max-width:560px){#fishingGamePanel #gameLogPanel{left:5px!important;bottom:5px!important;width:min(280px,62%)!important;}#fishingGamePanel #gameLogPanel #status{height:4.4em!important;min-height:4.4em!important;max-height:4.4em!important;font-size:10px!important;}} 
+
+
+/* 改修2：透明ゲームログを釣り画面の上部へ。ルーレットは小型化 */
+#fishingGamePanel #gameLogPanel{
+ position:absolute!important;left:8px!important;top:48px!important;bottom:auto!important;z-index:25!important;
+ width:min(290px,36%)!important;margin:0!important;
+ border:1px solid rgba(190,235,255,.22)!important;border-radius:8px!important;
+ background:rgba(3,22,36,.10)!important;box-shadow:none!important;backdrop-filter:none!important;
+ overflow:hidden!important;pointer-events:auto;
+}
+#fishingGamePanel #gameLogPanel>div:first-child{padding:3px 6px!important;background:rgba(3,22,36,.06)!important;color:rgba(240,250,255,.92)!important;font-size:10px!important;text-shadow:0 1px 3px #00131f;}
+#fishingGamePanel #gameLogPanel #status{height:4.1em!important;min-height:4.1em!important;max-height:4.1em!important;padding:3px 6px!important;background:rgba(3,22,36,.06)!important;border-top:1px solid rgba(190,235,255,.10)!important;color:#fff!important;font-size:10px!important;line-height:1.35!important;text-shadow:0 1px 3px #00131f;}
+#fishingGamePanel #gameLogPanel details{border-top:1px solid rgba(190,235,255,.12)!important;background:rgba(3,22,36,.04)!important;}
+#fishingGamePanel #gameLogPanel details summary{padding:3px 6px!important;color:rgba(220,245,255,.94)!important;font-size:9px!important;text-shadow:0 1px 3px #00131f;}
+#fishingGamePanel #gameLogPanel #logHistory{background:rgba(3,22,36,.30)!important;color:#fff!important;}
+.timing-panel.active{top:31%!important;width:min(410px,62%)!important;padding:7px 8px 6px!important;}
+.timing-orbit{min-height:165px!important;padding:24px 4px 32px!important;}
+.timing-panel .timing-track{width:min(82%,340px)!important;margin:5px auto!important;}
+.timing-stop-button{width:clamp(100px,32%,145px)!important;height:40px!important;font-size:12px!important;padding:3px 8px!important;}
+@media(max-width:560px){
+ #fishingGamePanel #gameLogPanel{left:5px!important;top:44px!important;bottom:auto!important;width:min(230px,43%)!important;}
+ #fishingGamePanel #gameLogPanel #status{height:3.8em!important;min-height:3.8em!important;max-height:3.8em!important;font-size:9px!important;}
+ .timing-panel.active{top:31%!important;width:88%!important;padding:6px 5px 4px!important;}
+ .timing-orbit{min-height:145px!important;padding:23px 2px 29px!important;}
+ .timing-panel .timing-track{width:82%!important;margin:3px auto!important;}
+ .timing-stop-button{width:104px!important;height:34px!important;font-size:10px!important;padding:2px 4px!important;}
+}
+
+
+/* 改修3：ログをタイミングゲージの真下に置き、最新5行を読める高さにする */
+#fishingGamePanel #gameLogPanel{
+ position:absolute!important;left:8px!important;top:53%!important;bottom:auto!important;z-index:26!important;
+ width:min(310px,42%)!important;max-height:none!important;
+ border:1px solid rgba(190,235,255,.22)!important;border-radius:8px!important;
+ background:rgba(3,22,36,.10)!important;box-shadow:none!important;backdrop-filter:none!important;
+ overflow:hidden!important;
+}
+#fishingGamePanel #gameLogPanel #status{
+ height:7.8em!important;min-height:7.8em!important;max-height:7.8em!important;
+ padding:4px 6px!important;font-size:10px!important;line-height:1.4!important;
+}
+@media(max-width:560px){
+ #fishingGamePanel #gameLogPanel{left:5px!important;top:65%!important;bottom:auto!important;width:min(260px,68%)!important;}
+ #fishingGamePanel #gameLogPanel #status{height:7.8em!important;min-height:7.8em!important;max-height:7.8em!important;font-size:10px!important;line-height:1.4!important;}
+}
+
 </style>
 </head>
 <body>
 <header>
 <h1>🎣 つりっくマスターPLUS</h1>
 <p>自然の音に包まれて、魚とのファイトを楽しもう！</p>
+<button id="updateHistoryButton" type="button" style="margin-top:8px;background:#bdeaff;color:#163447;font-weight:bold">🧾 更新履歴</button>
 </header>
+
+<nav id="gameMenu" aria-label="ゲームメニュー">
+ <details>
+  <summary>☰ メニュー一覧（タップで開閉・項目を押して移動）</summary>
+  <div class="menu-links">
+   <a href="#quickActions">💾 セーブ・ロード・売却</a>
+   <a href="#equipmentPanel">🐱 釣具装備</a>
+   <a href="#fishingGamePanel">🎣 釣り画面</a>
+   <a href="#gameLogPanel">📜 ゲームログ</a>
+   <a href="#statsPanel">📊 所持金・レベル</a>
+   <a href="#slotPanel">🎰 ゴールドスロット</a>
+   <a href="#catchLedgerPanel">🐟 釣果・売却予定額</a>
+   <a href="#fishingAreaPanel">🗺️ 釣り場・魚図鑑</a>
+   <a href="#gearWorkshopPanel">🛠️ 装備工房・所持品</a>
+   <a href="#explorePanel">🧭 探索モード</a>
+   <a href="#consumablePanel">🪱 エサ・使い切り仕掛け</a>
+   <a href="#soundPanel">🌿 自然音の設定</a>
+   <button id="menuTopButton" type="button">⬆️ ページ最上部へ</button>
+  </div>
+ </details>
+</nav>
 
 <main>
 
 
 
 
-<div class="actions">
+<div class="actions" id="quickActions">
  <button id="saveButton">💾 セーブ</button>
  <button id="loadButton" style="background:#a9def9">📂 ロード</button>
  <button id="sellButton" style="background:#b9f0d0">🐟 魚を全部売る</button>
@@ -127,7 +255,9 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
   <label>🎣 ロッド<select id="gearRod"></select></label>
   <label>⚙️ リール<select id="gearReel"></select></label>
   <label>🪝 仕掛け<select id="gearTackle"></select></label>
-  <label>🐾 お守り<select id="gearCharm"></select></label>
+  <label>🐾 お守り①<select id="gearCharm"></select></label>
+  <label>🐾 お守り②（別系統）<select id="gearCharm2"></select></label>
+  <label>🐾 お守り③（別系統）<select id="gearCharm3"></select></label>
  </div>
  <div id="gearInfo" class="small" style="margin-top:10px">装備を選んで釣りを有利にしよう！</div>
  <div style="margin-top:12px">経験値ゲージ</div><div class="meter"><div id="expBar" style="width:0%;background:#ff83b8;height:100%"></div></div>
@@ -143,35 +273,74 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
  </div>
  <p class="small" style="margin:6px 0 0">装備を変更すると、この表示と猫ちゃんの釣具の見た目も更新されるで！</p>
 </section>
-<div class="game">
+<div class="game" id="fishingGamePanel">
  <canvas id="gameCanvas" width="900" height="500"></canvas>
- <div style="padding:10px 12px;background:#12384b;text-align:center">
-  <button id="reelButton" style="width:min(100%,420px);font-size:17px">🎯 タイミングを止める</button>
+ <div id="fishingDurabilityMini" aria-label="竿とリールの耐久度" style="position:absolute;top:8px;left:8px;z-index:15;display:flex;gap:5px;flex-wrap:wrap;max-width:75%;pointer-events:none">
+  <span style="display:inline-block;background:rgba(9,35,48,.86);border:1px solid #8bd7ed;border-radius:7px;padding:4px 7px;color:#f4fbff;font-size:11px;line-height:1.3">🎣 竿 <strong id="miniRodDurability">100/100</strong></span>
+  <span style="display:inline-block;background:rgba(9,35,48,.86);border:1px solid #8bd7ed;border-radius:7px;padding:4px 7px;color:#f4fbff;font-size:11px;line-height:1.3">⚙️ リール <strong id="miniReelDurability">100/100</strong></span>
  </div>
  <div id="timingPanel" class="timing-panel">
    <div class="timing-meta"><strong id="timingRarity">🐟 魚が食いついた！</strong><span id="timingRound">成功 0 / 2</span></div>
-   <div class="timing-track" aria-label="タイミングゲージ"><span class="timing-zone timing-bad"></span><span class="timing-zone timing-good"></span><span class="timing-zone timing-great"></span><span class="timing-zone timing-good"></span><span class="timing-zone timing-bad"></span><span id="timingMarker" class="timing-marker"></span></div>
-   <p class="small">魚の強さと釣り竿の性能でゲージ幅が変わるで！緑の GREAT が難しい魚は、黄色の GOOD を重ねて釣り上げよう。赤の BAD は糸が傷むで。</p>
-  </div>
-  <div class="hint fight-inline">
-  <div><label>糸の張力：<span id="tensionLabel">待機中</span></label><div class="meter"><div id="tension"></div></div></div>
-  <div><label>引き寄せ進行度</label><div class="meter"><div id="progressBar"></div></div></div>
-  <div><label>釣り糸のダメージ：<span id="lineWearLabel">0%</span></label><div class="meter"><div id="lineWearBar"></div></div></div>
-  <p class="small">水面をタップ／クリックして仕掛けを投げよう。魚が食いついたらタイミングゲージに挑戦！旧式の長押しファイトは使わず、ゲージ結果だけで進行度・張力・糸の傷みを管理するで。</p>
+   <div class="timing-orbit">
+    <div class="orbit-meter orbit-tension"><label>糸の張力：<span id="tensionLabel">待機中</span></label><div class="meter"><div id="tension"></div></div></div>
+    <div class="orbit-meter orbit-damage"><label>釣り糸のダメージ：<span id="lineWearLabel">0%</span></label><div class="meter"><div id="lineWearBar"></div></div></div>
+    <button id="reelButton" class="timing-stop-button" style="font-size:14px">ストップ！</button>
+    <div class="timing-track" aria-label="楕円形ルーレット式タイミングゲージ"><svg viewBox="0 0 320 150" role="img" aria-label="外周を一周するタイミングゲージ"><ellipse class="oval-base" cx="160" cy="75" rx="137" ry="53"/><ellipse class="oval-edge" cx="160" cy="75" rx="149" ry="65"/><g id="timingArcs"></g><circle id="timingMarker" class="timing-marker" cx="160" cy="10" r="7"/></svg></div>
+    <div class="orbit-meter orbit-progress"><label>引き寄せ進行度</label><div class="meter"><div id="progressBar"></div></div></div>
+   </div>
+   <p class="orbit-help">ゲージを止めて GOOD 以上を狙おう！赤の BAD は糸が傷むで。</p>
  </div>
- <div id="status" role="status">川辺に到着！水面をタップ／クリックして仕掛けを投げよう！</div>
-<div class="stats game-stats">
+ <section id="gameLogPanel" aria-label="ゲームログ" style="margin-top:8px;border:1px solid #5b9eb5;border-radius:10px;background:rgba(3,22,36,.88);overflow:hidden">
+ <div style="padding:7px 10px;background:rgba(67,132,157,.28);font-weight:bold;color:#d9f5ff">📜 ゲームログ（最新5行）</div>
+ <div id="status" role="status" aria-live="polite" style="height:7.8em;min-height:7.8em;max-height:7.8em;overflow:hidden;padding:7px 10px;line-height:1.55;font-size:13px;white-space:normal;overflow-wrap:anywhere;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div>川辺に到着！水面をタップ／クリックして仕掛けを投げよう！</div></div>
+ <details style="border-top:1px solid #315c70">
+  <summary style="cursor:pointer;padding:8px 10px;color:#bcecff">過去ログを見る（最大100行）</summary>
+  <div id="logHistory" aria-label="過去ログ100行" style="max-height:260px;overflow-y:auto;padding:7px 10px;font-size:12px;line-height:1.5;overflow-wrap:anywhere"></div>
+ </details>
+</section>
+<div class="stats game-stats" id="statsPanel">
  <div class="stat"><span>所持金</span><strong id="gold">100G</strong></div>
  <div class="stat"><span>釣った魚</span><strong id="caught">0匹</strong></div>
  <div class="stat"><span>猫レベル</span><strong id="levelLabel">Lv.1</strong></div>
  <div class="stat"><span>経験値</span><strong id="expLabel">0 / 100</strong></div>
- <div class="stat"><span>釣りポイント</span><strong id="score">0</strong></div>
+ <div class="stat"><span>累計釣りポイント</span><strong id="score">0</strong></div>
  <div class="stat"><span>装備中の竿</span><strong id="rodName">木の釣り竿</strong></div>
 </div>
 </div>
 
+<section id="slotPanel" class="panel" style="margin:12px 0;border:2px solid #e6c15a;background:linear-gradient(135deg,#17384b,#352b55);color:#f8fbff">
+ <h2 style="margin-top:0">🎰 ゴールドスロット</h2>
+ <p class="small">所持金を賭けてスロットに挑戦！そろった絵柄に応じてゴールドが払い戻されるで。結果は運しだいやから、使う金額は自分で決めてな。</p>
+ <div id="slotReels" style="display:flex;justify-content:center;gap:10px;margin:14px 0">
+  <span class="slot-reel" style="display:grid;place-items:center;width:72px;height:76px;border-radius:12px;background:#fff7d6;color:#222;font-size:42px;border:3px solid #e6c15a">🐟</span>
+  <span class="slot-reel" style="display:grid;place-items:center;width:72px;height:76px;border-radius:12px;background:#fff7d6;color:#222;font-size:42px;border:3px solid #e6c15a">🎣</span>
+  <span class="slot-reel" style="display:grid;place-items:center;width:72px;height:76px;border-radius:12px;background:#fff7d6;color:#222;font-size:42px;border:3px solid #e6c15a">🐱</span>
+ </div>
+ <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
+  <label style="flex:1;min-width:140px">賭け金
+   <select id="slotBet" style="width:100%;margin-top:5px"><option value="10">10G</option><option value="100">100G</option><option value="1000">1,000G</option><option value="10000">1万G</option><option value="100000">10万G</option><option value="500000">50万G</option><option value="1000000">100万G</option></select>
+  </label>
+  <button id="slotSpinButton" type="button" style="background:#ffe08a;color:#352b16;font-weight:bold;flex:1;min-width:140px">🎰 スロットを回す</button>
+ </div>
+ <p id="slotResult" role="status" style="margin-bottom:0;font-weight:bold">7が3つなら超大当たり！絵柄の組み合わせで配当が変わるで。</p>
+ <div class="small" style="margin-bottom:0;line-height:1.8"><strong>配当表（賭け金に対する払い戻し倍率）</strong><br>7が3つ：1,000倍<br>ドラゴンが3つ：500倍<br>ダイヤが3つ：250倍<br>王冠が3つ：100倍<br>虹が3つ：75倍<br>コインが3つ：50倍<br>猫が3つ：30倍<br>魚または釣り竿が3つ：20倍<br>同じ絵柄が2つ：2倍<br>それ以外：ハズレ（賭け金は戻らへんで）</div>
+</section>
+
+<section id="catchLedgerPanel" class="panel" style="margin:12px 0;padding:14px;border:1px solid #3e7784;background:linear-gradient(135deg,rgba(18,56,75,.96),rgba(23,72,82,.96));color:#f3fbff">
+ <h2 style="margin:0 0 8px">🐟 釣った魚・売却予定額</h2>
+ <p class="small" style="margin:0 0 10px">釣った魚を種類ごとに集計するで。古代魚・幻魚は種類ごとの初回売却のみ高額、2回目以降は売値が10分の1になるで。</p>
+ <div style="display:flex;justify-content:flex-end;margin:8px 0 12px"><button id="sellFishFromLedgerButton" type="button" style="background:#b9f0d0;color:#17384b;font-weight:bold">🐟 ここで魚を売却する</button></div>
+ <div style="overflow-x:auto">
+  <table style="width:100%;border-collapse:collapse;min-width:310px;font-size:14px">
+   <thead><tr style="background:rgba(255,255,255,.08)"><th style="text-align:left;padding:8px;border-bottom:1px solid #56808b">魚の名前</th><th style="text-align:right;padding:8px;border-bottom:1px solid #56808b">釣った数</th><th style="text-align:right;padding:8px;border-bottom:1px solid #56808b">単価</th><th style="text-align:right;padding:8px;border-bottom:1px solid #56808b">合計</th></tr></thead>
+   <tbody id="catchLedgerRows"><tr><td colspan="4" style="padding:10px;text-align:center">まだ魚を釣っていないで！</td></tr></tbody>
+   <tfoot><tr style="font-weight:bold;background:rgba(255,224,138,.12)"><td colspan="3" style="text-align:right;padding:10px;border-top:1px solid #56808b">合計売却額</td><td id="catchLedgerTotal" style="text-align:right;padding:10px;border-top:1px solid #56808b">0G</td></tr></tfoot>
+  </table>
+ </div>
+</section>
+
 <div class="panels">
-<section class="panel" style="grid-column:1/-1">
+<section class="panel" id="fishingAreaPanel" style="grid-column:1/-1">
  <h2>🗺️ 釣り場</h2>
  <select id="locationSelect">
   <option value="river">せせらぎ川・上流（初級）</option>
@@ -182,6 +351,7 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
   <option value="sea_deep">青の入り江・沖合（最上級）</option>
  </select>
  <p id="locationInfo" class="small">小魚が多い初心者向けの川。</p>
+ <div id="areaUnlockInfo" class="small" style="margin:10px 0;padding:10px;border:1px solid #56808b;border-radius:10px;background:rgba(0,0,0,.16)">釣りポイントを貯めて、新しい釣り場を解放しよう！</div>
  <h2 style="margin-top:18px">📖 魚図鑑</h2>
  <div id="fishList"></div>
 </section>
@@ -190,7 +360,7 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
 
 
 <!-- 自然音コントロール -->
-<section class="sound-panel">
+<section class="sound-panel" id="soundPanel">
  <h2>🌿 自然の音・環境音</h2>
  <p class="small">川のせせらぎを聴きながら釣りをしよう。鳥や野生動物の声は、ときどき流れるで！</p>
  <div class="sound-buttons">
@@ -253,18 +423,47 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
 
 <script>
 "use strict";
+const gameLogEntries = ["川辺に到着！水面をタップ／クリックして仕掛けを投げよう！"];
+function addGameLog(message){
+  const text=String(message ?? "");
+  gameLogEntries.push(text);
+  if(gameLogEntries.length>100) gameLogEntries.splice(0,gameLogEntries.length-100);
+  const visible=document.getElementById("status");
+  if(visible){
+    visible.replaceChildren();
+    gameLogEntries.slice(-5).forEach((entry)=>{
+      const line=document.createElement("div");
+      line.textContent="› "+entry;
+      visible.appendChild(line);
+    });
+  }
+  const history=document.getElementById("logHistory");
+  if(history){
+    history.replaceChildren();
+    gameLogEntries.slice().reverse().forEach((entry,index)=>{
+      const line=document.createElement("div");
+      line.textContent=String(gameLogEntries.length-index).padStart(3,"0")+"  "+entry;
+      line.style.padding="3px 0";
+      line.style.borderBottom="1px solid rgba(130,190,210,.14)";
+      history.appendChild(line);
+    });
+  }
+}
+window.gameLogAdd=addGameLog;
 window.addEventListener("error",function(ev){
   try {
     const status=document.getElementById("status");
-    if(status) status.textContent="ゲーム内エラー: "+(ev.message||"不明なエラー")+"（再読み込みしても続く場合は、この表示を教えてな）";
+    if(status) window.gameLogAdd("ゲーム内エラー: "+(ev.message||"不明なエラー")+"（再読み込みしても続く場合は、この表示を教えてな）");
   } catch (_) {}
 });
 window.addEventListener("unhandledrejection",function(ev){
   try {
     const status=document.getElementById("status");
-    if(status) status.textContent="音声などの処理でエラーが発生しました。音声を使わずに遊べる場合もあるで。";
+    if(status) window.gameLogAdd("音声などの処理でエラーが発生しました。音声を使わずに遊べる場合もあるで。");
   } catch (_) {}
 });
+
+addGameLog(gameLogEntries[0]);
 
 /* =========================
    自然音システム
@@ -457,10 +656,11 @@ const baits=[
 
 const freshState=()=>({
  gold:100,caught:0,score:0,rod:0,bait:0,
- inventory:[],discovered:[],location:"river"
+ inventory:[],discovered:[],location:"river",specialFishSold:{}
 });
 
 let state=freshState();
+state.specialFishSold=state.specialFishSold||{};
 let phase="idle";
 let reeling=false;
 let bobber=null;
@@ -578,10 +778,64 @@ function playFanfare(){
  tone(1568,.65,1.03,"triangle",.11);
 }
 
-function say(text){$("status").textContent=text}
+function say(text){addGameLog(text)}
 
+const areaUnlockDefs=[
+ {id:"river",name:"清流の川",required:0},
+ {id:"river_mid",name:"せせらぎ川・中流",required:500},
+ {id:"river_lower",name:"せせらぎ川・下流",required:1500},
+ {id:"lake",name:"神秘の湖",required:3500},
+ {id:"sea",name:"青の入り江・沿岸",required:7000},
+ {id:"sea_deep",name:"青の入り江・沖合",required:15000},
+ {id:"ancient_stage",name:"太古の化石海域",required:30000},
+ {id:"mythical_stage",name:"幻影の竜宮海域",required:50000}
+];
+function updateAreaUnlocks(){
+ const select=$("locationSelect");
+ if(!select)return;
+ const points=Math.max(0,Number(state.score)||0);
+ for(const area of areaUnlockDefs){
+  const option=Array.from(select.options).find(o=>o.value===area.id);
+  if(!option)continue;
+  const unlocked=points>=area.required;
+  option.disabled=!unlocked;
+  option.textContent=area.required===0?`${area.name}（解放済み）`:
+   unlocked?`${area.name}（解放済み）`:`🔒 ${area.name}（累計 ${area.required.toLocaleString("ja-JP")} pt）`;
+ }
+ const info=$("areaUnlockInfo");
+ if(info){
+  const next=areaUnlockDefs.find(a=>a.required>points);
+  info.textContent=next
+   ? `累計釣りポイント：${points.toLocaleString("ja-JP")} pt ／ 次の解放：${next.name}（${next.required.toLocaleString("ja-JP")} pt・あと${(next.required-points).toLocaleString("ja-JP")} pt）`
+   : `累計釣りポイント：${points.toLocaleString("ja-JP")} pt ／ 全エリア解放済み！好きな釣り場で楽しもう！`;
+ }
+}
+
+function formatGoldAmount(value){
+ const n=Math.max(0,Math.floor(Number(value)||0));
+ if(n===0)return '0G';
+ // 4桁ごとに「万・億・兆・京」で区切り、各区切りの千も日本語で表示する。
+ const bigUnits=['','万','億','兆','京'];
+ const parts=[];
+ let rest=n, group=0;
+ while(rest>0 && group<bigUnits.length){
+  const chunk=rest%10000;
+  if(chunk>0){
+   let part='';
+   if(chunk>=1000){part+=Math.floor(chunk/1000)+'千';}
+   const lower=chunk%1000;
+   if(lower>0)part+=lower.toLocaleString('ja-JP');
+   parts.unshift(part+bigUnits[group]);
+  }
+  rest=Math.floor(rest/10000);
+  group++;
+ }
+ if(rest>0)parts.unshift(rest.toLocaleString('ja-JP')+'京');
+ return parts.join('')+'G';
+}
 function updateAll(){
- $("gold").textContent=state.gold+"G";
+ updateAreaUnlocks();
+ $("gold").textContent=formatGoldAmount(state.gold);
  $("caught").textContent=state.caught+"匹";
  $("score").textContent=state.score;
  $("rodName").textContent=currentRod().name;
@@ -631,14 +885,14 @@ extraFishData.forEach(([id,name,hab],i)=>{
 });
 // 古代魚を含めて全108種に拡張
 const ancientFish={
- coelacanth:{name:"シーラカンス",price:12000,points:650,speed:1.35,power:4.4,color:"#648da1"},
- megalodon:{name:"メガロドン",price:50000,points:1800,speed:1.55,power:8.5,color:"#536f82"},
- dunkleosteus:{name:"ダンクルオステウス",price:36000,points:1300,speed:1.25,power:7.2,color:"#788b91"},
- mosasaurus:{name:"モササウルス",price:65000,points:2200,speed:1.65,power:9.2,color:"#568b86"},
- plesiosaur:{name:"プレシオサウルス",price:42000,points:1550,speed:1.4,power:7.8,color:"#6b9b9c"},
- ancient_shark:{name:"古代巨大ザメ",price:58000,points:2000,speed:1.75,power:9,color:"#728ca2"},
- helicoprion:{name:"ヘリコプリオン",price:32000,points:1150,speed:1.5,power:6.8,color:"#8c9baf"},
- livyatan:{name:"リヴィアタン",price:72000,points:2500,speed:1.6,power:9.8,color:"#657f94"}
+ coelacanth:{name:"シーラカンス",price:1000000,points:650,speed:1.35,power:4.4,color:"#648da1"},
+ megalodon:{name:"メガロドン",price:5000000,points:1800,speed:1.55,power:8.5,color:"#536f82"},
+ dunkleosteus:{name:"ダンクルオステウス",price:3000000,points:1300,speed:1.25,power:7.2,color:"#788b91"},
+ mosasaurus:{name:"モササウルス",price:8000000,points:2200,speed:1.65,power:9.2,color:"#568b86"},
+ plesiosaur:{name:"プレシオサウルス",price:4000000,points:1550,speed:1.4,power:7.8,color:"#6b9b9c"},
+ ancient_shark:{name:"古代巨大ザメ",price:7000000,points:2000,speed:1.75,power:9,color:"#728ca2"},
+ helicoprion:{name:"ヘリコプリオン",price:2500000,points:1150,speed:1.5,power:6.8,color:"#8c9baf"},
+ livyatan:{name:"リヴィアタン",price:10000000,points:2500,speed:1.6,power:9.8,color:"#657f94"}
 };
 Object.assign(fishTypes,ancientFish);
 for(const id of Object.keys(ancientFish))habitatById[id]="sea";
@@ -661,22 +915,40 @@ locations.sea.fish=only([...seaFish.filter(id=>fishTypes[id].points<=115),"macke
 locations.sea_deep.fish=only([...seaFish.filter(id=>fishTypes[id].points>=65),"tuna","maguro","same","shark","ray","manbou","alfonsino","tilefish","grouper","rockfish","pollock","tara","hokke","coelacanth","megalodon","dunkleosteus","mosasaurus","plesiosaur","ancient_shark","helicoprion","livyatan"]);
 
 const addRods=[
- ['渓流ロッド',180,20],['万能ロッド',260,22],['湖沼ロッド',390,24],['遠投ロッド',520,26],['海釣りロッド',700,28],['剛力ロッド',950,30],['軽量カーボン',1250,32],['トーナメントロッド',1650,34],['深海ロッド',2200,36],['ドラゴンロッド',3000,38],['星降りロッド',4200,40],['虹色ロッド',5800,43],['神獣ロッド',8000,46],['伝説の猫竿',12000,50],['銀河ロッド',18000,55],['にゃんこマスター竿',26000,60]
+ ['渓流ロッド',180,20],['万能ロッド',260,22],['湖沼ロッド',390,24],['遠投ロッド',520,26],['海釣りロッド',700,28],['剛力ロッド',950,30],['軽量カーボン',1250,32],['トーナメントロッド',1650,34],['深海ロッド',2200,36],['ドラゴンロッド',3000,38],['星降りロッド',4200,40],['虹色ロッド',5800,43],['神獣ロッド',8000,46],['伝説の猫竿',12000,50],['銀河ロッド',18000,55],['にゃんこマスター竿',26000,60],
+ ['古代神竿',250000,85],['幻龍の竿',1500000,120],['銀河超越ロッド',12000000,170],['創世の釣神竿',80000000,240],['無限大にゃんこ竿',500000000,350],['宇宙の終焉ロッド',2500000000,500]
 ];
-addRods.forEach(([name,price,power])=>{if(rods.length<20)rods.push({name,price,power})});
+addRods.forEach(([name,price,power])=>{if(rods.length<30)rods.push({name,price,power})});
 window.reels=[
- ['木製リール',0,0],['スピニングリール',100,2],['ベイトリール',180,4],['軽量リール',280,6],['防水リール',400,8],['高速リール',550,10],['パワーリール',750,12],['遠投リール',980,14],['精密リール',1250,16],['海水対応リール',1600,18],['ドラグ強化リール',2100,20],['トーナメントリール',2800,22],['深海リール',3700,24],['銀翼リール',4900,26],['蒼波リール',6500,28],['紅蓮リール',8500,30],['星雲リール',11000,32],['幻影リール',14500,34],['神龍リール',19000,37],['にゃんこ王リール',25000,40]
+ ['木製リール',0,0],['スピニングリール',100,5],['ベイトリール',180,10],['軽量リール',280,15],['防水リール',400,20],['高速リール',550,25],['パワーリール',750,30],['遠投リール',980,35],['精密リール',1250,40],['海水対応リール',1600,45],['ドラグ強化リール',2100,50],['トーナメントリール',2800,55],['深海リール',3700,60],['銀翼リール',4900,65],['蒼波リール',6500,70],['紅蓮リール',8500,75],['星雲リール',11000,80],['幻影リール',14500,85],['神龍リール',19000,90],['にゃんこ王リール',25000,100]
 ].map(([name,price,power])=>({name,price,power}));
+window.reels.push(
+ {name:'古代神リール',price:180000,power:130},
+ {name:'幻龍ドラグリール',price:1200000,power:180},
+ {name:'銀河超越リール',price:10000000,power:250},
+ {name:'創世の釣神リール',price:70000000,power:350},
+ {name:'無限大にゃんこリール',price:400000000,power:500},
+ {name:'宇宙の終焉リール',price:2000000000,power:700}
+);
 window.tackles=[
- ['基本のウキ仕掛け',0,0],['ミミズ仕掛け',80,1],['練りエサ仕掛け',140,2],['サビキ仕掛け',220,3],['投げ釣り仕掛け',320,4],['ルアー仕掛け',450,5],['ワーム仕掛け',600,6],['メタルジグ仕掛け',780,7],['浮き釣り仕掛け',980,8],['底釣り仕掛け',1250,9],['トリック仕掛け',1550,10],['エギング仕掛け',1950,11],['泳がせ仕掛け',2450,12],['遠投カゴ仕掛け',3100,13],['大物専用仕掛け',3900,14],['深海仕掛け',5000,15],['虹色仕掛け',6500,16],['幻魚仕掛け',8500,17],['神秘の仕掛け',11500,18],['にゃんこ秘伝仕掛け',16000,20]
+ ['基本のウキ仕掛け',0,0],['ミミズ仕掛け',80,1],['練りエサ仕掛け',140,2],['サビキ仕掛け',220,3],['投げ釣り仕掛け',320,4],['ルアー仕掛け',450,5],['ワーム仕掛け',600,6],['メタルジグ仕掛け',780,7],['浮き釣り仕掛け',980,8],['底釣り仕掛け',1250,9],['トリック仕掛け',1550,10],['エギング仕掛け',1950,11],['泳がせ仕掛け',2450,12],['遠投カゴ仕掛け',3100,13],['大物専用仕掛け',3900,14],['深海仕掛け',5000,15],['虹色仕掛け',6500,16],['幻魚仕掛け',8500,17],['神秘の仕掛け',11500,18],['にゃんこ秘伝仕掛け',16000,20],['古代魚・化石仕掛け',3000,19],['幻魚・龍神仕掛け',5000,19.5]
 ].map(([name,price,bonus])=>({name,price,bonus}));
-window.charms=[
- ['小さな肉球のお守り',0,1],['幸運のお守り',120,1.03],['経験値のお守り',240,1.12],['魚寄せのお守り',360,1.08],['大物のお守り',500,1.1],['レア魚のお守り',680,1.12],['川守りのお守り',850,1.14],['湖守りのお守り',1050,1.16],['海守りのお守り',1300,1.18],['金運のお守り',1600,1.2],['集中のお守り',2000,1.22],['耐久のお守り',2500,1.25],['経験値アップ札',3200,1.3],['虹色の肉球',4100,1.34],['星降りのお守り',5300,1.38],['幻魚のお守り',6900,1.43],['大漁祈願のお守り',9000,1.48],['七福猫のお守り',12000,1.55],['神獣の首輪',16000,1.65],['伝説のにゃんこ守',22000,1.8]
-].map(([name,price,bonus])=>({name,price,bonus}));
+window.charms=[];
+[
+ {type:'tension',label:'張力軽減',icon:'🧵'},
+ {type:'line',label:'糸ダメージ軽減',icon:'🛡️'},
+ {type:'timing',label:'タイミング減速',icon:'🎯'},
+ {type:'recovery',label:'体力回復短縮',icon:'💚'},
+ {type:'progress',label:'引き寄せ進行度アップ',icon:'📈'}
+].forEach(group=>{for(let grade=1;grade<=10;grade++){
+ const price=grade*grade*300;
+ window.charms.push({name:`${group.label}のお守り・${grade}級`,price,bonus:1,type:group.type,grade,icon:group.icon});
+}});
+const charms=window.charms;
 // 装備工房（別パネル）からも道具データを参照できるように共有する
 window.rods=rods;window.reels=reels;window.tackles=tackles;window.charms=charms;
 // 旧セーブデータとの互換性を維持。レベルは記録用で、釣り能力には影響しない
-state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number(state.charm)||0;
+state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number.isInteger(Number(state.charm))?Number(state.charm):-1;state.charm2=Number.isInteger(Number(state.charm2))?Number(state.charm2):-1;state.charm3=Number.isInteger(Number(state.charm3))?Number(state.charm3):-1;
 state.ownedRods=Array.isArray(state.ownedRods)?state.ownedRods:[0,Number(state.rod)||0];state.ownedReels=Array.isArray(state.ownedReels)?state.ownedReels:[0,Number(state.reel)||0];if(!state.ownedRods.includes(0))state.ownedRods.unshift(0);if(!state.ownedReels.includes(0))state.ownedReels.unshift(0);if(!state.ownedRods.includes(Number(state.rod)||0))state.ownedRods.push(Number(state.rod)||0);if(!state.ownedReels.includes(Number(state.reel)||0))state.ownedReels.push(Number(state.reel)||0);
 // freshStateは既存セーブ互換のまま使い、ロード後に追加項目を補完する。
 const baseCurrentRod=currentRod;
@@ -706,16 +978,16 @@ function populateGearSelect(id,items,key){
  const sel=$(id);if(!sel)return;sel.innerHTML='';
  if(key==='rod'||key==='reel'){
   const owned=key==='rod'?(state.ownedRods||[0]):(state.ownedReels||[0]);
-  [...new Set([0,...owned,Number(state[key])||0])].filter(i=>items[i]).forEach(i=>{const item=items[i],opt=document.createElement('option');opt.value=i;opt.textContent=`${item.name}｜${key==='rod'?'引き寄せ力':'糸保護'} +${Number(item.power)||0}｜耐久 ${key==='rod'?(state.rodDurability??100):(state.reelDurability??100)}/100`;sel.appendChild(opt)});
- }else{items.forEach((item,i)=>{const opt=document.createElement('option');opt.value=i;const metric=key==='tackle'?`魚寄せ +${Number(item.bonus)||0}`:`効果 ${(Number(item.bonus)||1).toFixed(2)}倍`;opt.textContent=`${item.name}｜${metric}${key==='tackle'?'｜選択装備':''}`;sel.appendChild(opt)});}
+  [...new Set([0,...owned,Number(state[key])||0])].filter(i=>items[i]).forEach(i=>{const item=items[i],opt=document.createElement('option');opt.value=i;opt.textContent=`${item.name}｜所持1本｜${key==='rod'?'引き寄せ力':'糸保護'} +${Number(item.power)||0}｜耐久 ${key==='rod'?(state.rodDurability??100):(state.reelDurability??100)}/100`;sel.appendChild(opt)});
+ }else{items.forEach((item,i)=>{const opt=document.createElement('option');opt.value=i;const metric=key==='tackle'?`魚寄せ +${Number(item.bonus)||0}`:`効果 ${(Number(item.bonus)||1).toFixed(2)}倍`;opt.textContent=`${item.name}｜${metric}${key==='tackle'?'｜装備選択（消耗品在庫は下の所持品一覧）':''}`;sel.appendChild(opt)});}
  sel.value=String(state[key]||0);
- sel.onchange=()=>{const i=Number(sel.value),item=items[i];if(!item)return;state[key]=i;updateAll();say(item.name+'を装備したで！');};
+ sel.onchange=()=>{if(key==='charm')return;const i=Number(sel.value),item=items[i];if(!item)return;state[key]=i;updateAll();say(item.name+'を装備したで！');};
 }
 function setupGearUI(){
  populateGearSelect('gearRod',rods,'rod');populateGearSelect('gearReel',reels,'reel');populateGearSelect('gearTackle',tackles,'tackle');populateGearSelect('gearCharm',charms,'charm');
  // reels は updateAll 内のローカル変数なので、釣りループ用に選択中の性能だけ公開する
  window.__tsurickReelPower = Number(reels[state.reel]?.power) || 0;
- const info=$('gearInfo');if(info)info.innerHTML=`<strong>現在の装備</strong><br>🎣 ${rods[state.rod]?.name||'木の釣り竿'}：引き寄せ力 +${Number(rods[state.rod]?.power)||0} ／ 耐久 ${state.rodDurability??100}/100<br>⚙️ ${reels[state.reel]?.name||'基本リール'}：糸保護 +${Number(reels[state.reel]?.power)||0} ／ 耐久 ${state.reelDurability??100}/100<br>🪝 ${tackles[state.tackle]?.name||'基本仕掛け'}：魚寄せ +${Number(tackles[state.tackle]?.bonus)||0} ／ 購入不要・選択装備<br>🐾 ${charms[state.charm]?.name||'小さな肉球のお守り'}：効果 ${(charms[state.charm]?.bonus||1).toFixed(2)}倍 ／ ${charms[state.charm]?.price||0}G<br><span class="small">竿・リール・仕掛けは数値加算式。お守りのみ倍率式。所持金が足りない商品は購入できへんで。</span>`;
+ const miniRod=document.getElementById('miniRodDurability'),miniReel=document.getElementById('miniReelDurability');if(miniRod)miniRod.textContent=(state.rodDurability??100)+'/100';if(miniReel)miniReel.textContent=(state.reelDurability??100)+'/100';const info=$('gearInfo');if(info)info.innerHTML=`<strong>現在の装備</strong><br>🎣 ${rods[state.rod]?.name||'木の釣り竿'}：引き寄せ力 +${Number(rods[state.rod]?.power)||0} ／ 耐久 ${state.rodDurability??100}/100<br>⚙️ ${reels[state.reel]?.name||'基本リール'}：糸保護 +${Number(reels[state.reel]?.power)||0} ／ 耐久 ${state.reelDurability??100}/100<br>🪝 ${tackles[state.tackle]?.name||'基本仕掛け'}：魚寄せ +${Number(tackles[state.tackle]?.bonus)||0} ／ 購入不要・選択装備<br>🐾 ${charms[state.charm]?.name||'小さな肉球のお守り'}：効果 ${(charms[state.charm]?.bonus||1).toFixed(2)}倍 ／ ${charms[state.charm]?.price||0}G<br><span class="small">竿・リール・仕掛けは数値加算式。お守りのみ倍率式。所持金が足りない商品は購入できへんで。</span>`;
  const setText=(id,value)=>{const el=$(id);if(el)el.textContent=value};
  setText('hudRod',rods[state.rod]?.name||'木の釣り竿');
  setText('hudReel',reels[state.reel]?.name||'木製リール');
@@ -737,7 +1009,7 @@ updateAll=function(){oldUpdateAll();
 const oldDrawShop=drawShop;
 drawShop=function(){oldDrawShop();};
 const oldLoadGame=loadGame;
-loadGame=function(){oldLoadGame();state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number(state.charm)||0;
+loadGame=function(){oldLoadGame();state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number.isInteger(Number(state.charm))?Number(state.charm):-1;state.charm2=Number.isInteger(Number(state.charm2))?Number(state.charm2):-1;state.charm3=Number.isInteger(Number(state.charm3))?Number(state.charm3):-1;
 state.ownedRods=Array.isArray(state.ownedRods)?state.ownedRods:[0,Number(state.rod)||0];state.ownedReels=Array.isArray(state.ownedReels)?state.ownedReels:[0,Number(state.reel)||0];if(!state.ownedRods.includes(0))state.ownedRods.unshift(0);if(!state.ownedReels.includes(0))state.ownedReels.unshift(0);if(!state.ownedRods.includes(Number(state.rod)||0))state.ownedRods.push(Number(state.rod)||0);if(!state.ownedReels.includes(Number(state.reel)||0))state.ownedReels.push(Number(state.reel)||0);updateAll();};
 // 長めの「にゃーーーーーん！」をブラウザ内合成で再生。外部音源不要。
 playCatchVoice=function(isRare=false){
@@ -762,6 +1034,22 @@ $("locationSelect").value=state.location;
 function drawFishList(){
  const list=$("fishList");
  list.innerHTML="";
+ const posterCrops={
+  minnow:'data:image/jpeg;base64,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',
+  ayu:'data:image/jpeg;base64,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',
+  carp:'data:image/jpeg;base64,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',
+  crucian:'data:image/jpeg;base64,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',
+  dace:'data:image/jpeg;base64,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',
+  yamame:'data:image/jpeg;base64,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',
+  catfish:'data:image/jpeg;base64,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',
+  rainbow:'data:image/jpeg;base64,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',
+  bluegill:'data:image/jpeg;base64,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',
+  bass:'data:image/jpeg;base64,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',
+  pike:'data:image/jpeg;base64,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',
+  tuna:'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCAAoAC4DASIAAhEBAxEB/8QAHQAAAQQCAwAAAAAAAAAAAAAACAACBAYBAwUHCf/EADMQAAEDAwIFAAgFBQAAAAAAAAECAwQABREGIQcSEzFRCCIjQVNxgbIVFzJhY0KRobHx/8QAGQEAAwADAAAAAAAAAAAAAAAAAgMEAAEF/8QAIxEAAgICAQIHAAAAAAAAAAAAAQIAAxEhBBLREzEyQUKBwf/aAAwDAQACEQMRAD8AOVtRyRUeKklt0/zu/earel9dWXVN4kRbMtx5tlvqdc+qF7jsO+N+9WuByqjOE/Gc+81TVyK7ay9ZyMznvU6WBHGDjtNidqcAFDeqxrbXuj+H1oFz1fqCJamFZ6aHVZdePhtsesr6DH70NmsfTnssFxcbROi5s89kTLu8IyD+4bTlR+po1Vn9IzNs6JpziFsAhalBC0KKDyqCSDynwfBpwUnmKQQSnYgHcfPxXntoj0mOMdvecdYXFuUd5a3HGXra4pKlrOSvnSM829dv8KuPzGn7HLi60gy35Uh8yVSmyeqtRA2UlYH0xWNVeMZXUWvJoPyxJPo4QL9B4pXaBeGZCHo9vUl7rI5VBXUTgKHnv/aiDvP42nh3eDp0vpuxDwiqYQha0rKzhQC/VONzg1zMVmOme7JSw2HnQAt0JAUsDtk+/FbYBAirH8zn3mouDxjxqPDJzvvLeXcL7w/lrtAVv2gJ8jW0m767jv3e4yIvQUm4OOPPtv5HtEObBCRn9CRioH5cTI9wmN6UNvsMsMoKlyIwkBpRV23yQSB/ujwutrtd4jFm5QGJSCMe0TuPkruKqyeGmkWYzrMG3LhKc3LrTpKwfOVZ8Va1jMnRJDUofqg12W03ex2xpE+/XC7yk4KnlkMpV22ShIAA2/zW65r1HNfS7boqXFf1p6XW5fGMjYUSds4b6YiNFMm3omKB2W8tRz23x7vlVmjQIMBkMwYUeO2BjDTYH/aSqj2EaRrEk8oQfdmokNZ6C8fGc+80qVPXamJsOLB9/klpHPvWenvSpUonceoyJgkI77UxS00qVGu4LHE//9k=',
+  mackerel:'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAwMDAgQDAwMEBAQFBgoGBgUFBgwICQcKDgwPDg4MDQ0PERYTDxAVEQ0NExoTFRcYGRkZDxIbHRsYHRYYGRj/2wBDAQQEBAYFBgsGBgsYEA0QGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBj/wAARCAAoAC4DASIAAhEBAxEB/8QAHQAAAQQCAwAAAAAAAAAAAAAACAAEBQYBAwIHCf/EADMQAAEDAwMBBQMNAAAAAAAAAAECAwQABREGEiEHEzFBUXEIIoEUFUJSYWJjZHKCo7Kz/8QAGQEAAwEBAQAAAAAAAAAAAAAAAQIDAAQF/8QAIREAAgIBBAIDAAAAAAAAAAAAAQIAERIDIWHBIlETQYH/2gAMAwEAAhEDEQA/ADtQrcKjLYFBEw/nXv7VXE68iPdXLdou1usSlLiOTZbzagsIbAwgAjjJPOfLHnVotK0lqd3cTnuf3V1o4xauJ5zC3T9jwE45rWsjdVQ171U0D02idtrHUsO3OKGW4me0kO/paT73xOBQ6ax9sGRdoj1v6b6Kuy9ygg3O4uCOQMg4ShPKSRnknxoCyLUXHdlGzGF0lOT3VzO5NCNbvan1m8uzp1FpdiBHblB24OWx3ct5n6LYCjx97zArve0ddelt+bBj6qjQ3Nu8tXBJjqA4+tx40CzA+QqZGQjxMhNF9NB0w6mW9mzrS9Z7ha1RXEhrBaktBKtwPJCVjccZ4Iq13yLqWd0+vcLSdxct14emOiPKRty2e0GSd3GMAg+PlV1SSo01trKREeOO+U+f5FVtMBEYezAyk6i1z1AOv+iZenNRTntR2SZMukySt5a7wO1UUkngOHlQB2ng85xionT2lL5HdKoLUa2WtckKWp9jtpCWsJIbaUfdB4OSeea9BLlarddI3ye4wI0xochD7YWB6Z7qq1x6Z6OnK7T5kjtLyDhJWEEjHekHy4+NKwyTGUFBsoMb8hRCYUKBGKnDtQyGErJJ8AMZJpjbeh2r9ZvJkQtN2+MytsvJl3bKELG7btCQchWcnkdwowrXpXTVleD1osMGG74Ott5WPRRyR8KlUMtIUpSG0pUs5UQMFR8zS/Ea22hLL97xyn3ACaZ26QFQ1D8d7/RVKlV1Fob47kdRiNRQPR6jzGfs9a1qFKlUwZYzCUknAGfSsqBSAT492aVKje8XEVc//9k=',
+  snapper:'data:image/jpeg;base64,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'
+ };
  const photos={
   carp:{url:"https://commons.wikimedia.org/wiki/Special:FilePath/Carassius_gibelio_(Seine_river).jpg",page:"https://commons.wikimedia.org/wiki/File:Carassius_gibelio_(Seine_river).jpg",credit:"Wikimedia Commons"},
   bass:{url:"https://commons.wikimedia.org/wiki/Special:FilePath/Black_bass.png",page:"https://commons.wikimedia.org/wiki/File:Black_bass.png",credit:"Wikimedia Commons"},
@@ -796,18 +1084,18 @@ function drawFishList(){
    img.style.cssText="display:block;width:100%;height:90px;object-fit:contain;border-radius:6px;background:#d7f0f4;";
    const fallback=makeFallbackFish();
    img.onerror=()=>{if(img.src!==fallback)img.src=fallback;};
-   img.src=photo?photo.url:fallback;
+   img.src=posterCrops[id]||(photo?photo.url:fallback);
    card.appendChild(img);
    const name=document.createElement("div");name.textContent="🐟 "+f.name;name.style.cssText="font-weight:bold;margin-top:5px";card.appendChild(name);
    const rarity=getFishRarity(id,f);
    const rarityBadge=document.createElement("div");rarityBadge.textContent="レア度："+rarity.code+"（"+rarity.name+"）";rarityBadge.style.cssText="display:inline-block;margin-top:5px;padding:3px 7px;border-radius:999px;background:"+rarity.color+";color:#fff;font-size:11px;font-weight:bold;";card.appendChild(rarityBadge);
    const meta=document.createElement("div");meta.textContent="売値 "+f.price+"G・ポイント "+f.points;meta.style.cssText="font-size:11px;margin-top:3px";card.appendChild(meta);
-   if(photo){const link=document.createElement("a");link.href=photo.page;link.target="_blank";link.rel="noopener";link.textContent="写真・作者・ライセンス";link.style.cssText="display:block;font-size:10px;margin-top:4px";card.appendChild(link)}
+   if(photo&&!posterCrops[id]){const link=document.createElement("a");link.href=photo.page;link.target="_blank";link.rel="noopener";link.textContent="写真・作者・ライセンス";link.style.cssText="display:block;font-size:10px;margin-top:4px";card.appendChild(link)}
   }else{card.textContent="❔ 未発見の魚";card.style.minHeight="50px"}
   list.appendChild(card);
  }
  const note=document.createElement("p");note.className="small";note.style.cssText="width:100%;flex-basis:100%;";
- note.textContent="図鑑には利用条件を確認できるWikimedia Commonsの写真素材（対応魚種）を使用します。写真が未登録・読み込み失敗の場合も、魚種別のオリジナル図鑑イラストを表示します。写真リンクから作者・ライセンスを確認できます。レア度は N → R → SR → SSR → UR → LR → KR（古代級）→ GR（幻神級）の順に上がります。";
+ note.textContent="図鑑の魚画像には、提供された「つりっくマスターPLUS 魚図鑑ポスター」から魚ごとの絵を切り出して使用しています。ポスターに対応する絵がない魚や画像表示に失敗した場合は、魚種別の図鑑イラストを表示します。レア度は N → R → SR → SSR → UR → LR → KR（古代級）→ GR（幻神級）の順に上がります。";
  list.appendChild(note);
 }
 
@@ -883,6 +1171,40 @@ function playSaleChime(){
  }catch(e){/* 音声合成非対応ならチャイムのみ */}
 }
 
+function getEffectiveSellPrice(id, fish){
+ const base=Math.max(0,Number(fish&&fish.price)||0);
+ const key=String(id||'');
+ const special=ancientFishIds.has(key.toLowerCase())||mythicalFishIds.has(key.toLowerCase())||!!(fish&&(fish.ancient||fish.rarity==='ancient'||fish.rarity==='mythical'||fish.rarity==='幻魚'||fish.rarity==='幻'));
+ if(!special)return base;
+ return state.specialFishSold&&state.specialFishSold[key]?Math.max(1,Math.floor(base/10)):base;
+}
+
+function renderCatchLedger(){
+ const tbody=document.getElementById('catchLedgerRows');
+ const totalEl=document.getElementById('catchLedgerTotal');
+ if(!tbody||!totalEl)return;
+ const inventory=Array.isArray(state.inventory)?state.inventory:[];
+ const counts=new Map();
+ for(const entry of inventory){
+  const id=typeof entry==='string'?entry:(entry&&(entry.id||entry.fishId||entry.fish));
+  const fish=(id&&fishTypes[id])||(entry&&typeof entry==='object'?entry:null);
+  if(!fish)continue;
+  const name=String(fish.name||id||'不明な魚');
+  const unit=getEffectiveSellPrice(id,fish);
+  const key=String(id||name);
+  if(!counts.has(key))counts.set(key,{name,unit,count:0});
+  counts.get(key).count++;
+ }
+ if(!counts.size){tbody.innerHTML='<tr><td colspan="4" style="padding:10px;text-align:center">まだ魚を釣っていないで！</td></tr>';totalEl.textContent='0G';return;}
+ let total=0;
+ tbody.innerHTML=Array.from(counts.values()).map(row=>{
+  const subtotal=row.count*row.unit; total+=subtotal;
+  const safeName=row.name.replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  return `<tr><td style="padding:8px;border-bottom:1px solid rgba(255,255,255,.12)">${safeName}</td><td style="text-align:right;padding:8px;border-bottom:1px solid rgba(255,255,255,.12)">${row.count}匹</td><td style="text-align:right;padding:8px;border-bottom:1px solid rgba(255,255,255,.12)">${row.unit.toLocaleString('ja-JP')}G</td><td style="text-align:right;padding:8px;border-bottom:1px solid rgba(255,255,255,.12)">${subtotal.toLocaleString('ja-JP')}G</td></tr>`;
+ }).join('');
+ totalEl.textContent=total.toLocaleString('ja-JP')+'G';
+}
+
 function sellFish(){
  const inventory=Array.isArray(state.inventory)?state.inventory:[];
  if(!inventory.length){say("売る魚がいないで！");return}
@@ -894,9 +1216,12 @@ function sellFish(){
   const id=typeof entry==="string" ? entry :
     (entry && (entry.id || entry.fishId || entry.fish));
   const fish=(id && fishTypes[id]) || (entry && typeof entry==="object" ? entry : null);
-  const price=Number(fish && fish.price);
+  const price=getEffectiveSellPrice(id,fish);
   if(fish && Number.isFinite(price) && price>=0){
    total+=price;
+   const key=String(id||fish.name||'');
+   const special=ancientFishIds.has(key.toLowerCase())||mythicalFishIds.has(key.toLowerCase())||!!(fish&&(fish.ancient||fish.rarity==='ancient'||fish.rarity==='mythical'||fish.rarity==='幻魚'||fish.rarity==='幻'));
+   if(special){state.specialFishSold=state.specialFishSold||{};state.specialFishSold[key]=true;}
    count++;
   }else{
    // 不明なデータは誤って消さず、持ち物に残す
@@ -927,6 +1252,7 @@ function loadGame(){
   if(!raw){say("セーブデータがまだないで！");return}
   const loaded=JSON.parse(raw);
   state={...freshState(),...loaded};
+  state.specialFishSold=state.specialFishSold&&typeof state.specialFishSold==="object"?state.specialFishSold:{};
   if(!locations[state.location])state.location="river";
   state.rod=Math.max(0,Math.min(rods.length-1,Number(state.rod)||0));
   state.bait=Math.max(0,Math.min(baits.length-1,Number(state.bait)||0));
@@ -938,6 +1264,12 @@ function loadGame(){
 }
 
 function setLocation(id){
+ const areaRule=areaUnlockDefs.find(a=>a.id===id);
+ if(areaRule && (Number(state.score)||0)<areaRule.required){
+  $("locationSelect").value=state.location;
+  say("🔒 "+areaRule.name+"は累計"+areaRule.required.toLocaleString("ja-JP")+"ポイントで解放されるで！あと"+(areaRule.required-Math.max(0,Number(state.score)||0)).toLocaleString("ja-JP")+"ポイントや。");
+  return;
+ }
  if(phase!=="idle"){
   $("locationSelect").value=state.location;
   say("釣りを終えてから移動してな。");return;
@@ -952,6 +1284,7 @@ function setLocation(id){
 
 $("locationSelect").addEventListener("change",e=>setLocation(e.target.value));
 $("sellButton").addEventListener("click",sellFish);
+$("sellFishFromLedgerButton").addEventListener("click",sellFish);
 $("saveButton").addEventListener("click",saveGame);
 $("loadButton").addEventListener("click",loadGame);
 
@@ -1541,17 +1874,29 @@ function configureTimingZones(fish, rarityCode){
  if(mythical){great=.010+rodBonus*.20;good=.075+rodBonus*.35;}
  timingGreatWidth=Math.max(mythical?.010:ancient?.022:.025,Math.min(.24,great));
  timingGoodWidth=Math.max(mythical?.045:ancient?.060:.055,Math.min(.22,good));
- const track=$("timingPanel").querySelector(".timing-track");
- if(!track)return;
- const bads=track.querySelectorAll(".timing-bad"), goods=track.querySelectorAll(".timing-good"), greatEl=track.querySelector(".timing-great");
- const greatStart=.5-timingGreatWidth/2, greatEnd=.5+timingGreatWidth/2;
- const sideGood=Math.min(timingGoodWidth,greatStart);
- const leftGoodStart=greatStart-sideGood, rightGoodEnd=greatEnd+sideGood;
- bads[0].style.left="0%";bads[0].style.width=(leftGoodStart*100)+"%";
- goods[0].style.left=(leftGoodStart*100)+"%";goods[0].style.width=(sideGood*100)+"%";
- greatEl.style.left=(greatStart*100)+"%";greatEl.style.width=(timingGreatWidth*100)+"%";
- goods[1].style.left=(greatEnd*100)+"%";goods[1].style.width=(sideGood*100)+"%";
- bads[1].style.left=(rightGoodEnd*100)+"%";bads[1].style.width=(Math.max(0,1-rightGoodEnd)*100)+"%";
+ const arcs=$("timingArcs");
+ if(!arcs)return;
+ const greatHalf=timingGreatWidth/2;
+ const goodHalf=greatHalf+Math.min(timingGoodWidth,Math.max(0,.5-greatHalf));
+ // 0地点（真上）を判定ゾーンの中心にして、楕円の外周に色分けを描く。
+ const pathFor=(a,b)=>{
+  const cx=160,cy=75,rx=137,ry=53;
+  const point=t=>{const angle=t*Math.PI*2-Math.PI/2;return [cx+rx*Math.cos(angle),cy+ry*Math.sin(angle)]};
+  const [x1,y1]=point(a),[x2,y2]=point(b);
+  const large=(b-a)>.5?1:0;
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${rx} ${ry} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+ };
+ const norm=x=>((x%1)+1)%1;
+ const segment=(a,b,cls)=>{
+  a=norm(a);b=norm(b);
+  const make=(x,y)=>`<path class="${cls}" d="${pathFor(x,y)}"/>`;
+  return b>=a?make(a,b):make(a,1)+make(0,b);
+ };
+ arcs.innerHTML=segment(goodHalf,1-goodHalf,"timing-bad")+
+  segment(greatHalf,goodHalf,"timing-good")+
+  segment(1-goodHalf,1-greatHalf,"timing-good")+
+  segment(0,greatHalf,"timing-great")+
+  segment(1-greatHalf,1,"timing-great");
 }
 function triggerBite(){
  if(phase!=="waiting")return;
@@ -1594,9 +1939,11 @@ function triggerBite(){
    timingSpeed=Math.min(2.65,Math.max(.48,.56+fishSpeed*.44+Math.sqrt(timingFishStrength)*.19));
    if(rarityCode==="KR")timingSpeed=Math.max(1.45,timingSpeed);
    if(rarityCode==="GR")timingSpeed=Math.max(1.7,timingSpeed);
+   timingSpeed*=getCharmEffects().timingSpeedMultiplier;
    configureTimingZones(biteFish&&biteFish.type,rarityCode);
    tension=.12;lineWear=0;progress=0;
-   $("timingPanel").classList.add("active");
+   playDedenSound();
+   setTimeout(()=>$("timingPanel").classList.add("active"),280);
    $("timingRarity").textContent="🐟 "+(biteFish&&biteFish.type?biteFish.type.name:"魚")+"【"+timingRarity+"】強さ "+timingFishStrength.toFixed(2)+" ／ 竿引き寄せ力 +"+(Number(currentRod().power)||0);
    $("timingRound").textContent="成功 0 / "+timingRequired;
    $("reelButton").textContent="🎯 タイミングを止める";
@@ -1604,6 +1951,22 @@ function triggerBite(){
    say("‼️ 食いついた！動くゲージを止めて、GOOD以上を狙おう！");
   },1100);
  },1800);
+}
+
+function playDedenSound(){
+ // 「ででん！！」風の短いオリジナル効果音。外部音源なしでブラウザ内生成。
+ try{
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(!AudioCtx)return;
+  const ctx=new AudioCtx();
+  if(ctx.state==='suspended')ctx.resume();
+  const now=ctx.currentTime;
+  const master=ctx.createGain();master.gain.setValueAtTime(0.0001,now);master.gain.exponentialRampToValueAtTime(0.22,now+0.025);master.gain.exponentialRampToValueAtTime(0.0001,now+0.42);master.connect(ctx.destination);
+  [[110,0,0.20],[82.4,0.16,0.24],[165,0.17,0.12]].forEach(([freq,delay,duration])=>{
+   const osc=ctx.createOscillator(),gain=ctx.createGain();osc.type='triangle';osc.frequency.setValueAtTime(freq,now+delay);osc.frequency.exponentialRampToValueAtTime(Math.max(45,freq*.72),now+delay+duration);gain.gain.setValueAtTime(0.0001,now+delay);gain.gain.exponentialRampToValueAtTime(0.75,now+delay+0.018);gain.gain.exponentialRampToValueAtTime(0.0001,now+delay+duration);osc.connect(gain);gain.connect(master);osc.start(now+delay);osc.stop(now+delay+duration+0.02);
+  });
+  setTimeout(()=>{try{ctx.close()}catch(e){}},700);
+ }catch(e){}
 }
 
 function startReeling(){
@@ -1619,10 +1982,10 @@ function stopTimingGauge(){
  timingAttempts++;
  const p=timingPosition;
  let result="BAD";
- const greatStart=.5-timingGreatWidth/2, greatEnd=.5+timingGreatWidth/2;
- const sideGood=Math.min(timingGoodWidth,greatStart);
- if(p>=greatStart&&p<=greatEnd)result="GREAT";
- else if((p>=greatStart-sideGood&&p<greatStart)||(p>greatEnd&&p<=greatEnd+sideGood))result="GOOD";
+ // マーカーが真上（0/1地点）の判定ゾーンに近いかを円周距離で判定。
+ const distance=Math.min(p,1-p);
+ if(distance<=timingGreatWidth/2)result="GREAT";
+ else if(distance<=timingGreatWidth/2+timingGoodWidth)result="GOOD";
 
  if(result==="GREAT"){
   timingWins+=1.4*Math.min(1.25,Math.max(.8,1/Math.sqrt(timingFishStrength)))+(Number(currentRod().power)||0)*.002;
@@ -1633,12 +1996,12 @@ function stopTimingGauge(){
  }else if(result==="GOOD"){
   timingWins+=Math.min(1.08,Math.max(.62,1/Math.sqrt(timingFishStrength)))+(Number(currentRod().power)||0)*.0015;
   tension=Math.max(.04,tension-.06);
-  lineWear=Math.min(100,lineWear+Math.max(1,Math.round(3*timingFishStrength-(Number(window.__tsurickReelPower)||0)*.12)));
+  lineWear=Math.min(100,lineWear+Math.round(Math.max(0,Math.round(3*timingFishStrength-(Number(window.__tsurickReelPower)||0)*.12))*getCharmEffects().lineDamageMultiplier)); 
   say("👍 GOOD！成功や！もう一度タイミングを狙おう！");
   tone(620,.06,0,"sine",.035);
  }else{
-  tension=Math.min(1.2,Math.max(.04,tension+.30*Math.min(2.0,timingFishStrength)-(Number(window.__tsurickReelPower)||0)*.002));
-  lineWear=Math.min(100,lineWear+Math.max(2,Math.round(24*Math.min(1.8,timingFishStrength)-(Number(window.__tsurickReelPower)||0)*.25)));
+  tension=Math.min(1.2,Math.max(.04,tension+(.30*Math.min(2.0,timingFishStrength)*getCharmEffects().tensionMultiplier)-(Number(window.__tsurickReelPower)||0)*.0045));
+  lineWear=Math.min(100,lineWear+Math.max(1,Math.round(Math.max(1,Math.round(24*Math.min(1.8,timingFishStrength)-(Number(window.__tsurickReelPower)||0)*.25))*getCharmEffects().lineDamageMultiplier))); 
   say("💥 BAD！タイミングがずれた！糸が傷んだで！");
   tone(170,.12,0,"sawtooth",.045,-60);
  }
@@ -1695,7 +2058,7 @@ function updateFight(dt){
  if(reeling){
   if(Math.random()<dt*8)reelClick();
   // 巻いている間は進むが、魚が突っ走ると進行度を押し戻される
-  progress+=dt*(.43+(Number(currentRod().power)||0)*.017);
+  progress+=dt*(.43+(Number(currentRod().power)||0)*.017)*getCharmEffects().progressMultiplier;
   tension+=dt*Math.max(.008,.045+f.speed*.022+f.power*.022+run*.025+fishSurge*(ancient?.34:.22)-reelPower*.0015);
   if(isSurging){
    progress-=dt*(.12+f.power*.035+(ancient?.12:0))*fishSurge;
@@ -1763,11 +2126,14 @@ function updateFight(dt){
 function updateTimingMinigame(dt){
  if(phase!=="minigame"||!biteFish)return;
  timingElapsed+=dt;
- // 三角波で往復。旧updateFightの張力・進行度・魚の突進計算は一切呼ばない。
- const cycle=(timingElapsed*timingSpeed)%2;
- timingPosition=cycle<=1?cycle:2-cycle;
+ // 楕円の外周を一方向に連続して一周するルーレット式。
+ timingPosition=(timingElapsed*timingSpeed)%1;
  const marker=$("timingMarker");
- if(marker)marker.style.left=(timingPosition*100)+"%";
+ if(marker){
+  const angle=timingPosition*Math.PI*2-Math.PI/2;
+  marker.setAttribute("cx",(160+137*Math.cos(angle)).toFixed(2));
+  marker.setAttribute("cy",(75+53*Math.sin(angle)).toFixed(2));
+ }
  // 魚はゆっくり岸へ寄るだけ。釣り物理と共有する変数は更新しない。
  if(bobber&&approachFish){
   const pull=Math.min(.08,timingWins/timingRequired*.08);
@@ -1817,7 +2183,7 @@ function catchFish(){
  updateAll();
  resetFishing(false);
  const statusEl=$("status");
- const baseText=statusEl ? statusEl.textContent : "魚を釣り上げたで！";
+ const baseText=gameLogEntries.length ? gameLogEntries[gameLogEntries.length-1] : "魚を釣り上げたで！";
  if(expResult.levels>0){say(baseText+" 🐾 にゃんこレベルアップ！ Lv."+state.level+"になったで！経験値+"+expResult.gain+"！");playFanfare();}
  else {say(baseText+" 🐾 経験値 +"+expResult.gain+"（Lv."+state.level+"）");}
  updateAll();
@@ -1914,6 +2280,7 @@ requestAnimationFrame(loop);
   {id:'eging',name:'エギング用エギ',price:900,kind:'lure',breakChance:.13,desc:'イカ類専用。使用時13%で破損'},
   {id:'live',name:'泳がせ仕掛け',price:450,kind:'rig',breakChance:.08,desc:'大型捕食魚向け。使用時8%で破損'},
   {id:'deep',name:'深海仕掛け',price:1200,kind:'rig',breakChance:.12,desc:'深海・沖合の大型魚向け。使用時12%で破損'},
+  {id:'nyanko_secret',name:'にゃんこ秘伝仕掛け',price:16000,kind:'rig',breakChance:.05,desc:'全種類の魚に対応。使用時5%で破損'},
   {id:'fossil',name:'古代魚・化石仕掛け',price:3000,kind:'special',breakChance:.18,desc:'古代魚専用。使用時18%で破損'},
   {id:'dragon',name:'幻魚・龍神仕掛け',price:5000,kind:'special',breakChance:.20,desc:'幻の魚専用。使用時20%で破損'}
  ];
@@ -1932,7 +2299,7 @@ requestAnimationFrame(loop);
  }
  ensureGearState();
  const oldUpdateAll=updateAll;
- updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();if(typeof updateExploreUI==='function')updateExploreUI();};
+ updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();if(typeof updateExploreUI==='function')updateExploreUI();if(typeof renderCatchLedger==='function')renderCatchLedger();};
  const oldLoadGame=loadGame;
  loadGame=function(){oldLoadGame();ensureGearState();renderConsumables();};
  function getItem(id){return itemDefs.find(x=>x.id===id)||itemDefs[0]}
@@ -1967,6 +2334,7 @@ requestAnimationFrame(loop);
   if(item.id==='deep')return ['pelagic','ancient','bottom'].includes(g)&&Number(fishTypes[id]?.points||0)>=60;
   if(item.id==='fossil')return g==='ancient';
   if(item.id==='dragon')return g==='mythical';
+  if(item.id==='nyanko_secret')return true;
   return false;
  }
  function activeItem(){return getItem(state.activeConsumable)}
@@ -1976,11 +2344,15 @@ requestAnimationFrame(loop);
   const rig=activeRig(),bait=activeBait();
   const usesBait=rig.id==='float';
   const pool=(currentLocation()&&Array.isArray(currentLocation().fish))?currentLocation().fish:[];
-  // 専用エリアは仕掛けIDと魚の対応を優先し、通常魚の相性判定に巻き込まれないようにする。
-  if(state.location==='ancient_stage' && rig.id==='fossil'){
+  // にゃんこ秘伝仕掛けは、どの釣り場でも全魚種に対応。
+  if(rig.id==='nyanko_secret' || tackles[state.tackle]?.name==='にゃんこ秘伝仕掛け'){
+   return pool.filter(id=>!!fishTypes[id]);
+  }
+  // 専用エリアでは専用仕掛けに加え、ほかの通常仕掛けでも対象の魚を狙える。
+  if(state.location==='ancient_stage'){
    return pool.filter(id=>!!fishTypes[id]&&ancientFishIds.has(String(id).toLowerCase()));
   }
-  if(state.location==='mythical_stage' && rig.id==='dragon'){
+  if(state.location==='mythical_stage'){
    return pool.filter(id=>!!fishTypes[id]&&mythicalFishIds.has(String(id).toLowerCase()));
   }
   return pool.filter(id=>{
@@ -2017,8 +2389,6 @@ requestAnimationFrame(loop);
   const item=activeBait(),rig=activeRig();
   const usesBait=rig.id==='float';
   const count=stock(item.id),rigCount=stock(rig.id);
-  if(state.location==='ancient_stage'&&rig.id!=='fossil'){say('🦴 この海域では古代魚専用・化石仕掛けが必要やで！');return}
-  if(state.location==='mythical_stage'&&rig.id!=='dragon'){say('🐉 この海域では幻魚・龍神仕掛けが必要やで！');return}
   if(rig.id!=='float'&&rigCount<=0){say('🧺 '+rig.name+'の在庫がないで！買い足してな。');return}
   if(state.rodDurability<=0){say('🎣 竿の耐久値が0や！装備工房で修理してな。');return}
   if(state.reelDurability<=0){say('⚙️ リールの耐久値が0や！装備工房で修理してな。');return}
@@ -2061,6 +2431,7 @@ requestAnimationFrame(loop);
   refreshPurchaseQuantities();
   document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
   document.getElementById('consumableStockList').innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${stockLabel(item.id)}</strong></div>`).join('');
+  const stacked=document.getElementById('stackedGearInventory');if(stacked){const rodNames=(state.ownedRods||[0]).map(i=>rods[i]?.name).filter(Boolean);const reelNames=(state.ownedReels||[0]).map(i=>reels[i]?.name).filter(Boolean);stacked.innerHTML='<strong>釣り竿（モデル別）</strong><br>'+[...new Set(rodNames)].map(n=>'🎣 '+n+' × 1本').join('<br>')+'<br><br><strong>リール（モデル別）</strong><br>'+[...new Set(reelNames)].map(n=>'⚙️ '+n+' × 1個').join('<br>')+'<br><br><strong>消耗品スタック</strong><br>'+itemDefs.filter(i=>i.id!=='float').map(i=>'🧺 '+i.name+' × '+stock(i.id)+'個').join('<br>');}
   document.getElementById('durabilityInfo').innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに各1減少。釣れた魚が強いほど追加で減るで。</small>`;
   const rodCost=Math.round((rods[state.rod]?.price||0)*.5),reelCost=Math.round((reels[state.reel]?.price||0)*.5);document.getElementById('repairRod').textContent='🎣 竿を修理（'+rodCost+'G）';document.getElementById('repairReel').textContent='⚙️ リールを修理（'+reelCost+'G）';document.getElementById('repairRod').disabled=state.rodDurability>=100;document.getElementById('repairReel').disabled=state.reelDurability>=100;refreshWorkshopChoices();
  }
@@ -2101,9 +2472,9 @@ requestAnimationFrame(loop);
  }
  // 古代魚・幻魚専用エリアを追加し、魚データも確実に登録
   Object.assign(fishTypes,{
-   phantom_carp:{name:'黄金の幻鯉',price:90000,points:3200,speed:1.7,power:12.5,color:'#e8c95e',rarity:'mythical'},
-   white_dragon_fish:{name:'白龍魚',price:125000,points:4200,speed:1.9,power:15.5,color:'#e9f6ff',rarity:'mythical'},
-   abyssal_ghost:{name:'深淵の幻魚',price:180000,points:5200,speed:2.1,power:18,color:'#9a8cff',rarity:'mythical'}
+   phantom_carp:{name:'黄金の幻鯉',price:50000000,points:3200,speed:1.7,power:12.5,color:'#e8c95e',rarity:'mythical'},
+   white_dragon_fish:{name:'白龍魚',price:150000000,points:4200,speed:1.9,power:15.5,color:'#e9f6ff',rarity:'mythical'},
+   abyssal_ghost:{name:'深淵の幻魚',price:500000000,points:5200,speed:2.1,power:18,color:'#9a8cff',rarity:'mythical'}
   });
   locations.ancient_stage={name:'太古の化石海域',difficulty:3.2,sky:'#34324f',water:'#344c68',info:'太古の記憶が眠る海域。古代魚専用・化石仕掛けで狙おう。',fish:['coelacanth','megalodon','dunkleosteus','mosasaurus','plesiosaur','ancient_shark','helicoprion','livyatan']};
   locations.mythical_stage={name:'幻影の竜宮海域',difficulty:3.8,sky:'#3e2866',water:'#315e91',info:'幻の魚が棲む神秘の海域。幻魚・龍神仕掛けが必要やで。',fish:['phantom_carp','white_dragon_fish','abyssal_ghost']};
@@ -2112,6 +2483,7 @@ requestAnimationFrame(loop);
    const a=document.createElement('option');a.value='ancient_stage';a.textContent='太古の化石海域（古代魚専用）';locationSelect.appendChild(a);
    const m=document.createElement('option');m.value='mythical_stage';m.textContent='幻影の竜宮海域（幻の魚専用）';locationSelect.appendChild(m);
   }
+  updateAreaUnlocks();
  function ensureExploreState(){
   const level=Math.max(1,Number(state.level)||1),maxHp=99+level;
   if(!Number.isFinite(Number(state.exploreHpMax))||Number(state.exploreHpMax)<1){state.exploreHpMax=maxHp;state.exploreHp=maxHp;state.exploreLastRegenAt=Date.now();}
@@ -2122,8 +2494,9 @@ requestAnimationFrame(loop);
   if(state.exploreHp>=state.exploreHpMax){state.exploreHp=state.exploreHpMax;state.exploreLastRegenAt=now;}
   else {
    const last=Number(state.exploreLastRegenAt)||now;
-   const minutes=Math.floor(Math.max(0,now-last)/60000);
-   if(minutes>0){state.exploreHp=Math.min(state.exploreHpMax,state.exploreHp+minutes);state.exploreLastRegenAt=last+minutes*60000;if(state.exploreHp>=state.exploreHpMax)state.exploreLastRegenAt=now;}
+   const interval=getCharmEffects().recoveryIntervalMs;
+   const recoveries=Math.floor(Math.max(0,now-last)/interval);
+   if(recoveries>0){state.exploreHp=Math.min(state.exploreHpMax,state.exploreHp+recoveries);state.exploreLastRegenAt=last+recoveries*interval;if(state.exploreHp>=state.exploreHpMax)state.exploreLastRegenAt=now;}
   }
  }
  function updateExploreUI(){
@@ -2138,7 +2511,7 @@ requestAnimationFrame(loop);
  function installExplorePanel(){
   if(document.getElementById('explorePanel')){updateExploreUI();return;}
   const panel=document.createElement('section');panel.id='explorePanel';panel.className='panel';panel.style.margin='12px 0';
-  panel.innerHTML=`<h2>🧭 釣り場探索</h2><p id="exploreLocationLabel" class="small">釣り場の周りを探索してみよう。</p><p class="small">探索1回につき体力を1消費。何も見つからないことが一番多いけど、エサ・仕掛け・ゴールド・役立つ物が見つかることもあるで。</p><div class="small" style="margin:8px 0">体力：<strong id="exploreHpLabel">100 / 100</strong>　<span id="exploreLevelLabel">Lv.1（最大体力 100）</span></div><div class="meter"><div id="exploreHpBar" style="width:100%;height:100%;background:#67d6a0"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button id="exploreButton" type="button">🔎 周辺を探索する（体力 -1）</button><span class="small" style="align-self:center">⏱️ リアルタイム1分ごとに体力1回復</span></div><p id="exploreResult" class="small" role="status" style="margin-top:10px">探索すると、見つかったものがここに表示されるで。</p><details style="margin-top:8px"><summary>探索の発見率</summary><p class="small">何も見つからない 65% ／ エサ 14% ／ 仕掛け 8%（専用エリアでは専用仕掛け）／ ゴールド 8% ／ お役立ちアイテム 3% ／ 小さな幸運 1% ／ お宝ゴールド 1%</p></details>`;
+  panel.innerHTML=`<h2>🧭 探索モード：釣り場探索</h2><p id="exploreLocationLabel" class="small">釣り場の周りを探索してみよう。</p><p class="small">探索1回につき体力を1消費。何も見つからないことが一番多いけど、エサ・仕掛け・ゴールド・役立つ物が見つかることもあるで。</p><div class="small" style="margin:8px 0">体力：<strong id="exploreHpLabel">100 / 100</strong>　<span id="exploreLevelLabel">Lv.1（最大体力 100）</span></div><div class="meter"><div id="exploreHpBar" style="width:100%;height:100%;background:#67d6a0"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button id="exploreButton" type="button">🔎 周辺を探索する（体力 -1）</button><span class="small" style="align-self:center">⏱️ リアルタイム1分ごとに体力1回復</span></div><p id="exploreResult" class="small" role="status" style="margin-top:10px">探索すると、見つかったものがここに表示されるで。</p><details style="margin-top:8px"><summary>探索の発見率</summary><p class="small">何も見つからない 65% ／ エサ 14% ／ 仕掛け 8%（専用エリアでは専用仕掛け）／ ゴールド 8% ／ お役立ちアイテム 3% ／ 小さな幸運 1% ／ お宝ゴールド 1%</p></details>`;
   const locInfo=document.getElementById('locationInfo');
   if(locInfo&&locInfo.parentNode)locInfo.parentNode.insertBefore(panel,locInfo.nextSibling);
   else {const area=document.querySelector('.panels');if(area)area.prepend(panel);}
@@ -2187,8 +2560,8 @@ requestAnimationFrame(loop);
   installExplorePanel();
   if(document.getElementById('consumablePanel'))return;
   const panel=document.createElement('section');panel.id='consumablePanel';panel.className='panel';panel.style.marginTop='10px';
-  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="rigBuyQty" style="margin-top:4px"></select></label><button id="buyRigButton" type="button" style="margin-top:6px">🛒 選択中の仕掛けを購入</button><p class="small" style="margin-top:6px">通常の仕掛け・ルアーはここで購入。古代魚・化石仕掛けと幻魚・龍神仕掛けだけは、それぞれの専用エリアで探索して入手するんやで。消耗品（エサ・仕掛け・ルアーなど）は種類ごとに最大99個。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="baitBuyQty" style="margin-top:4px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを購入</button><p class="small">消耗品はエサ・仕掛け・ルアーなど、各種類99個まで持てるで。</p><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
-  const workshop=document.createElement('section');workshop.id='gearWorkshopPanel';workshop.className='panel';workshop.style.marginTop='10px';workshop.innerHTML=`<h2>🛠️ 装備工房</h2><p class="small">釣り竿・リールは同じ商品を1つまで購入可能。購入済みの商品はもう買えへんけど、所持している道具は「ねこちゃんの釣具装備」で切り替えられるで。修理費は購入価格の半額や。</p><div class="gear-grid"><label>🎣 購入する釣り竿<select id="buyRodSelect"></select><button id="buyRodGearButton" type="button" style="margin-top:6px">釣り竿を購入</button></label><label>⚙️ 購入するリール<select id="buyReelSelect"></select><button id="buyReelGearButton" type="button" style="margin-top:6px">リールを購入</button></label></div><h3 style="margin-top:16px">🔧 耐久・修理</h3><div id="durabilityInfo" class="small"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="repairRod">🎣 竿を修理（費用確認中）</button><button id="repairReel">⚙️ リールを修理（費用確認中）</button></div><p class="small">修理すると耐久値が100/100に戻るで。</p>`;
+  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="rigBuyQty" style="margin-top:4px"></select></label><button id="buyRigButton" type="button" style="margin-top:6px">🛒 選択中の仕掛けを購入</button><p class="small" style="margin-top:6px">通常の仕掛け・ルアーはここで購入。古代魚・化石仕掛けと幻魚・龍神仕掛けは専用エリアで探索して入手。通常仕掛けでも古代魚・幻魚を狙えて、にゃんこ秘伝仕掛けは全魚種に対応するで。消耗品（エサ・仕掛け・ルアーなど）は種類ごとにまとめて所持数を表示（最大99個）。同じ種類を買い足すと別枠に増えず、同じスタックに加算されるで。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="baitBuyQty" style="margin-top:4px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを購入</button><p class="small">スタック方式：同じ種類のエサ・使い切り仕掛け・ルアーは1枠にまとまり、各種類99個まで持てるで。買い足すと所持数に加算、使うと1個減るで。</p><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
+  const workshop=document.createElement('section');workshop.id='gearWorkshopPanel';workshop.className='panel';workshop.style.marginTop='10px';workshop.innerHTML=`<h2>🛠️ 装備工房</h2><p class="small">釣り竿・リールはモデルごとに1本ずつ所持し、購入済みのモデルは所持品一覧にまとめて表示するで。エサ・使い切り仕掛け・ルアーは種類ごとにスタック（最大99個）。所持している竿・リールは「ねこちゃんの釣具装備」で切り替え可能。修理費は購入価格の半額や。</p><div class="gear-grid"><label>🎣 購入する釣り竿<select id="buyRodSelect"></select><button id="buyRodGearButton" type="button" style="margin-top:6px">釣り竿を購入</button></label><label>⚙️ 購入するリール<select id="buyReelSelect"></select><button id="buyReelGearButton" type="button" style="margin-top:6px">リールを購入</button></label></div><h3 style="margin-top:16px">🎒 釣具の所持品（種類ごとにまとめて表示）</h3><div id="stackedGearInventory" class="small" style="padding:8px;border:1px solid #56808b;border-radius:8px;background:rgba(0,0,0,.14)"></div><h3 style="margin-top:16px">🔧 耐久・修理</h3><div id="durabilityInfo" class="small"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="repairRod">🎣 竿を修理（費用確認中）</button><button id="repairReel">⚙️ リールを修理（費用確認中）</button></div><p class="small">修理すると耐久値が100/100に戻るで。</p>`;
   const gear=document.getElementById('equipmentPanel');gear.parentNode.insertBefore(workshop,gear.nextSibling);workshop.parentNode.insertBefore(panel,workshop.nextSibling);
   document.getElementById('rigSelect').addEventListener('change',e=>{state.activeRig=e.target.value;renderConsumables()});
   document.getElementById('baitSelect').addEventListener('change',e=>{state.activeBait=e.target.value;renderConsumables()});
@@ -2211,10 +2584,12 @@ requestAnimationFrame(loop);
    itemDefs.forEach(item=>{if(item.id!=='float')state.consumableStock[item.id]=99;});
    state.ownedRods=rods.map((_,i)=>i);state.ownedReels=reels.map((_,i)=>i);
    state.gold=Math.max(Number(state.gold)||0,99999999);
+   // デバッグボタンで累計釣りポイントを最低5万ptにして全エリアを解放する
+   state.score=Math.max(Number(state.score)||0,50000);
    state.rodDurability=100;state.reelDurability=100;
    // デバッグ中は全装備を切り替えられるようにし、古代魚・幻魚の仕掛けも所持状態にする
    updateAll();renderConsumables();refreshWorkshopChoices();
-   say('🧪 デバッグ用：全アイテムを所持状態にしたで！所持金・竿・リールも補充済みや。');
+   say('🧪 デバッグ用：全アイテム・所持金・竿・リールを補充し、累計釣りポイントを5万pt以上にしたで！全エリア解放済みや。');
    if(typeof saveGame==='function')saveGame();
   });
  }
@@ -2250,7 +2625,6 @@ requestAnimationFrame(loop);
       ['gearRod','rod','ownedRods','竿の引き寄せ力'],
       ['gearReel','reel','ownedReels','リールの糸保護'],
       ['gearTackle','tackle',null,'魚寄せ'],
-      ['gearCharm','charm',null,'効果']
     ];
     let waiting=false;
     for(const [id,key,ownedKey,label] of configs){
@@ -2302,5 +2676,280 @@ requestAnimationFrame(loop);
 })();
 </script>
 
+<script>
+// v24: 表示百分率を整数に丸め、既存の装備UIが上書きした後もお守り欄を再構築
+(function(){
+ function refresh(){
+  try{
+   const list=window.charms||[];
+   ['gearCharm','gearCharm2','gearCharm3'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel)return;
+    // v23の専用処理が設定した選択肢は維持し、表記だけ整数％にする
+    [...sel.options].forEach(o=>{o.textContent=o.textContent.replace(/受ける量\s*[0-9.]+%/,m=>`受ける量 ${Math.round(parseFloat(m.replace(/[^0-9.]/g,'')))}%`).replace(/速度\s*[0-9.]+%/,m=>`速度 ${Math.round(parseFloat(m.replace(/[^0-9.]/g,'')))}%`)});
+   });
+  }catch(e){console.error('お守り表示調整',e)}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(refresh,500)});else{refresh();setInterval(refresh,500)}
+})();
+</script>
+<script>
+(function(){
+ const menu=document.querySelector('#gameMenu details');
+ document.querySelectorAll('#gameMenu .menu-links a').forEach(function(link){
+  link.addEventListener('click',function(ev){
+   const href=link.getAttribute('href');
+   if(!href||href.charAt(0)!=='#')return;
+   const target=document.getElementById(href.slice(1));
+   if(!target)return;
+   ev.preventDefault();
+   if(menu)menu.open=false;
+   target.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+ });
+ const topButton=document.getElementById('menuTopButton');
+ if(topButton)topButton.addEventListener('click',function(){if(menu)menu.open=false;window.scrollTo({top:0,behavior:'smooth'});});
+})();
+</script>
+
+<script>
+(function(){
+ const targets=[
+  ['quickActions','💾 セーブ・ロード・魚の売却'],
+  ['equipmentPanel','🐱 ねこちゃんの釣具装備'],
+  ['equippedHud','🎒 装備中の釣具・初期装備'],
+  ['gameLogPanel','📜 ゲームログ・過去ログ'],
+  ['statsPanel','📊 所持金・釣果数・レベル・釣りポイント'],
+  ['slotPanel','🎰 ゴールドスロット'],
+  ['catchLedgerPanel','🐟 釣った魚・売却予定額'],
+  ['fishingAreaPanel','🗺️ 釣り場・魚図鑑'],
+  ['gearWorkshopPanel','🛠️ 装備工房・釣具の所持品・修理'],
+  ['consumablePanel','🪱 エサ・使い切り仕掛け・所持数'],
+  ['soundPanel','🌿 自然の音・環境音設定']
+ ];
+ function wrapOne(id,title){
+  const el=document.getElementById(id); if(!el||el.dataset.accordionWrapped==='1')return;
+  // Avoid wrapping the game log's status element or unrelated nested controls.
+  const details=document.createElement('details');details.className='interface-accordion';details.dataset.interfaceId=id;
+  const summary=document.createElement('summary');summary.textContent=title;
+  const content=document.createElement('div');content.className='interface-content';
+  const parent=el.parentNode;if(!parent)return;
+  parent.insertBefore(details,el);details.appendChild(summary);details.appendChild(content);content.appendChild(el);
+  el.dataset.accordionWrapped='1';
+  // Core fishing controls stay visible; other interface panels start collapsed.
+  details.open=false;
+ }
+ function install(){
+  targets.forEach(([id,title])=>wrapOne(id,title));
+  // Keep the user's existing menu design. Clicking a menu destination opens that interface's bar.
+  document.querySelectorAll('#gameMenu .menu-links a').forEach(a=>{
+   if(a.dataset.accordionNavBound==='1')return;
+   a.dataset.accordionNavBound='1';
+   a.addEventListener('click',()=>{
+    const id=(a.getAttribute('href')||'').slice(1);const target=document.getElementById(id);
+    const details=target&&target.closest('details.interface-accordion');if(details)details.open=true;
+    const menu=document.querySelector('#gameMenu details');if(menu)menu.open=false;
+   });
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();setTimeout(install,250);setTimeout(install,900)});
+ else {install();setTimeout(install,250);setTimeout(install,900)}
+})();
+</script>
+
+</body>
+</html>
+
+<script>
+// v23: 正しいお守り倍率・購入制・所持品だけ装備可能
+(function(){
+ const list=window.charms||[];
+ if(!Array.isArray(state.ownedCharms)){
+   // 初期状態ではお守りを一つも所持していない。購入したものだけ装備可能。
+   state.ownedCharms=[];
+   state.charm=-1;state.charm2=-1;state.charm3=-1;
+ }
+ if(!Number.isInteger(Number(state.charm))||!state.ownedCharms.includes(Number(state.charm))) state.charm=-1;
+ if(!Number.isInteger(Number(state.charm2))||!state.ownedCharms.includes(Number(state.charm2))) state.charm2=-1;
+ if(!Number.isInteger(Number(state.charm3))||!state.ownedCharms.includes(Number(state.charm3))) state.charm3=-1;
+ function activeCharms(){return [Number(state.charm),Number(state.charm2),Number(state.charm3)].map(i=>list[i]).filter(c=>c&&c.grade&&c.type)}
+ window.getCharmEffects=function(){
+  const active=activeCharms();
+  let tensionMultiplier=1,lineDamageMultiplier=1,timingSpeedMultiplier=1,recoveryIntervalMs=60000,progressMultiplier=1;
+  for(const c of active){
+   if(c.type==='tension') tensionMultiplier=1-(c.grade*0.08); // grade 1=92%, grade 10=20% remaining
+   if(c.type==='line') lineDamageMultiplier=1-(c.grade*0.08);
+   if(c.type==='timing') timingSpeedMultiplier=1-(c.grade*0.07); // grade 1=93%, grade 10=30% speed
+   if(c.type==='recovery') recoveryIntervalMs=Math.max(10000,60000-c.grade*5000);
+   if(c.type==='progress') progressMultiplier=1+(c.grade*0.05);
+  }
+  return {tensionMultiplier,lineDamageMultiplier,timingSpeedMultiplier,recoveryIntervalMs,progressMultiplier};
+ };
+ function getOwnedIndices(){return (Array.isArray(state.ownedCharms)?state.ownedCharms:[]).filter(i=>Number.isInteger(i)&&i>=0&&i<list.length)}
+ function refreshCharmShop(){
+  const sel=document.getElementById('buyCharmSelect'); if(!sel)return;
+  const old=sel.value; sel.innerHTML='';
+  list.forEach((c,i)=>{if(getOwnedIndices().includes(i))return;const o=document.createElement('option');o.value=String(i);o.textContent=`${c.name}｜${c.type==='tension'?'張力軽減':c.type==='line'?'糸ダメージ軽減':c.type==='timing'?'ゲージ減速':c.type==='progress'?'引き寄せ進行度アップ':'体力回復'}｜${c.price}G`;sel.appendChild(o)});
+  if(!sel.options.length){const o=document.createElement('option');o.value='';o.textContent='全種類購入済み';sel.appendChild(o);sel.disabled=true;}else{sel.disabled=false;if([...sel.options].some(o=>o.value===old))sel.value=old;}
+ }
+ function purchaseCharm(){
+  const sel=document.getElementById('buyCharmSelect'); if(!sel||sel.value===''){if(typeof say==='function')say('お守りは全種類購入済みやで！');return;}
+  const i=Number(sel.value),c=list[i];if(!c||getOwnedIndices().includes(i)){if(typeof say==='function')say('そのお守りは購入済みやで！');return;}
+  if((Number(state.gold)||0)<c.price){if(typeof say==='function')say(`お金が足りへんで！ ${c.price}G必要や。`);return;}
+  state.gold-=c.price;state.ownedCharms.push(i);refreshCharmShop();setupCharmSlots();
+  if(typeof updateAll==='function')try{updateAll()}catch(e){}
+  if(typeof saveGame==='function')try{saveGame()}catch(e){}
+  if(typeof say==='function')say(`🐾 ${c.name}を購入したで！装備欄から選べるようになったで。`);
+ }
+ function setupCharmSlots(){
+  const first=document.getElementById('gearCharm'),second=document.getElementById('gearCharm2'),third=document.getElementById('gearCharm3');if(!first||!second||!third)return false;
+  const owned=getOwnedIndices();
+  function fill(sel,selected,isSecond){
+   const expected=owned.length+(isSecond?1:1);
+   const sig=owned.join(',')+'|'+(isSecond?'second':'first');
+   if(sel.dataset.charmSignature!==sig||sel.options.length!==expected){
+    sel.innerHTML='';const none=document.createElement('option');none.value='-1';none.textContent='装備しない';sel.appendChild(none);
+    owned.forEach(i=>{const c=list[i];if(!c)return;const o=document.createElement('option');o.value=String(i);let effect='';if(c.type==='tension'||c.type==='line')effect=`受ける量 ${Math.round((1-c.grade*.08)*100)}%`;else if(c.type==='timing')effect=`速度 ${Math.round((1-c.grade*.07)*100)}%`;else if(c.type==='progress')effect=`進行度 +${c.grade*5}%`;else effect=`回復 ${60-c.grade*5}秒`;o.textContent=`${c.name}｜${effect}`;sel.appendChild(o)});
+    sel.dataset.charmSignature=sig;
+   }
+   const v=owned.includes(Number(selected))?String(selected):'-1';sel.value=v;
+  }
+  fill(first,state.charm,false);fill(second,state.charm2,true);fill(third,state.charm3,true);
+  if(!first.dataset.v23Handler){first.addEventListener('change',()=>{
+   const next=Number(first.value),a=list[next],b=list[Number(state.charm2)],c=list[Number(state.charm3)];
+   if(next>=0&&!getOwnedIndices().includes(next)){first.value=String(state.charm);return;}
+   if(a&&((b&&a.type===b.type)||(c&&a.type===c.type))){first.value=String(state.charm);if(typeof say==='function')say('同じ系統のお守りは同時に装備できへんで！');return;}
+   state.charm=next;refreshCharmText();if(typeof updateAll==='function')try{updateAll()}catch(e){};if(typeof saveGame==='function')try{saveGame()}catch(e){}
+  });first.dataset.v23Handler='1';}
+  if(!second.dataset.v23Handler){second.addEventListener('change',()=>{
+   const next=Number(second.value),a=list[Number(state.charm)],b=list[next],c=list[Number(state.charm3)];
+   if(next>=0&&!getOwnedIndices().includes(next)){second.value=String(state.charm2);return;}
+   if(next>=0&&b&&((a&&a.type===b.type)||(c&&c.type===b.type))){second.value=String(state.charm2);if(typeof say==='function')say('同じ系統のお守りは同時に装備できへんで！');return;}
+   state.charm2=next;refreshCharmText();if(typeof updateAll==='function')try{updateAll()}catch(e){};if(typeof saveGame==='function')try{saveGame()}catch(e){}
+  });second.dataset.v23Handler='1';}
+  if(!third.dataset.v26Handler){third.addEventListener('change',()=>{const next=Number(third.value),a=list[Number(state.charm)],b=list[Number(state.charm2)],c=list[next];if(next>=0&&!getOwnedIndices().includes(next)){third.value=String(state.charm3);return;}if(next>=0&&c&&((a&&a.type===c.type)||(b&&b.type===c.type))){third.value=String(state.charm3);if(typeof say==='function')say('同じ系統のお守りは同時に装備できへんで！');return;}state.charm3=next;refreshCharmText();if(typeof updateAll==='function')try{updateAll()}catch(e){};if(typeof saveGame==='function')try{saveGame()}catch(e){}});third.dataset.v26Handler='1';}
+  refreshCharmText();return true;
+ }
+ function refreshCharmText(){
+  const a=list[Number(state.charm)],b=list[Number(state.charm2)],c=list[Number(state.charm3)],names=[a&&a.name,b&&b.name,c&&c.name].filter(Boolean).join(' ＋ ')||'なし';
+  ['hudCharm','statusCharm'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=names});
+  const info=document.getElementById('gearInfo');if(info){const ef=window.getCharmEffects();
+   info.innerHTML=`<strong>現在の装備</strong><br><span>🐾 装備中のお守り：${names}</span><hr style="border:0;border-top:1px solid #8884;margin:8px 0"><strong>現在の効果</strong><br>🧵 張力：受ける量 <strong>${Math.round(ef.tensionMultiplier*100)}%</strong><br>🛡️ 糸ダメージ：受ける量 <strong>${Math.round(ef.lineDamageMultiplier*100)}%</strong><br>📈 引き寄せ進行度：<strong>${Math.round((ef.progressMultiplier-1)*100)}%アップ</strong><br>🎯 ゲージ速度：通常の <strong>${Math.round(ef.timingSpeedMultiplier*100)}%</strong><br>💚 体力回復：<strong>${ef.recoveryIntervalMs/1000}秒ごと</strong><hr style="border:0;border-top:1px solid #8884;margin:8px 0"><strong>グレード別の効果</strong><br><span class="small">グレード1：張力・糸ダメージは受ける量92%、ゲージ速度93%、体力回復55秒ごと。<br>グレード10：張力・糸ダメージは受ける量20%、ゲージ速度30%、体力回復10秒ごと。<br>引き寄せ進行度アップ：グレード1で5%アップ、グレード10で50%アップ。<br>お守りは異なる系統から最大3つまで装備できます。</span>`;
+  }
+ }
+ function installCharmShop(){
+  const workshop=document.getElementById('gearWorkshopPanel');if(workshop&&!document.getElementById('charmShopArea')){
+   const area=document.createElement('div');area.id='charmShopArea';area.innerHTML='<h3 style="margin-top:16px">🐾 お守り売り場</h3><p class="small">5系統×10グレードのお守りを購入できるで。初期所持はゼロ。購入したものだけ装備欄で選べる。価格はグレードに応じて上がるで。</p><label>購入するお守り<select id="buyCharmSelect" style="margin-top:6px;width:100%"></select></label><button id="buyCharmButton" type="button" style="margin-top:6px">🐾 選んだお守りを購入</button><p id="ownedCharmCount" class="small"></p>';
+   workshop.appendChild(area);document.getElementById('buyCharmButton').addEventListener('click',purchaseCharm);
+  }
+  const count=document.getElementById('ownedCharmCount');if(count)count.textContent=`所持中のお守り：${getOwnedIndices().length} / ${list.length}種類`;
+  refreshCharmShop();
+ }
+ function setup(){installCharmShop();setupCharmSlots();refreshCharmText();}
+ // デバッグボタンでは全お守りを購入済み扱いにする
+ document.addEventListener('click',e=>{if(e.target&&e.target.id==='debugAllItemsButton'){state.ownedCharms=list.map((_,i)=>i);state.charm=0;state.charm2=10;state.charm3=20;setTimeout(setup,0);if(typeof saveGame==='function')try{saveGame()}catch(err){}}});
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setup();setInterval(setup,700)});else{setup();setInterval(setup,700)}
+})();
+</script>
+<script>
+// v24: 表示百分率を整数に丸め、既存の装備UIが上書きした後もお守り欄を再構築
+(function(){
+ function refresh(){
+  try{
+   const list=window.charms||[];
+   ['gearCharm','gearCharm2','gearCharm3'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel)return;
+    // v23の専用処理が設定した選択肢は維持し、表記だけ整数％にする
+    [...sel.options].forEach(o=>{o.textContent=o.textContent.replace(/受ける量\s*[0-9.]+%/,m=>`受ける量 ${Math.round(parseFloat(m.replace(/[^0-9.]/g,'')))}%`).replace(/速度\s*[0-9.]+%/,m=>`速度 ${Math.round(parseFloat(m.replace(/[^0-9.]/g,'')))}%`)});
+   });
+  }catch(e){console.error('お守り表示調整',e)}
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(refresh,500)});else{refresh();setInterval(refresh,500)}
+})();
+</script>
+<script>
+// ゴールドスロット：高額ベット・多彩な役・大きな配当
+(function(){
+ const symbols=['🐟','🎣','🐱','🪙','💎','7️⃣','🐉','👑','🌈'];
+ const multipliers={'7️⃣':1000,'🐉':500,'💎':250,'👑':100,'🌈':75,'🪙':50,'🐱':30,'🐟':20,'🎣':20};
+ const $slot=id=>document.getElementById(id);
+ const money=n=>typeof formatGoldAmount==='function'?formatGoldAmount(n):Math.floor(Number(n)||0).toLocaleString('ja-JP')+'G';
+ function spin(){
+  const betEl=$slot('slotBet'),button=$slot('slotSpinButton'),reels=$slot('slotReels'),result=$slot('slotResult');
+  if(!betEl||!button||!reels||!result)return;
+  const bet=Math.min(1000000,Math.max(1,Math.floor(Number(betEl.value)||10)));
+  const gold=Math.max(0,Math.floor(Number(state.gold)||0));
+  if(gold<bet){result.textContent=`所持金が足りへんで！ 今は ${money(gold)} や。`;if(typeof say==='function')say('スロットを回すには所持金が足りへんで！');return;}
+  state.gold=gold-bet;
+  const resultSymbols=Array.from({length:3},()=>symbols[Math.floor(Math.random()*symbols.length)]);
+  reels.querySelectorAll('.slot-reel').forEach((el,i)=>{el.textContent=resultSymbols[i];});
+  let multiplier=0,message=`ハズレ！ 賭け金 ${money(bet)} を失ったで。`;
+  if(resultSymbols.every(x=>x===resultSymbols[0])){
+   multiplier=multipliers[resultSymbols[0]]||20;
+   const payout=bet*multiplier;
+   state.gold+=payout;
+   message=`大当たり！ ${resultSymbols.join(' ')} ／ ${money(bet)} × ${multiplier.toLocaleString('ja-JP')}倍！ ${money(payout)} 払い戻し！`;
+  }else if(resultSymbols[0]===resultSymbols[1]||resultSymbols[1]===resultSymbols[2]||resultSymbols[0]===resultSymbols[2]){
+   multiplier=2;
+   const payout=Math.floor(bet*multiplier);
+   state.gold+=payout;
+   message=`当たり！同じ絵柄が2つ！ ${money(bet)} × 2倍＝${money(payout)} 払い戻し！`;
+  }
+  result.textContent=message;
+  // スロットの結果も通常のゲームログに記録し、最新5行に表示する（重複記録を防ぐ）
+  if(typeof updateAll==='function')updateAll();
+  try{localStorage.setItem('tsuric_master_plus_save',JSON.stringify(state));}catch(e){}
+  if(typeof say==='function')say(message);else if(typeof window.gameLogAdd==='function')window.gameLogAdd(message);
+ }
+ const install=()=>{const b=$slot('slotSpinButton');if(b&&!b.dataset.slotHandler){b.addEventListener('click',spin);b.dataset.slotHandler='1';}};
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
+<script>
+// 更新履歴：初期版からの主な変更を時系列の折りたたみバーで表示
+(function(){
+ const historyItems=[
+  ['第1段階：釣りゲームの土台','最初のHTML版を作成。釣り場を表示し、水面を操作して魚を釣る基本の遊びを組み立て。'],
+  ['第2段階：フィールド・釣り場の構成','フィールド、釣り場、つりっく迷宮など、ゲーム内の場所を切り替える構想と画面構成を整理。'],
+  ['第3段階：セーブ・ロード','ゲームの進行状況を保存し、あとから続きができるセーブ・ロード操作を追加。'],
+  ['第4段階：魚の売却とゴールド','釣った魚をまとめて売却し、ゴールドを獲得して道具購入に使う基本経済を追加・調整。'],
+  ['第5段階：釣具の購入・装備','釣り竿、リール、仕掛け、お守りを選択する装備機能を追加。竿とリールの性能差を設け、釣りの進行に活用。'],
+  ['第6段階：装備工房・修理','竿とリールの耐久値、修理機能を追加。購入済みの装備を確認し、耐久値を回復できるよう調整。'],
+  ['第7段階：エサ・消耗品の所持数','エサ、ルアー、使い切り仕掛けなどを購入・使用する仕組みを追加。同じ種類を所持数でまとめるスタック表示を整備。'],
+  ['第8段階：釣り場の解放','累計釣りポイントに応じて、清流の川から湖、沿岸、沖合へと新しいエリアを解放する仕組みを追加。'],
+  ['第9段階：魚図鑑・釣果一覧','釣った魚の記録、魚図鑑、売却予定額の確認など、コレクションと釣果の管理機能を追加・調整。'],
+  ['第10段階：釣りのタイミングゲージ','魚とのファイトにタイミング操作を取り入れ、楕円形のルーレット状ゲージで釣り上げを進める方式に改修。'],
+  ['第11段階：魚種の拡張','川魚、湖の魚、海の魚などを追加し、釣り場ごとに出会える魚の種類を広げた。'],
+  ['第12段階：古代魚・幻魚の特別エリア','太古の化石海域と幻影の竜宮海域を追加。古代魚・幻魚、専用仕掛け、高額な初回売却ボーナスを設定。'],
+  ['第13段階：ゲームログ','ゲームログを最新5行表示にし、過去ログは最大100行を確認できるように調整。スロット結果もログに記録するよう改修。'],
+  ['第14段階：自然音と音量調整','川のせせらぎや鳥の声などの環境音、音量調整を追加。音源情報も記載。'],
+  ['第15段階：ゴールドスロットの拡張','賭け金を最大100万Gまで拡大。7、ドラゴン、ダイヤ、王冠、虹、コイン、猫、魚、釣り竿などの役と配当倍率を追加。'],
+  ['第16段階：金額の単位表示','大きな所持金や配当を「1万G」「100万G」「1億G」などの単位で読みやすく表示する仕様を追加・調整。'],
+  ['第17段階：メニュー一覧ナビ','縦に長い画面を移動しやすいよう、上部に折りたたみ式メニューを追加。項目から各機能へジャンプできるようにした。'],
+  ['第18段階：更新履歴・スタック表示','更新履歴を画面から開けるようにし、所持品を種類ごとの数でまとめて確認できるように調整。'],
+  ['第19段階：一攫千金スロットのログ修正','高額ベット時にログの金額が一致しない問題を修正するため、払い戻し表示とゲームログの記録処理を見直し。'],
+  ['第20段階：今回のメニュー改善','メニュー項目を縦並びのバー形式に変更。メニュー一覧の見出しを押すと開閉でき、もう一度押すと閉じる。更新履歴も各項目を押して詳細を開閉できる形式に変更。'],
+  ['第21段階：釣り画面の情報表示・探索モード','釣り画面に竿とリールの耐久度を小さく表示。タイミングゲージを釣り画面上の猫の近くに重ねて表示するレイアウトに変更。探索画面の見出しを「探索モード」と明記し、メニュー一覧から直接移動できるように調整。']
+ ];
+ function install(){
+  if(document.getElementById('updateHistoryModal'))return;
+  const btn=document.getElementById('updateHistoryButton');if(!btn)return;
+  const modal=document.createElement('div');modal.id='updateHistoryModal';modal.hidden=true;modal.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);padding:12px;overflow:auto;box-sizing:border-box;';
+  modal.innerHTML='<section role="dialog" aria-modal="true" aria-labelledby="updateHistoryTitle" style="max-width:760px;margin:3vh auto;background:#102f40;color:#f3fbff;border:2px solid #8bd9f0;border-radius:14px;padding:14px;box-shadow:0 10px 40px #0008;box-sizing:border-box"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;position:sticky;top:0;background:#102f40;padding:3px 0 10px"><h2 id="updateHistoryTitle" style="margin:0;font-size:20px">🧾 つりっくマスターPLUS 更新履歴</h2><button id="closeUpdateHistory" type="button" style="background:#bdeaff;color:#163447;flex-shrink:0">閉じる ✕</button></div><p style="font-size:13px;color:#c6e4ef;line-height:1.6">初期版から現在までの主な変更を、古い順に並べているで。各バーを押すと説明が開き、もう一度押すと閉じる。過去の正確な更新日がすべて記録されているわけではないため、日付は付けずに段階順で整理。</p><div id="updateHistoryList" style="display:flex;flex-direction:column;gap:7px"></div></section>';
+  document.body.appendChild(modal);
+  const list=modal.querySelector('#updateHistoryList');
+  historyItems.forEach(([title,desc],i)=>{
+   const details=document.createElement('details');details.style.cssText='border:1px solid #477f95;border-radius:9px;overflow:hidden;background:#163b4d;';
+   const summary=document.createElement('summary');summary.textContent=String(i+1).padStart(2,'0')+'　'+title;summary.style.cssText='cursor:pointer;list-style:none;padding:11px 12px;background:#1a465b;font-weight:700;line-height:1.45;';
+   const body=document.createElement('div');body.textContent=desc;body.style.cssText='padding:10px 12px 12px;line-height:1.65;font-size:14px;color:#e0f2f8;border-top:1px solid #477f95;';
+   details.append(summary,body);list.appendChild(details);
+  });
+  const close=()=>{modal.hidden=true};btn.addEventListener('click',()=>{modal.hidden=false});modal.querySelector('#closeUpdateHistory').addEventListener('click',close);modal.addEventListener('click',e=>{if(e.target===modal)close()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  const menu=document.querySelector('#gameMenu details');
+  document.querySelectorAll('#gameMenu .menu-links a').forEach(a=>a.addEventListener('click',()=>{if(menu)menu.open=false}));
+  const top=document.getElementById('menuTopButton');if(top)top.addEventListener('click',()=>{if(menu)menu.open=false;window.scrollTo({top:0,behavior:'smooth'})});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
 </body>
 </html>
