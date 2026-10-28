@@ -151,60 +151,6 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 .timing-stop-button:active{transform:translate(-50%,-50%) scale(.96);}
 @media(max-width:560px){.timing-panel.active{top:29% !important;width:94%;}.timing-orbit{min-height:180px;}.timing-stop-button{width:34%;height:38px;padding:3px 5px;font-size:11px!important;}}
 
-/* 改修：ゲームログを釣り画面上に透明オーバーレイ表示 */
-#fishingGamePanel #gameLogPanel{position:absolute!important;left:8px!important;bottom:8px!important;z-index:18!important;width:min(360px,48%)!important;margin:0!important;border:1px solid rgba(190,235,255,.32)!important;border-radius:9px!important;background:rgba(3,22,36,.20)!important;box-shadow:0 1px 5px rgba(0,0,0,.14)!important;backdrop-filter:none!important;overflow:hidden!important;pointer-events:auto;}
-#fishingGamePanel #gameLogPanel>div:first-child{padding:4px 7px!important;background:rgba(3,22,36,.10)!important;color:rgba(240,250,255,.88)!important;font-size:11px!important;text-shadow:0 1px 3px #00131f;}
-#fishingGamePanel #gameLogPanel #status{height:5.2em!important;min-height:5.2em!important;max-height:5.2em!important;padding:4px 7px!important;background:rgba(3,22,36,.12)!important;border-top:1px solid rgba(190,235,255,.16)!important;color:#fff!important;font-size:11px!important;line-height:1.4!important;text-shadow:0 1px 3px #00131f;}
-#fishingGamePanel #gameLogPanel details{border-top:1px solid rgba(190,235,255,.18)!important;background:rgba(3,22,36,.08)!important;}
-#fishingGamePanel #gameLogPanel details summary{padding:4px 7px!important;color:rgba(220,245,255,.9)!important;font-size:10px!important;text-shadow:0 1px 3px #00131f;}
-#fishingGamePanel #gameLogPanel #logHistory{background:rgba(3,22,36,.35)!important;color:#fff!important;}
-@media(max-width:560px){#fishingGamePanel #gameLogPanel{left:5px!important;bottom:5px!important;width:min(280px,62%)!important;}#fishingGamePanel #gameLogPanel #status{height:4.4em!important;min-height:4.4em!important;max-height:4.4em!important;font-size:10px!important;}} 
-
-
-/* 改修2：透明ゲームログを釣り画面の上部へ。ルーレットは小型化 */
-#fishingGamePanel #gameLogPanel{
- position:absolute!important;left:8px!important;top:48px!important;bottom:auto!important;z-index:25!important;
- width:min(290px,36%)!important;margin:0!important;
- border:1px solid rgba(190,235,255,.22)!important;border-radius:8px!important;
- background:rgba(3,22,36,.10)!important;box-shadow:none!important;backdrop-filter:none!important;
- overflow:hidden!important;pointer-events:auto;
-}
-#fishingGamePanel #gameLogPanel>div:first-child{padding:3px 6px!important;background:rgba(3,22,36,.06)!important;color:rgba(240,250,255,.92)!important;font-size:10px!important;text-shadow:0 1px 3px #00131f;}
-#fishingGamePanel #gameLogPanel #status{height:4.1em!important;min-height:4.1em!important;max-height:4.1em!important;padding:3px 6px!important;background:rgba(3,22,36,.06)!important;border-top:1px solid rgba(190,235,255,.10)!important;color:#fff!important;font-size:10px!important;line-height:1.35!important;text-shadow:0 1px 3px #00131f;}
-#fishingGamePanel #gameLogPanel details{border-top:1px solid rgba(190,235,255,.12)!important;background:rgba(3,22,36,.04)!important;}
-#fishingGamePanel #gameLogPanel details summary{padding:3px 6px!important;color:rgba(220,245,255,.94)!important;font-size:9px!important;text-shadow:0 1px 3px #00131f;}
-#fishingGamePanel #gameLogPanel #logHistory{background:rgba(3,22,36,.30)!important;color:#fff!important;}
-.timing-panel.active{top:31%!important;width:min(410px,62%)!important;padding:7px 8px 6px!important;}
-.timing-orbit{min-height:165px!important;padding:24px 4px 32px!important;}
-.timing-panel .timing-track{width:min(82%,340px)!important;margin:5px auto!important;}
-.timing-stop-button{width:clamp(100px,32%,145px)!important;height:40px!important;font-size:12px!important;padding:3px 8px!important;}
-@media(max-width:560px){
- #fishingGamePanel #gameLogPanel{left:5px!important;top:44px!important;bottom:auto!important;width:min(230px,43%)!important;}
- #fishingGamePanel #gameLogPanel #status{height:3.8em!important;min-height:3.8em!important;max-height:3.8em!important;font-size:9px!important;}
- .timing-panel.active{top:31%!important;width:88%!important;padding:6px 5px 4px!important;}
- .timing-orbit{min-height:145px!important;padding:23px 2px 29px!important;}
- .timing-panel .timing-track{width:82%!important;margin:3px auto!important;}
- .timing-stop-button{width:104px!important;height:34px!important;font-size:10px!important;padding:2px 4px!important;}
-}
-
-
-/* 改修3：ログをタイミングゲージの真下に置き、最新5行を読める高さにする */
-#fishingGamePanel #gameLogPanel{
- position:absolute!important;left:8px!important;top:53%!important;bottom:auto!important;z-index:26!important;
- width:min(310px,42%)!important;max-height:none!important;
- border:1px solid rgba(190,235,255,.22)!important;border-radius:8px!important;
- background:rgba(3,22,36,.10)!important;box-shadow:none!important;backdrop-filter:none!important;
- overflow:hidden!important;
-}
-#fishingGamePanel #gameLogPanel #status{
- height:7.8em!important;min-height:7.8em!important;max-height:7.8em!important;
- padding:4px 6px!important;font-size:10px!important;line-height:1.4!important;
-}
-@media(max-width:560px){
- #fishingGamePanel #gameLogPanel{left:5px!important;top:65%!important;bottom:auto!important;width:min(260px,68%)!important;}
- #fishingGamePanel #gameLogPanel #status{height:7.8em!important;min-height:7.8em!important;max-height:7.8em!important;font-size:10px!important;line-height:1.4!important;}
-}
-
 </style>
 </head>
 <body>
@@ -291,7 +237,7 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
    <p class="orbit-help">ゲージを止めて GOOD 以上を狙おう！赤の BAD は糸が傷むで。</p>
  </div>
  <section id="gameLogPanel" aria-label="ゲームログ" style="margin-top:8px;border:1px solid #5b9eb5;border-radius:10px;background:rgba(3,22,36,.88);overflow:hidden">
- <div style="padding:7px 10px;background:rgba(67,132,157,.28);font-weight:bold;color:#d9f5ff">📜 ゲームログ（最新5行）</div>
+ <div style="padding:7px 10px;background:rgba(67,132,157,.28);font-weight:bold;color:#d9f5ff">📜 ゲームログ・過去ログ（最新5行＋過去ログ最大100行）</div>
  <div id="status" role="status" aria-live="polite" style="height:7.8em;min-height:7.8em;max-height:7.8em;overflow:hidden;padding:7px 10px;line-height:1.55;font-size:13px;white-space:normal;overflow-wrap:anywhere;display:flex;flex-direction:column;justify-content:flex-end;gap:2px"><div>川辺に到着！水面をタップ／クリックして仕掛けを投げよう！</div></div>
  <details style="border-top:1px solid #315c70">
   <summary style="cursor:pointer;padding:8px 10px;color:#bcecff">過去ログを見る（最大100行）</summary>
@@ -2717,7 +2663,6 @@ requestAnimationFrame(loop);
   ['quickActions','💾 セーブ・ロード・魚の売却'],
   ['equipmentPanel','🐱 ねこちゃんの釣具装備'],
   ['equippedHud','🎒 装備中の釣具・初期装備'],
-  ['gameLogPanel','📜 ゲームログ・過去ログ'],
   ['statsPanel','📊 所持金・釣果数・レベル・釣りポイント'],
   ['slotPanel','🎰 ゴールドスロット'],
   ['catchLedgerPanel','🐟 釣った魚・売却予定額'],
