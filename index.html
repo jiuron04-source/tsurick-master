@@ -151,6 +151,13 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 .timing-stop-button:active{transform:translate(-50%,-50%) scale(.96);}
 @media(max-width:560px){.timing-panel.active{top:29% !important;width:94%;}.timing-orbit{min-height:180px;}.timing-stop-button{width:34%;height:38px;padding:3px 5px;font-size:11px!important;}}
 
+
+/* スマホのお守り購入リスト：ネイティブ選択UIを維持し、スワイプ中の再描画を防ぐ */
+#charmShopArea{position:relative;overflow:visible;min-width:0;}
+#charmShopArea label{display:block;min-width:0;}
+#buyCharmSelect{display:block;width:100%;min-height:48px;margin-top:6px;padding:10px 38px 10px 12px;font-size:16px;line-height:1.4;touch-action:pan-y;}
+#buyCharmSelect:focus{outline:2px solid #8bd7ed;outline-offset:2px;}
+@media(max-width:600px){#charmShopArea{padding-bottom:8px;}#buyCharmSelect{font-size:16px;min-height:50px;}}
 </style>
 </head>
 <body>
@@ -369,7 +376,7 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 
 <script>
 "use strict";
-const gameLogEntries = ["川辺に到着！水面をタップ／クリックして仕掛けを投げよう！"];
+const gameLogEntries = [];
 function addGameLog(message){
   const text=String(message ?? "");
   gameLogEntries.push(text);
@@ -409,7 +416,7 @@ window.addEventListener("unhandledrejection",function(ev){
   } catch (_) {}
 });
 
-addGameLog(gameLogEntries[0]);
+addGameLog("川辺に到着！水面をタップ／クリックして仕掛けを投げよう！");
 
 /* =========================
    自然音システム
@@ -1185,17 +1192,18 @@ function sellFish(){
  updateAll();
 }
 
-function saveGame(){
+function saveGame(slot=1){
  try{
-  localStorage.setItem("tsuric_master_plus_save",JSON.stringify(state));
-  say("セーブ完了！また続きから遊べるで！");
+  localStorage.setItem("tsuric_master_plus_save_slot_"+slot,JSON.stringify(state));
+  say("スロット"+slot+"にセーブ完了！また続きから遊べるで！");
  }catch(e){say("セーブできなかった。ブラウザの設定を確認してな。")}
 }
-
-function loadGame(){
+function loadGame(slot=1){
  try{
-  const raw=localStorage.getItem("tsuric_master_plus_save");
-  if(!raw){say("セーブデータがまだないで！");return}
+  let raw=localStorage.getItem("tsuric_master_plus_save_slot_"+slot);
+  // 旧形式の単一セーブデータはスロット1として引き継ぐ
+  if(!raw && slot===1){raw=localStorage.getItem("tsuric_master_plus_save");if(raw)localStorage.setItem("tsuric_master_plus_save_slot_1",raw);}
+  if(!raw){say("スロット"+slot+"にはセーブデータがまだないで！");return}
   const loaded=JSON.parse(raw);
   state={...freshState(),...loaded};
   state.specialFishSold=state.specialFishSold&&typeof state.specialFishSold==="object"?state.specialFishSold:{};
@@ -1205,7 +1213,7 @@ function loadGame(){
   if(!Array.isArray(state.inventory))state.inventory=[];
   if(!Array.isArray(state.discovered))state.discovered=[];
   resetFishing(false);createWaterFish();updateAll();
-  say("セーブデータを読み込んだで！");
+  say("スロット"+slot+"のセーブデータを読み込んだで！");
  }catch(e){say("セーブデータを読み込めなかったで。")}
 }
 
@@ -1231,8 +1239,7 @@ function setLocation(id){
 $("locationSelect").addEventListener("change",e=>setLocation(e.target.value));
 $("sellButton").addEventListener("click",sellFish);
 $("sellFishFromLedgerButton").addEventListener("click",sellFish);
-$("saveButton").addEventListener("click",saveGame);
-$("loadButton").addEventListener("click",loadGame);
+
 
 function createWaterFish(){
  waterFish=[];
@@ -2351,21 +2358,7 @@ requestAnimationFrame(loop);
   renderConsumables();
   oldCastAt(x,y);
  };
- const oldCatchFish=catchFish;
- catchFish=function(){
-  const before=state.caught;
-  oldCatchFish();
-  if(state.caught>before&&biteFish===null){
-   // 釣果確定時に魚の強さに応じて竿・リールを追加摩耗
-   const power=Number(window.__lastCaughtFishPower)||1;
-   state.rodDurability=Math.max(0,state.rodDurability-Math.max(0,Math.ceil(power/4)));
-   state.reelDurability=Math.max(0,state.reelDurability-Math.max(0,Math.ceil(power/3)));
-   updateAll();
-  }
- };
- // catchFish本体がbiteFishを解除する前に魚の強さを保存する
- const originalCatch=catchFish;
- catchFish=function(){if(biteFish&&biteFish.type)window.__lastCaughtFishPower=Number(biteFish.type.power)||1;originalCatch()};
+ // 耐久値はcastAtで投げるたび各1だけ減らす。釣果による追加消耗は行わない。
  function renderConsumables(){
   const panel=document.getElementById('consumablePanel');if(!panel)return;
   const rigSel=document.getElementById('rigSelect'),baitSel=document.getElementById('baitSelect');if(!rigSel||!baitSel)return;
@@ -2378,7 +2371,7 @@ requestAnimationFrame(loop);
   document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
   document.getElementById('consumableStockList').innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${stockLabel(item.id)}</strong></div>`).join('');
   const stacked=document.getElementById('stackedGearInventory');if(stacked){const rodNames=(state.ownedRods||[0]).map(i=>rods[i]?.name).filter(Boolean);const reelNames=(state.ownedReels||[0]).map(i=>reels[i]?.name).filter(Boolean);stacked.innerHTML='<strong>釣り竿（モデル別）</strong><br>'+[...new Set(rodNames)].map(n=>'🎣 '+n+' × 1本').join('<br>')+'<br><br><strong>リール（モデル別）</strong><br>'+[...new Set(reelNames)].map(n=>'⚙️ '+n+' × 1個').join('<br>')+'<br><br><strong>消耗品スタック</strong><br>'+itemDefs.filter(i=>i.id!=='float').map(i=>'🧺 '+i.name+' × '+stock(i.id)+'個').join('<br>');}
-  document.getElementById('durabilityInfo').innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに各1減少。釣れた魚が強いほど追加で減るで。</small>`;
+  document.getElementById('durabilityInfo').innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに竿・リールの耐久値がそれぞれ1減るで。</small>`;
   const rodCost=Math.round((rods[state.rod]?.price||0)*.5),reelCost=Math.round((reels[state.reel]?.price||0)*.5);document.getElementById('repairRod').textContent='🎣 竿を修理（'+rodCost+'G）';document.getElementById('repairReel').textContent='⚙️ リールを修理（'+reelCost+'G）';document.getElementById('repairRod').disabled=state.rodDurability>=100;document.getElementById('repairReel').disabled=state.reelDurability>=100;refreshWorkshopChoices();
  }
  function refreshPurchaseQuantities(){
@@ -2701,6 +2694,38 @@ requestAnimationFrame(loop);
 })();
 </script>
 
+
+<script>
+// 2スロット式セーブ・ロードとYES/NO確認（既存ゲーム処理を維持）
+(function(){
+ const $id=id=>document.getElementById(id);
+ function slotExists(n){return !!localStorage.getItem('tsuric_master_plus_save_slot_'+n) || (n===1 && !!localStorage.getItem('tsuric_master_plus_save'));}
+ function makeDialog(title,body,buttons){
+  const old=$id('gameConfirmOverlay');if(old)old.remove();
+  const overlay=document.createElement('div');overlay.id='gameConfirmOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
+  const box=document.createElement('div');box.style.cssText='width:min(440px,100%);background:#173447;color:#f4fbff;border:2px solid #8bd7ed;border-radius:16px;padding:20px;box-shadow:0 12px 40px #0009;text-align:center;';
+  const h=document.createElement('h2');h.textContent=title;h.style.margin='0 0 12px';
+  const p=document.createElement('p');p.textContent=body;p.style.cssText='line-height:1.7;margin:0 0 18px;white-space:pre-line;';
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;';
+  box.append(h,p,row);overlay.append(box);document.body.append(overlay);
+  buttons.forEach(b=>{const btn=document.createElement('button');btn.type='button';btn.textContent=b.label;btn.style.cssText='flex:1;min-width:110px;padding:12px;border:0;border-radius:10px;font-weight:bold;font-size:16px;background:'+b.color+';color:#10212b;';btn.addEventListener('click',()=>{overlay.remove();b.run();});row.append(btn);});
+ }
+ function chooseSlot(mode){
+  const overlay=document.createElement('div');overlay.id='gameConfirmOverlay';overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
+  const box=document.createElement('div');box.style.cssText='width:min(440px,100%);background:#173447;color:#f4fbff;border:2px solid #8bd7ed;border-radius:16px;padding:20px;text-align:center;';
+  const h=document.createElement('h2');h.textContent=mode==='save'?'💾 セーブスロットを選ぶにゃ！':'📂 ロードする冒険を選ぶにゃ！';box.append(h);
+  [1,2].forEach(n=>{const b=document.createElement('button');b.type='button';b.style.cssText='display:block;width:100%;padding:13px;margin:9px 0;border:0;border-radius:9px;font-weight:bold;background:#d9f2ff;color:#123;';b.textContent='スロット'+n+(slotExists(n)?'　（データあり）':'　（データなし）');b.addEventListener('click',()=>{overlay.remove();if(mode==='save')confirmSave(n);else if(!slotExists(n)){makeDialog('データがないにゃ！','スロット'+n+'にはセーブデータがないで。',[{label:'戻る',color:'#d9f2ff',run:()=>chooseSlot('load')}]);}else makeDialog('このデータをロードするかにゃ？','スロット'+n+'の冒険データを読み込むで。',[{label:'YES',color:'#9be7b0',run:()=>loadGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);});box.append(b);});
+  const cancel=document.createElement('button');cancel.textContent='キャンセル';cancel.style.cssText='width:100%;padding:10px;border:0;border-radius:9px;background:#bbb;color:#222;';cancel.addEventListener('click',()=>overlay.remove());box.append(cancel);overlay.append(box);document.body.append(overlay);
+ }
+ function confirmSave(n){const exists=slotExists(n);makeDialog(exists?'⚠️ 上書きしてもいいかにゃ？':'💾 セーブするかにゃ？',exists?'スロット'+n+'の以前の冒険データは上書きされて消えるで！\n本当にセーブしていいかにゃ？':'スロット'+n+'に今の冒険を保存するで！\nセーブしていいかにゃ？',[{label:'YES',color:'#9be7b0',run:()=>saveGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);}
+ $id('saveButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();chooseSlot('save');},true);
+ $id('loadButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();chooseSlot('load');},true);
+ let debugApproved=false;
+ document.addEventListener('click',e=>{if(e.target?.id!=='debugAllItemsButton')return;if(debugApproved){debugApproved=false;return;}e.preventDefault();e.stopImmediatePropagation();makeDialog('🐱 デバッグ使うのかにゃーーーん？','⚠️ デバッグを使うと、お金・装備・アイテム・エリアが一気に解放されるにゃ！\nゲーム本来の面白さが完全に失われる可能性があるで。本当に実行していいかにゃ？',[{label:'YES！実行する',color:'#ffcf70',run:()=>{debugApproved=true;$id('debugAllItemsButton')?.click();}},{label:'NO！やめる',color:'#ffb3b3',run:()=>{}}]);},true);
+})();
+</script>
+
 </body>
 </html>
 
@@ -2732,9 +2757,14 @@ requestAnimationFrame(loop);
  function getOwnedIndices(){return (Array.isArray(state.ownedCharms)?state.ownedCharms:[]).filter(i=>Number.isInteger(i)&&i>=0&&i<list.length)}
  function refreshCharmShop(){
   const sel=document.getElementById('buyCharmSelect'); if(!sel)return;
+  const owned=getOwnedIndices();
+  // 選択肢に変化がない場合は再構築しない。スマホのネイティブ選択リストを閉じないため。
+  const signature=owned.join(',')+'|'+list.length;
+  if(sel.dataset.charmShopSignature===signature)return;
   const old=sel.value; sel.innerHTML='';
-  list.forEach((c,i)=>{if(getOwnedIndices().includes(i))return;const o=document.createElement('option');o.value=String(i);o.textContent=`${c.name}｜${c.type==='tension'?'張力軽減':c.type==='line'?'糸ダメージ軽減':c.type==='timing'?'ゲージ減速':c.type==='progress'?'引き寄せ進行度アップ':'体力回復'}｜${c.price}G`;sel.appendChild(o)});
+  list.forEach((c,i)=>{if(owned.includes(i))return;const o=document.createElement('option');o.value=String(i);o.textContent=`${c.name}｜${c.type==='tension'?'張力軽減':c.type==='line'?'糸ダメージ軽減':c.type==='timing'?'ゲージ減速':c.type==='progress'?'引き寄せ進行度アップ':'体力回復'}｜${c.price}G`;sel.appendChild(o)});
   if(!sel.options.length){const o=document.createElement('option');o.value='';o.textContent='全種類購入済み';sel.appendChild(o);sel.disabled=true;}else{sel.disabled=false;if([...sel.options].some(o=>o.value===old))sel.value=old;}
+  sel.dataset.charmShopSignature=signature;
  }
  function purchaseCharm(){
   const sel=document.getElementById('buyCharmSelect'); if(!sel||sel.value===''){if(typeof say==='function')say('お守りは全種類購入済みやで！');return;}
@@ -2896,5 +2926,37 @@ requestAnimationFrame(loop);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 </script>
+
+<script>
+// 2スロット式セーブ・ロードとYES/NO確認（既存ゲーム処理を維持）
+(function(){
+ const $id=id=>document.getElementById(id);
+ function slotExists(n){return !!localStorage.getItem('tsuric_master_plus_save_slot_'+n) || (n===1 && !!localStorage.getItem('tsuric_master_plus_save'));}
+ function makeDialog(title,body,buttons){
+  const old=$id('gameConfirmOverlay');if(old)old.remove();
+  const overlay=document.createElement('div');overlay.id='gameConfirmOverlay';
+  overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
+  const box=document.createElement('div');box.style.cssText='width:min(440px,100%);background:#173447;color:#f4fbff;border:2px solid #8bd7ed;border-radius:16px;padding:20px;box-shadow:0 12px 40px #0009;text-align:center;';
+  const h=document.createElement('h2');h.textContent=title;h.style.margin='0 0 12px';
+  const p=document.createElement('p');p.textContent=body;p.style.cssText='line-height:1.7;margin:0 0 18px;white-space:pre-line;';
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:10px;justify-content:center;flex-wrap:wrap;';
+  box.append(h,p,row);overlay.append(box);document.body.append(overlay);
+  buttons.forEach(b=>{const btn=document.createElement('button');btn.type='button';btn.textContent=b.label;btn.style.cssText='flex:1;min-width:110px;padding:12px;border:0;border-radius:10px;font-weight:bold;font-size:16px;background:'+b.color+';color:#10212b;';btn.addEventListener('click',()=>{overlay.remove();b.run();});row.append(btn);});
+ }
+ function chooseSlot(mode){
+  const overlay=document.createElement('div');overlay.id='gameConfirmOverlay';overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
+  const box=document.createElement('div');box.style.cssText='width:min(440px,100%);background:#173447;color:#f4fbff;border:2px solid #8bd7ed;border-radius:16px;padding:20px;text-align:center;';
+  const h=document.createElement('h2');h.textContent=mode==='save'?'💾 セーブスロットを選ぶにゃ！':'📂 ロードする冒険を選ぶにゃ！';box.append(h);
+  [1,2].forEach(n=>{const b=document.createElement('button');b.type='button';b.style.cssText='display:block;width:100%;padding:13px;margin:9px 0;border:0;border-radius:9px;font-weight:bold;background:#d9f2ff;color:#123;';b.textContent='スロット'+n+(slotExists(n)?'　（データあり）':'　（データなし）');b.addEventListener('click',()=>{overlay.remove();if(mode==='save')confirmSave(n);else if(!slotExists(n)){makeDialog('データがないにゃ！','スロット'+n+'にはセーブデータがないで。',[{label:'戻る',color:'#d9f2ff',run:()=>chooseSlot('load')}]);}else makeDialog('このデータをロードするかにゃ？','スロット'+n+'の冒険データを読み込むで。',[{label:'YES',color:'#9be7b0',run:()=>loadGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);});box.append(b);});
+  const cancel=document.createElement('button');cancel.textContent='キャンセル';cancel.style.cssText='width:100%;padding:10px;border:0;border-radius:9px;background:#bbb;color:#222;';cancel.addEventListener('click',()=>overlay.remove());box.append(cancel);overlay.append(box);document.body.append(overlay);
+ }
+ function confirmSave(n){const exists=slotExists(n);makeDialog(exists?'⚠️ 上書きしてもいいかにゃ？':'💾 セーブするかにゃ？',exists?'スロット'+n+'の以前の冒険データは上書きされて消えるで！\n本当にセーブしていいかにゃ？':'スロット'+n+'に今の冒険を保存するで！\nセーブしていいかにゃ？',[{label:'YES',color:'#9be7b0',run:()=>saveGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);}
+ $id('saveButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();chooseSlot('save');},true);
+ $id('loadButton')?.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();chooseSlot('load');},true);
+ let debugApproved=false;
+ document.addEventListener('click',e=>{if(e.target?.id!=='debugAllItemsButton')return;if(debugApproved){debugApproved=false;return;}e.preventDefault();e.stopImmediatePropagation();makeDialog('🐱 デバッグ使うのかにゃーーーん？','⚠️ デバッグを使うと、お金・装備・アイテム・エリアが一気に解放されるにゃ！\nゲーム本来の面白さが完全に失われる可能性があるで。本当に実行していいかにゃ？',[{label:'YES！実行する',color:'#ffcf70',run:()=>{debugApproved=true;$id('debugAllItemsButton')?.click();}},{label:'NO！やめる',color:'#ffb3b3',run:()=>{}}]);},true);
+})();
+</script>
+
 </body>
 </html>
