@@ -2797,7 +2797,7 @@ requestAnimationFrame(loop);
   const sel=document.getElementById('buyCharmSelect'); if(!sel||sel.value===''){if(typeof say==='function')say('お守りは全種類購入済みやで！');return;}
   const i=Number(sel.value),c=list[i];if(!c||getOwnedIndices().includes(i)){if(typeof say==='function')say('そのお守りは購入済みやで！');return;}
   if((Number(state.gold)||0)<c.price){if(typeof say==='function')say(`お金が足りへんで！ ${c.price}G必要や。`);return;}
-  state.gold-=c.price;state.ownedCharms.push(i);refreshCharmShop();setupCharmSlots();
+  state.gold-=c.price;if(!Array.isArray(state.ownedCharms))state.ownedCharms=[];if(!state.ownedCharms.includes(i))state.ownedCharms.push(i);refreshCharmShop();setupCharmSlots();
   if(typeof updateAll==='function')try{updateAll()}catch(e){}
   if(typeof saveGame==='function')try{saveGame()}catch(e){}
   if(typeof say==='function')say(`🐾 ${c.name}を購入したで！装備欄から選べるようになったで。`);
@@ -2862,7 +2862,7 @@ requestAnimationFrame(loop);
   const count=document.getElementById('ownedCharmCount');if(count)count.textContent=`所持中のお守り：${getOwnedIndices().length} / ${list.length}種類`;
   refreshCharmShop();
  }
- function setup(){installCharmShop();setupCharmSlots();refreshCharmText();}
+ function setup(){if(!Array.isArray(state.ownedCharms))state.ownedCharms=[];installCharmShop();setupCharmSlots();refreshCharmText();}
  // デバッグボタンでは全お守りを購入済み扱いにする
  document.addEventListener('click',e=>{if(e.target&&e.target.id==='debugAllItemsButton'){state.ownedCharms=list.map((_,i)=>i);state.charm=0;state.charm2=10;state.charm3=20;setTimeout(setup,0);if(typeof saveGame==='function')try{saveGame()}catch(err){}}});
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setup();setInterval(setup,700)});else{setup();setInterval(setup,700)}
