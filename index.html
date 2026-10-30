@@ -156,7 +156,7 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 #charmShopArea{position:relative;overflow:visible;min-width:0;}
 #charmShopArea label{display:block;min-width:0;}
 #buyCharmSelect{display:block;width:100%;min-height:48px;margin-top:6px;padding:10px 38px 10px 12px;font-size:16px;line-height:1.4;touch-action:pan-y;}
-#buyCharmSelect:focus{outline:2px solid #8bd7ed;outline-offset:2px;}
+#buyCharmSelect:focus{outline:2px solid #8bd7ed;outline-offset:2px;} #buyCharmButton{display:block;width:100%;min-height:50px;margin-top:10px;touch-action:manipulation;-webkit-tap-highlight-color:rgba(255,209,102,.25);position:relative;z-index:2;}
 @media(max-width:600px){#charmShopArea{padding-bottom:8px;}#buyCharmSelect{font-size:16px;min-height:50px;}}
 </style>
 </head>
@@ -1192,9 +1192,18 @@ function sellFish(){
  updateAll();
 }
 
+// プレイ時間：このゲーム画面を開いている間だけ計測し、セーブデータに保存
+let tsuricPlaySeconds=0;
+let tsuricLastTick=Date.now();
+setInterval(()=>{
+ const now=Date.now();
+ if(document.visibilityState==='visible')tsuricPlaySeconds+=Math.max(0,Math.min(5,Math.floor((now-tsuricLastTick)/1000)));
+ tsuricLastTick=now;
+},1000);
 function saveGame(slot=1){
  try{
-  localStorage.setItem("tsuric_master_plus_save_slot_"+slot,JSON.stringify(state));
+  const snapshot={...state,__saveMeta:{playTimeSeconds:tsuricPlaySeconds,savedAt:Date.now()}};
+  localStorage.setItem("tsuric_master_plus_save_slot_"+slot,JSON.stringify(snapshot));
   say("スロット"+slot+"にセーブ完了！また続きから遊べるで！");
  }catch(e){say("セーブできなかった。ブラウザの設定を確認してな。")}
 }
@@ -1205,6 +1214,9 @@ function loadGame(slot=1){
   if(!raw && slot===1){raw=localStorage.getItem("tsuric_master_plus_save");if(raw)localStorage.setItem("tsuric_master_plus_save_slot_1",raw);}
   if(!raw){say("スロット"+slot+"にはセーブデータがまだないで！");return}
   const loaded=JSON.parse(raw);
+  tsuricPlaySeconds=Math.max(0,Number(loaded.__saveMeta?.playTimeSeconds)||0);
+  delete loaded.__saveMeta;
+  tsuricLastTick=Date.now();
   state={...freshState(),...loaded};
   state.specialFishSold=state.specialFishSold&&typeof state.specialFishSold==="object"?state.specialFishSold:{};
   if(!locations[state.location])state.location="river";
@@ -2715,7 +2727,22 @@ requestAnimationFrame(loop);
   const overlay=document.createElement('div');overlay.id='gameConfirmOverlay';overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
   const box=document.createElement('div');box.style.cssText='width:min(440px,100%);background:#173447;color:#f4fbff;border:2px solid #8bd7ed;border-radius:16px;padding:20px;text-align:center;';
   const h=document.createElement('h2');h.textContent=mode==='save'?'💾 セーブスロットを選ぶにゃ！':'📂 ロードする冒険を選ぶにゃ！';box.append(h);
-  [1,2].forEach(n=>{const b=document.createElement('button');b.type='button';b.style.cssText='display:block;width:100%;padding:13px;margin:9px 0;border:0;border-radius:9px;font-weight:bold;background:#d9f2ff;color:#123;';b.textContent='スロット'+n+(slotExists(n)?'　（データあり）':'　（データなし）');b.addEventListener('click',()=>{overlay.remove();if(mode==='save')confirmSave(n);else if(!slotExists(n)){makeDialog('データがないにゃ！','スロット'+n+'にはセーブデータがないで。',[{label:'戻る',color:'#d9f2ff',run:()=>chooseSlot('load')}]);}else makeDialog('このデータをロードするかにゃ？','スロット'+n+'の冒険データを読み込むで。',[{label:'YES',color:'#9be7b0',run:()=>loadGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);});box.append(b);});
+  [1,2].forEach(n=>{
+   const has=slotExists(n);const raw=localStorage.getItem('tsuric_master_plus_save_slot_'+n)||(n===1?localStorage.getItem('tsuric_master_plus_save'):null);
+   let d=null,meta={};try{if(raw){d=JSON.parse(raw);meta=d.__saveMeta||{};}}catch(e){}
+   const wrap=document.createElement('div');wrap.style.cssText='margin:10px 0;padding:12px;border:1px solid #5d91a5;border-radius:12px;background:rgba(255,255,255,.07);text-align:left;';
+   const b=document.createElement('button');b.type='button';b.style.cssText='display:block;width:100%;padding:12px;border:0;border-radius:9px;font-weight:bold;background:#d9f2ff;color:#123;font-size:16px;';b.textContent='スロット'+n+(has?'　（データあり）':'　（データなし）');
+   const info=document.createElement('div');info.style.cssText='font-size:13px;line-height:1.8;margin-top:8px;color:#f4fbff;';
+   if(d){
+    const sec=Math.max(0,Number(meta.playTimeSeconds)||0),hours=Math.floor(sec/3600),mins=Math.floor((sec%3600)/60);
+    const area=(typeof locations!=='undefined'&&locations[d.location])?locations[d.location].name:(d.location||'不明');
+    const saved=meta.savedAt?new Date(meta.savedAt).toLocaleString('ja-JP'):'旧セーブデータ';
+    info.textContent='🎮 プレイ時間：'+hours+'時間'+mins+'分　｜　💰 '+(Number(d.gold)||0).toLocaleString('ja-JP')+'G\n🐟 釣った魚：'+(Number(d.caught)||0).toLocaleString('ja-JP')+'匹　｜　⭐ 累計ポイント：'+(Number(d.score)||0).toLocaleString('ja-JP')+'\n📍 '+area+'\n🕒 保存日時：'+saved;
+    info.style.whiteSpace='pre-line';
+   }else info.textContent='まだ冒険データはないで。';
+   b.addEventListener('click',()=>{overlay.remove();if(mode==='save')confirmSave(n);else if(!has){makeDialog('データがないにゃ！','スロット'+n+'にはセーブデータがないで。',[{label:'戻る',color:'#d9f2ff',run:()=>chooseSlot('load')}]);}else makeDialog('このデータをロードするかにゃ？','スロット'+n+'の冒険データを読み込むで。',[{label:'YES',color:'#9be7b0',run:()=>loadGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);});
+   wrap.append(b,info);box.append(wrap);
+  });
   const cancel=document.createElement('button');cancel.textContent='キャンセル';cancel.style.cssText='width:100%;padding:10px;border:0;border-radius:9px;background:#bbb;color:#222;';cancel.addEventListener('click',()=>overlay.remove());box.append(cancel);overlay.append(box);document.body.append(overlay);
  }
  function confirmSave(n){const exists=slotExists(n);makeDialog(exists?'⚠️ 上書きしてもいいかにゃ？':'💾 セーブするかにゃ？',exists?'スロット'+n+'の以前の冒険データは上書きされて消えるで！\n本当にセーブしていいかにゃ？':'スロット'+n+'に今の冒険を保存するで！\nセーブしていいかにゃ？',[{label:'YES',color:'#9be7b0',run:()=>saveGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);}
@@ -2814,7 +2841,23 @@ requestAnimationFrame(loop);
  function installCharmShop(){
   const workshop=document.getElementById('gearWorkshopPanel');if(workshop&&!document.getElementById('charmShopArea')){
    const area=document.createElement('div');area.id='charmShopArea';area.innerHTML='<h3 style="margin-top:16px">🐾 お守り売り場</h3><p class="small">5系統×10グレードのお守りを購入できるで。初期所持はゼロ。購入したものだけ装備欄で選べる。価格はグレードに応じて上がるで。</p><label>購入するお守り<select id="buyCharmSelect" style="margin-top:6px;width:100%"></select></label><button id="buyCharmButton" type="button" style="margin-top:6px">🐾 選んだお守りを購入</button><p id="ownedCharmCount" class="small"></p>';
-   workshop.appendChild(area);document.getElementById('buyCharmButton').addEventListener('click',purchaseCharm);
+   workshop.appendChild(area);
+   const buyButton=document.getElementById('buyCharmButton');
+   // iPhone/Androidでタップがclickに変換されない場合に備え、タッチ操作はpointerupで処理する。
+   // pointerup後に発生するclickとの二重購入はフラグで防止する。
+   if(buyButton&&!buyButton.dataset.charmBuyHandler){
+    let lastTouchPurchase=0;
+    buyButton.addEventListener('pointerup',e=>{
+     if(e.pointerType==='touch'||e.pointerType==='pen'){
+      e.preventDefault();lastTouchPurchase=Date.now();purchaseCharm();
+     }
+    });
+    buyButton.addEventListener('click',e=>{
+     if(Date.now()-lastTouchPurchase<800){e.preventDefault();return;}
+     purchaseCharm();
+    });
+    buyButton.dataset.charmBuyHandler='1';
+   }
   }
   const count=document.getElementById('ownedCharmCount');if(count)count.textContent=`所持中のお守り：${getOwnedIndices().length} / ${list.length}種類`;
   refreshCharmShop();
@@ -2947,7 +2990,22 @@ requestAnimationFrame(loop);
   const overlay=document.createElement('div');overlay.id='gameConfirmOverlay';overlay.style.cssText='position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.78);display:flex;align-items:center;justify-content:center;padding:18px;';
   const box=document.createElement('div');box.style.cssText='width:min(440px,100%);background:#173447;color:#f4fbff;border:2px solid #8bd7ed;border-radius:16px;padding:20px;text-align:center;';
   const h=document.createElement('h2');h.textContent=mode==='save'?'💾 セーブスロットを選ぶにゃ！':'📂 ロードする冒険を選ぶにゃ！';box.append(h);
-  [1,2].forEach(n=>{const b=document.createElement('button');b.type='button';b.style.cssText='display:block;width:100%;padding:13px;margin:9px 0;border:0;border-radius:9px;font-weight:bold;background:#d9f2ff;color:#123;';b.textContent='スロット'+n+(slotExists(n)?'　（データあり）':'　（データなし）');b.addEventListener('click',()=>{overlay.remove();if(mode==='save')confirmSave(n);else if(!slotExists(n)){makeDialog('データがないにゃ！','スロット'+n+'にはセーブデータがないで。',[{label:'戻る',color:'#d9f2ff',run:()=>chooseSlot('load')}]);}else makeDialog('このデータをロードするかにゃ？','スロット'+n+'の冒険データを読み込むで。',[{label:'YES',color:'#9be7b0',run:()=>loadGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);});box.append(b);});
+  [1,2].forEach(n=>{
+   const has=slotExists(n);const raw=localStorage.getItem('tsuric_master_plus_save_slot_'+n)||(n===1?localStorage.getItem('tsuric_master_plus_save'):null);
+   let d=null,meta={};try{if(raw){d=JSON.parse(raw);meta=d.__saveMeta||{};}}catch(e){}
+   const wrap=document.createElement('div');wrap.style.cssText='margin:10px 0;padding:12px;border:1px solid #5d91a5;border-radius:12px;background:rgba(255,255,255,.07);text-align:left;';
+   const b=document.createElement('button');b.type='button';b.style.cssText='display:block;width:100%;padding:12px;border:0;border-radius:9px;font-weight:bold;background:#d9f2ff;color:#123;font-size:16px;';b.textContent='スロット'+n+(has?'　（データあり）':'　（データなし）');
+   const info=document.createElement('div');info.style.cssText='font-size:13px;line-height:1.8;margin-top:8px;color:#f4fbff;';
+   if(d){
+    const sec=Math.max(0,Number(meta.playTimeSeconds)||0),hours=Math.floor(sec/3600),mins=Math.floor((sec%3600)/60);
+    const area=(typeof locations!=='undefined'&&locations[d.location])?locations[d.location].name:(d.location||'不明');
+    const saved=meta.savedAt?new Date(meta.savedAt).toLocaleString('ja-JP'):'旧セーブデータ';
+    info.textContent='🎮 プレイ時間：'+hours+'時間'+mins+'分　｜　💰 '+(Number(d.gold)||0).toLocaleString('ja-JP')+'G\n🐟 釣った魚：'+(Number(d.caught)||0).toLocaleString('ja-JP')+'匹　｜　⭐ 累計ポイント：'+(Number(d.score)||0).toLocaleString('ja-JP')+'\n📍 '+area+'\n🕒 保存日時：'+saved;
+    info.style.whiteSpace='pre-line';
+   }else info.textContent='まだ冒険データはないで。';
+   b.addEventListener('click',()=>{overlay.remove();if(mode==='save')confirmSave(n);else if(!has){makeDialog('データがないにゃ！','スロット'+n+'にはセーブデータがないで。',[{label:'戻る',color:'#d9f2ff',run:()=>chooseSlot('load')}]);}else makeDialog('このデータをロードするかにゃ？','スロット'+n+'の冒険データを読み込むで。',[{label:'YES',color:'#9be7b0',run:()=>loadGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);});
+   wrap.append(b,info);box.append(wrap);
+  });
   const cancel=document.createElement('button');cancel.textContent='キャンセル';cancel.style.cssText='width:100%;padding:10px;border:0;border-radius:9px;background:#bbb;color:#222;';cancel.addEventListener('click',()=>overlay.remove());box.append(cancel);overlay.append(box);document.body.append(overlay);
  }
  function confirmSave(n){const exists=slotExists(n);makeDialog(exists?'⚠️ 上書きしてもいいかにゃ？':'💾 セーブするかにゃ？',exists?'スロット'+n+'の以前の冒険データは上書きされて消えるで！\n本当にセーブしていいかにゃ？':'スロット'+n+'に今の冒険を保存するで！\nセーブしていいかにゃ？',[{label:'YES',color:'#9be7b0',run:()=>saveGame(n)},{label:'NO',color:'#ffb3b3',run:()=>{}}]);}
