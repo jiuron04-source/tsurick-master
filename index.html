@@ -325,6 +325,14 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
   <button id="slotSpinButton" type="button" style="background:#ffe08a;color:#352b16;font-weight:bold;flex:1;min-width:140px">🎰 スロットを回す</button>
  </div>
  <p id="slotResult" role="status" style="margin-bottom:0;font-weight:bold">7が3つなら超大当たり！絵柄の組み合わせで配当が変わるで。</p>
+ <section id="slotLogPanel" aria-label="ゴールドスロットのゲームログ" style="margin-top:12px;padding:9px 10px;border-top:1px solid rgba(245,215,120,.35);background:rgba(0,0,0,.16);border-radius:8px">
+  <div style="font-weight:bold;color:#ffe58a;margin-bottom:5px">📜 スロットゲームログ</div>
+  <div id="slotLogVisible" aria-live="polite" style="min-height:2.8em;max-height:9em;overflow-y:auto;font-size:12px;line-height:1.55;overflow-wrap:anywhere">まだスロットの記録はないで。</div>
+  <details id="slotLogDetails" style="margin-top:6px;font-size:12px">
+   <summary style="cursor:pointer;color:#ffe58a;padding:4px 2px">過去ログを見る（最大100件）</summary>
+   <div id="slotLogHistory" aria-label="スロット過去ログ100件" style="max-height:240px;overflow-y:auto;padding:6px 2px;line-height:1.5;overflow-wrap:anywhere"></div>
+  </details>
+ </section>
  <div class="small" style="margin-bottom:0;line-height:1.8"><strong>配当表（賭け金に対する払い戻し倍率）</strong><br>7が3つ：1,000倍<br>ドラゴンが3つ：500倍<br>ダイヤが3つ：250倍<br>王冠が3つ：100倍<br>虹が3つ：75倍<br>コインが3つ：50倍<br>猫が3つ：30倍<br>魚または釣り竿が3つ：20倍<br>同じ絵柄が2つ：2倍<br>それ以外：ハズレ（賭け金は戻らへんで）</div>
 </section>
 
@@ -3488,6 +3496,14 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
  const $slot=id=>document.getElementById(id);
  const money=n=>typeof formatGoldAmount==='function'?formatGoldAmount(n):Math.floor(Number(n)||0).toLocaleString('ja-JP')+'G';
  const refreshSlotGold=()=>{const el=$slot('slotGoldDisplay');if(el)el.textContent='💰 所持金：'+money(state.gold);};
+ const slotLogEntries=[];
+ const addSlotLog=(message)=>{
+  slotLogEntries.push(String(message));
+  if(slotLogEntries.length>100)slotLogEntries.splice(0,slotLogEntries.length-100);
+  const visible=$slot('slotLogVisible'),history=$slot('slotLogHistory');
+  if(visible){visible.replaceChildren();slotLogEntries.slice(-10).forEach((entry)=>{const line=document.createElement('div');line.textContent='› '+entry;line.style.padding='2px 0';visible.appendChild(line);});visible.scrollTop=visible.scrollHeight;}
+  if(history){history.replaceChildren();slotLogEntries.slice().reverse().forEach((entry,index)=>{const line=document.createElement('div');line.textContent=String(slotLogEntries.length-index).padStart(3,'0')+'  '+entry;line.style.padding='3px 0';line.style.borderBottom='1px solid rgba(245,215,120,.14)';history.appendChild(line);});}
+ };
  // 通常の所持金更新にも連動させ、スロット画面の表示を最新に保つ
  if(typeof window.updateAll==='function'&&!window.updateAll.__slotGoldWrapped){const originalUpdateAll=window.updateAll;const wrappedUpdateAll=function(){const value=originalUpdateAll.apply(this,arguments);refreshSlotGold();return value;};wrappedUpdateAll.__slotGoldWrapped=true;window.updateAll=wrappedUpdateAll;}
  refreshSlotGold();
@@ -3513,6 +3529,7 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
    message=`当たり！同じ絵柄が2つ！ ${money(bet)} × 2倍＝${money(payout)} 払い戻し！`;
   }
   result.textContent=message;
+  addSlotLog(message);
   refreshSlotGold();
   // スロットの結果も通常のゲームログに記録し、最新5行に表示する（重複記録を防ぐ）
   if(typeof updateAll==='function')updateAll();
