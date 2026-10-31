@@ -598,13 +598,14 @@ function getFishRarity(id, fish){
  const key=String(id||"").toLowerCase();
  const declared=String((fish&&fish.rarity)||"").toLowerCase();
  if(mythicalFishIds.has(key)||declared==="mythical"||declared==="幻魚"||declared==="幻") return {code:"GR",name:"幻神級",color:"#ff4fd8"};
- if(ancientFishIds.has(key) || (fish&&fish.ancient) || declared==="ancient") return {code:"KR",name:"古代級",color:"#8e44ad"};
- if(points>=350) return {code:"LR",name:"レジェンド",color:"#d35400"};
- if(points>=180) return {code:"UR",name:"ウルトラレア",color:"#b03a9b"};
- if(points>=100) return {code:"SSR",name:"超激レア",color:"#c0392b"};
- if(points>=60) return {code:"SR",name:"激レア",color:"#8e44ad"};
- if(points>=25) return {code:"R",name:"レア",color:"#2471a3"};
- return {code:"N",name:"ノーマル",color:"#566573"};
+ if(ancientFishIds.has(key) || (fish&&fish.ancient) || declared==="ancient"||declared==="kr") return {code:"KR",name:"古代級",color:"#8e44ad"};
+ const tiers={n:{code:"N",name:"ノーマル",color:"#566573"},r:{code:"R",name:"レア",color:"#2471a3"},sr:{code:"SR",name:"激レア",color:"#8e44ad"},ssr:{code:"SSR",name:"超激レア",color:"#c0392b"},lr:{code:"LR",name:"超希少",color:"#d35400"}};
+ if(tiers[declared]) return tiers[declared];
+ if(points>=350) return tiers.lr;
+ if(points>=100) return tiers.ssr;
+ if(points>=60) return tiers.sr;
+ if(points>=25) return tiers.r;
+ return tiers.n;
 }
 
 const rods=[
@@ -862,6 +863,26 @@ const ancientFish={
 };
 Object.assign(fishTypes,ancientFish);
 for(const id of Object.keys(ancientFish))habitatById[id]="sea";
+
+// 実在種の一般的な流通量・漁獲のしやすさ・市場価値を参考にしたゲーム用バランス。
+// レア度は希少性、売値は食用・市場価値、ポイントは釣果としての評価を別々に設定。
+// 地域・季節・サイズ・天然/養殖で大きく変わるため、価格は実売価格ではなく相対目安(G)。
+const realisticFishBalance={
+ n:{ids:"minnow dace crucian bluegill wakasagi oikawa ugui motsugo tanago dojo loach medaka moroko goby haze iwashi sardine shirasu kisu mackerel samma shishamo shijimi asari kurage seahorse jellyfish",price:35,points:8},
+ r:{ids:"ayu carp rainbow bass yamame iwana amago nijimasu catfish pike mutsu aji sawara buri bonito meji tai kurodai chinu suzuki anago kawahagi mebaru kasago ainame hokke hake sake masu unagi tobiuo tara hokkigai ika yariika ebi kani watari hamaguri hotate sazae uni flounder karei ishigarei fugu puffer sea_bream needlefish squid",price:150,points:28},
+ sr:{ids:"snapper tuna maguro kanpachi hiramasa katsuo ishidai hirame hamo kawahagi? iseebi awabi hotaruika manbou ray redfish alfonsino tilefish rockfish pollock grouper salmon sturgeon gar arowana piranha",price:650,points:75},
+ ssr:{ids:"pirarucu shark same dolphin buri? kuエ",price:1800,points:145},
+ lr:{ids:"koi_gold",price:6500,points:380}
+};
+for(const [tier,group] of Object.entries(realisticFishBalance)) for(const id of group.ids.split(/\s+/)) if(fishTypes[id]){fishTypes[id].rarity=tier;fishTypes[id].price=group.price;fishTypes[id].points=group.points;}
+// 高級食材・大型回遊魚などは、一般種の一律価格から個別に調整。
+const individualMarket={
+ ayu:[420,"r",35],carp:[180,"n",12],rainbow:[500,"r",35],bass:[120,"n",12],tuna:[2600,"sr",90],mackerel:[180,"n",8],snapper:[1800,"sr",85],
+ aji:[220,"r",22],iwashi:[70,"n",6],buri:[1600,"sr",80],kanpachi:[2200,"sr",95],hiramasa:[2800,"sr",105],maguro:[6500,"ssr",170],tai:[1500,"sr",75],ishidai:[2600,"sr",95],hirame:[1800,"sr",80],unagi:[2200,"sr",85],iseebi:[4500,"ssr",150],kani:[1800,"sr",75],hotate:[900,"r",40],awabi:[6000,"ssr",180],uni:[3800,"ssr",130],same:[900,"r",40],shark:[1200,"sr",65],dolphin:[0,"n",5],sturgeon:[3200,"ssr",140],pirarucu:[2200,"sr",100],arowana:[12000,"lr",420],puffer:[2800,"sr",100],fugu:[2800,"sr",100],alfonsino:[3500,"ssr",145],tilefish:[3000,"ssr",130],grouper:[4200,"ssr",160],redfish:[2400,"sr",95],salmon:[1600,"sr",75],
+ coelacanth:[1000000,"ancient",650],megalodon:[5000000,"ancient",1800],dunkleosteus:[3000000,"ancient",1300],mosasaurus:[8000000,"ancient",2200],plesiosaur:[4000000,"ancient",1550],ancient_shark:[7000000,"ancient",2000],helicoprion:[2500000,"ancient",1150],livyatan:[10000000,"ancient",2500]
+};
+for(const [id,[price,rarity,points]] of Object.entries(individualMarket)) if(fishTypes[id]){fishTypes[id].price=price;fishTypes[id].rarity=rarity;fishTypes[id].points=points;}
+
 const fishKeys=Object.keys(fishTypes);
 // 108種上限で後半の魚（古代魚など）が削除されないよう、登録済み魚種は保持する。
 const habitats={river:[],lake:[],sea:[]};
@@ -1143,16 +1164,122 @@ const photos={
   tuna:{url:"https://commons.wikimedia.org/wiki/Special:FilePath/Thunnus_obesus_%28bigeye_tuna%29.jpg",page:"https://commons.wikimedia.org/wiki/File:Thunnus_obesus_(bigeye_tuna).jpg",credit:"Allen Shimada, NOAA NMFS OST",license:"Public domain (NOAA)"},
  };
 
+function getFishFoodInfo(fish){
+ const n=String(fish?.name||'');
+ const detailed={
+ 'ハヤ':['淡白でクセが少なく、川魚らしい素朴な風味。小型で骨が気になりやすく、鮮度と下処理が味を左右する。','身はやわらかめで小骨が多い。','地域によって唐揚げ、甘露煮、佃煮。'],
+ 'アユ':['香魚とも呼ばれ、スイカやキュウリを思わせる爽やかな香りが特徴。特に旬の天然アユは香りとほろ苦い内臓も味わいの一部。','身はふっくら、皮は香ばしく焼ける。','塩焼き、甘露煮、魚田。'],
+ 'コイ':['脂と独特の風味があり、泥臭さが出ることもあるため、きれいな水での管理や下処理が大切。地域によっては冬の鯉が珍重される。','身はしっかりしていて、部位によって脂のりが異なる。','洗い、鯉こく、甘煮。'],
+ 'フナ':['淡白ながら小骨が多く、独特の風味がある。鮮度や生息環境によって泥臭さを感じることがある。','身はやわらかめで小骨が多い。','甘露煮、煮付け、地域料理のふなずし（適切な製法が必要）。'],
+ 'オイカワ':['小型で淡白。大きな魚のような脂のうま味より、揚げたときの香ばしさを楽しむ魚。','身は軽く、小骨がある。','唐揚げ、天ぷら、甘露煮。'],
+ 'イワナ':['渓流魚らしい上品で淡白な味。臭みが少ない個体は素材の味を生かす塩焼きによく合う。','身はふっくらとしてやわらかい。','塩焼き、骨酒、唐揚げ。'],
+ 'アマゴ':['淡白で上品な味わい。渓流魚らしい香りがあり、強い味付けよりシンプルな調理で持ち味が出る。','身はきめ細かく、ふっくら。','塩焼き、甘露煮、唐揚げ。'],
+ 'ヤマメ':['クセの少ない淡白な白身で、川魚の繊細な風味を楽しめる。大きさによって身の厚みや食べ応えが変わる。','ふっくらしていて、皮目は香ばしい。','塩焼き、唐揚げ、ムニエル。'],
+ 'ニジマス':['クセが少なく食べやすい白身。養殖ものは脂がほどよく、天然・養殖や餌によって風味が異なる。','しっとり柔らかく、脂があるものはなめらか。','塩焼き、ムニエル、フライ、燻製。'],
+ 'ブラックバス':['淡白な白身で、適切に処理すれば食べられる。水質や処理によって臭みが出る場合があり、食用にするなら水域の情報と衛生管理が重要。','身は比較的しっかりしている。','フライ、ムニエル、香草焼き。'],
+ 'ブルーギル':['白身で淡白。小骨が多く下処理に手間がかかるが、臭みを抑えて調理すればフライなどに向く。','身はやわらかく、骨に注意が必要。','フライ、ムニエル。'],
+ 'ナマズ':['淡白でクセの少ない白身として食べられる地域がある。泥臭さは生息環境や下処理で変わる。','身はふっくらとして弾力がある。','蒲焼き、天ぷら、フライ、鍋。'],
+ 'ウナギ':['脂が豊富で濃厚なうま味がある。たれの香ばしさと脂の甘みがよく合う。生の血液には有害成分があるため、必ず専門的に加熱調理されたものを食べる。','脂がのって柔らかく、皮には独特の弾力。','蒲焼き、白焼き。'],
+ 'ドジョウ':['小さいながらうま味があり、泥抜きなど適切な下処理で風味が整う。小骨も含めて食べる料理が多い。','細身でやわらかく、骨は比較的気になりにくい調理法もある。','柳川鍋、どじょう汁、唐揚げ。'],
+ 'メダカ':['観賞魚として親しまれ、一般的な食用魚ではない。食味を評価する標準的な食文化はほとんどない。','食用としての一般的な食感情報はない。','食用をおすすめしない。'],
+ 'ワカサギ':['淡白でクセが少なく、ほのかな甘みがある。小型なので丸ごと調理しやすく、揚げると香ばしい。','身は柔らかく、骨も比較的気になりにくい。','天ぷら、唐揚げ、南蛮漬け。'],
+ 'サケ':['脂とうま味のバランスがよく、身の色や脂の量は種類・季節・回遊状態で異なる。加熱すると香りが立つ。','しっとりほぐれやすい。','塩焼き、ムニエル、ちゃんちゃん焼き、鍋。'],
+ 'キングサーモン':['サケ類の中でも脂のりがよいことで知られ、濃厚でコクのある味わい。厚切りでも食べ応えがある。','脂が多く、しっとりふっくら。','塩焼き、ステーキ、燻製。'],
+ 'シシャモ':['本ししゃもは香ばしさとうま味があり、卵を持つ雌は卵の食感も楽しめる。一般に流通する「カラフトシシャモ」とは別種。','身は小ぶりでほろっとし、卵はぷちぷち。','焼き物、フライ。'],
+ 'マアジ':['ほどよい脂とうま味があり、鮮度のよいものは身の甘みも感じられる。季節や産地で脂のりが変わる。','身は締まりがあり、加熱するとふっくら。','刺身、たたき、塩焼き、フライ。'],
+ 'イワシ':['脂とうま味が強く、鮮度が落ちやすい魚。新鮮なものは風味豊かで、梅や生姜とも相性がよい。','柔らかく、脂がのるとしっとり。','刺身（生食用に限る）、塩焼き、煮付け、つみれ。'],
+ 'サバ':['脂がのると濃厚なうま味があり、青魚らしい風味も強い。鮮度管理が重要で、アニサキスやヒスタミン食中毒にも注意。','身は柔らかく脂が多い。','塩焼き、味噌煮、しめ鯖（適切な処理品）。'],
+ 'カツオ':['赤身の濃いうま味と独特の香りが特徴。初ガツオは比較的さっぱり、戻りガツオは脂がのりやすい。','身はしっかりし、脂の量で印象が変わる。','たたき、刺身（生食用に限る）、角煮。'],
+ 'サンマ':['秋に脂がのると香ばしさとうま味が際立つ。内臓のほろ苦さも好まれるが、好みが分かれる。','身は柔らかく、脂が多い。','塩焼き、蒲焼き、煮付け。'],
+ 'マグロ':['赤身は鉄分を思わせる濃いうま味、脂の多い部位はとろけるようなコクがある。部位による味の差が大きい。','赤身はきめ細かく、トロは脂でなめらか。','刺身、寿司、漬け、ステーキ。'],
+ 'ブリ':['脂がのった季節のものは濃厚で甘みがあり、血合いには独特の風味がある。成長段階や季節で脂の量が変わる。','脂が多く、身はしっとり。','刺身、照り焼き、ぶり大根、しゃぶしゃぶ。'],
+ 'マダイ':['上品な甘みとうま味があり、身の締まりも楽しめる。祝い魚としても親しまれ、皮目にも風味がある。','身はしっかり、加熱するとふっくら。','刺身、塩焼き、鯛めし、潮汁。'],
+ 'クロダイ':['うま味のある白身だが、内湾など環境によって磯臭さ・泥臭さが出ることがある。鮮度と血抜きなどの処理で差が出る。','身はややしっかり。','刺身（状態を確認）、塩焼き、煮付け、ムニエル。'],
+ 'ヒラメ':['淡白で上品な甘みがあり、縁側は脂と独特の歯ごたえが魅力。鮮度によって食感が変わる。','身は繊細で、刺身は歯ごたえがある。','刺身、昆布締め、煮付け、ムニエル。'],
+ 'カレイ':['クセの少ない白身で、種類によって甘みや脂の量が異なる。煮付けにすると身離れがよく、うま味が出る。','ふっくら柔らかく、身離れがよい。','煮付け、唐揚げ、塩焼き。'],
+ 'シロギス':['淡白で上品、ほのかな甘みがある。身の水分が多く繊細なので、揚げ物にすると持ち味が生きる。','きめ細かくふわっと柔らかい。','天ぷら、塩焼き、刺身（生食用に限る）。'],
+ 'サワラ':['身は上品で、冬場など脂がのる時期はしっとり濃厚。西京味噌など風味のある味付けともよく合う。','柔らかく、加熱しすぎるとパサつきやすい。','西京焼き、塩焼き、刺身（適切な生食用）。'],
+ 'カンパチ':['透明感のある白身で、ほどよい脂とうま味がある。ブリよりさっぱりと感じられることもある。','弾力があり、脂がのるとしっとり。','刺身、寿司、照り焼き、カルパッチョ。'],
+ 'ヒラマサ':['上品な脂とすっきりしたうま味があり、歯ごたえも楽しめる。大型魚らしい食べ応えがある。','身が締まり、ほどよい弾力。','刺身、寿司、塩焼き、照り焼き。'],
+ 'クエ':['上品な甘みとうま味が強く、高級魚として鍋料理で人気。皮やゼラチン質の部分にも味わいがある。','身は弾力があり、加熱するとふっくら。皮はぷるっとする。','鍋、薄造り、煮付け。'],
+ 'フグ':['淡白で上品なうま味があり、噛むほど味わいが広がるとされる。種類や部位によって猛毒を持つため、専門資格者が処理したもの以外は絶対に食べない。','身は締まりが強く、独特の弾力。','専門店で処理されたものに限り、刺身、鍋、唐揚げ。'],
+ 'ズワイガニ':['脚肉は甘みが強く、繊細なうま味がある。カニ味噌は濃厚で、身とは違った風味を楽しめる。','脚肉は繊維が細くしっとり。','茹でガニ、焼きガニ、鍋、甲羅焼き。'],
+ 'ワタリガニ':['身に甘みとうま味があり、特に出汁にするとカニの風味がよく出る。季節や性別で身入りが変わる。','身は繊細で、加熱するとほぐれやすい。','味噌汁、蒸しガニ、パスタ、鍋。'],
+ 'アサリ':['貝らしい磯の香りと強いうま味があり、汁に出る出汁も魅力。砂抜きが不十分だと食感を損なう。','加熱すると身が締まり、弾力が出る。','酒蒸し、味噌汁、ボンゴレ。'],
+ 'シジミ':['小粒ながら濃いうま味があり、特に汁物にすると出汁の風味を楽しめる。砂抜きと十分な加熱が大切。','身は小さく、加熱すると締まる。','味噌汁、しぐれ煮。'],
+ 'ウニ':['種類や餌によって甘み・磯の香り・コクが異なる。鮮度がよいものはクリーミーだが、苦みが出るものもある。','とろりとなめらか。','生食用のウニ丼、寿司、焼きウニ。'],
+ 'マダコ':['噛むほどにうま味と甘みが出る。加熱方法で柔らかさが変わり、下処理も食感に影響する。','弾力があり、適切に調理すると柔らかい。','刺身（生食用に限る）、茹でダコ、たこ焼き、煮物。'],
+ 'スルメイカ':['うま味が濃く、噛むほど甘みが出る。加熱しすぎると硬くなりやすい。','生はねっとり、加熱すると弾力が出る。','刺身（生食用に限る）、焼きイカ、煮物、塩辛。'],
+ 'アナゴ':['脂はウナギより控えめで、上品な甘みとふわっとした身が特徴。煮ると柔らかく、焼くと香ばしい。','ふっくら柔らかい。','煮穴子、天ぷら、白焼き。'],
+ 'ウツボ':['小骨が多く調理に技術がいるが、皮のゼラチン質とうま味が特徴。地域によっては珍味として食べられる。','皮はぷるっとし、身は弾力がある。','唐揚げ、たたき、煮凝り（専門的な下処理が必要）。'],
+ 'マンボウ':['地域によって腸などを食べる文化があるが、一般的な魚の味とは異なる。鮮度管理が難しく、食文化は限られる。','部位により水っぽさや独特の食感がある。','地域の専門店・食文化に従った料理に限る。'],
+ 'シュモクザメ':['一部地域で食用にされるサメ類だが、アンモニア臭が出やすい場合があり、一般的な食材ではない。','処理や鮮度で食感・風味が大きく変わる。','食用は専門的な処理・地域のルールを確認。'],
+ 'ホホジロザメ':['一般的な食用魚ではなく、保護・取引規制の対象となる場合がある。食味目的で扱う魚ではない。','一般的な食材としての説明は適さない。','食用をおすすめしない。'],
+ 'エイ':['種類によっては食用にされ、淡白で軟骨周辺の独特な食感がある。鮮度が落ちると臭みが出やすい。','身は弾力があり、軟骨はコリコリ。','煮付け、唐揚げ、煮こごり（種類と処理を確認）。'],
+ 'タツノオトシゴ':['観賞・保全上の配慮が必要な生き物で、一般的な食用ではない。食味を評価する情報も一般的ではない。','食用の食感情報は一般的でない。','食用をおすすめしない。'],
+ 'イルカ':['一部地域に食文化はあるが、健康上の懸念や地域の規制・社会的議論がある。一般的な食材として勧めるものではない。','食味の評価は地域・部位・処理で異なる。','食用を推奨せず、地域の法令・公衆衛生情報を確認。'],
+ 'クラゲ':['食用にされる種類は限られ、適切な加工・塩蔵処理が必要。種類を見分けずに採取して食べてはいけない。','加工品はコリコリした独特の歯ごたえ。','食用として流通する加工品に限る。'],
+ 'シーラカンス':['現生種は希少で保全上重要。食用にする魚ではなく、食味の説明は一般化できない。','食用の標準的な食感情報はない。','食べる対象ではなく、観察・保全の対象。'],
+ 'メガロドン':['絶滅した巨大ザメのため、実際の味や料理の記録はない。','不明。','化石生物のため料理情報なし。'],
+ 'モササウルス':['絶滅した海生爬虫類で、食味を示す記録はない。ゲーム内の想像として楽しんでね。','不明。','実在の食文化・料理情報なし。'],
+ 'ダンクルオステウス':['絶滅した古生代の魚。食味を評価できる記録はなく、ゲーム内の想像上の設定。','不明。','実在の料理情報なし。'],
+ 'リュウグウノツカイ':['実在する深海魚だが、漁獲・食用例は非常に限られ、一般的な食材ではない。味の評価を断定できない。','一般的な食用の食感情報は乏しい。','食用を前提にせず、観察対象として扱う。'],
+ '幻の黄金鯉':['ゲーム世界に伝わる幻の魚。現実の魚種ではないため、黄金の鱗の味や食感は伝承・想像の領域。','伝承上は、口にすると淡い甘みが広がるとされる。','ゲーム内の伝承料理「竜宮の祝福焼き」。'],
+ '白龍魚':['竜の姿を持つ空想上の魚。現実の生物ではないため、味や食感に科学的な根拠はない。','伝承では雪のように淡く、口の中でとろけると語られる。','ゲーム内の空想料理「白龍の蒸し焼き」。'],
+ '深淵の幽魚':['深海の闇に棲むという空想上の存在。現実の食味情報はなく、図鑑では伝承として紹介する。','伝承では冷たい海霧のような風味とされる。','ゲーム内の空想料理「深淵の潮煮」。']
+ };
+ const row=detailed[n];
+ if(row)return {rating:/食べない|おすすめしない|対象/.test(row[2])?'一般的な食用ではない・安全や保全への配慮が必要':/不明|記録なし/.test(row[0])?'現実の食味情報なし':'食文化・調理例がある（個体・鮮度・地域差あり）',taste:row[0],texture:row[1],cook:row[2]};
+ if(n==='シーラカンス')return {rating:'食用には不向き。食用例はあるが、一般的な食材ではない',taste:'シーラカンスの肉にはワックスエステルが多く含まれ、消化しにくい脂質によって腹痛や下痢を起こすことがある。食べた記録が全くないわけではないが、美味しい魚として勧められるものではない。',texture:'脂質の性質から口当たりも一般的な魚肉とは異なり、食用として評価しにくい。',cook:'料理としておすすめできない。現生シーラカンスは希少で保全上も重要なため、食べる対象ではなく観察・保護すべき魚。'};
+ if(/幻|竜神|幽魚|白龍|黄金鯉/.test(n))return {rating:'幻の味として語られる最高級の珍味',taste:'ひと口目は澄んだ潮の甘み。噛むほどに深い旨みが広がり、食べ終えたあとも竜宮の潮風のような余韻が残る――という、この世界だけの伝承の味。',texture:'身はきめ細かく、ふんわりほどける。鱗やひれには淡い光が宿ると伝えられる。',cook:'ゲーム内の伝説料理として、姿焼き・潮蒸し・竜宮鍋などを想像して楽しもう。'};
+ if(/メガロドン|モササウルス|ダンクルオステウス|プレシオサウルス|古代巨大ザメ|ヘリコプリオン|リヴィアタン/.test(n))return {rating:'食用記録なし。味は化石からは分からない',taste:'実際に食べた記録や味の分析は残っていない。ゲームの世界では、太古の海で鍛えられた力強い旨みを秘めた存在として想像できる。',texture:'実際の食感は不明。ゲーム内では巨大な体にふさわしい、厚みのある肉として表現。',cook:'ゲーム内の空想料理「太古の王者の豪快炙り」。現実の料理記録ではなく、冒険の演出として楽しもう。'};
+ return {rating:'食文化のある魚。定番の調理で持ち味を楽しめる',taste:n+'は、身の味わいを生かすシンプルな調理が似合う魚。脂のりや風味は季節・大きさ・産地・鮮度で変わるため、旬の個体ほど味の印象も変化する。',texture:'火を通すと身の水分や厚みによって、ふっくら感や締まり方が変わる。小型魚は骨も含めて食べる料理、大型魚は切り身料理で持ち味が出る。',cook:'塩焼き、煮付け、揚げ物など、魚の大きさと身質に合う定番料理がおすすめ。毒や寄生虫などの注意がある種類は専門的な処理をした食用流通品に限る。'};
+}
+function getFishBasicExplanation(id,fish,info){
+ const n=String(fish?.name||'');
+ const special={
+ 'アユ':'アユは川で一生を過ごす魚で、清流の中流域などに見られます。石の表面に付着した藻類を主な餌とし、餌場をめぐって縄張りをつくる習性で知られています。成長すると川を下って海や湖で過ごすのではなく、一般に川で成長し、秋に産卵して次の世代へ命をつなぎます。独特の香りから「香魚」とも呼ばれ、夏の川を代表する魚として親しまれています。',
+ 'コイ':'コイは池や湖、流れの穏やかな川など、さまざまな淡水環境に適応する大型のコイ科魚類です。水底を探りながら水生昆虫や小さな底生生物、植物質など幅広い餌を食べる雑食性で、口元のひげは底の餌を探すときに役立ちます。丈夫で環境への適応力が高く、観賞用・食用の両面で人との関わりが深い魚です。',
+ 'フナ':'フナは池や湖、流れの緩やかな川に暮らすコイ科の淡水魚です。藻類や水生昆虫、小さな底生生物などを食べる雑食性で、水草の多い浅場でも見られます。体高があり、左右に平たい体つきは、ゆったりした水域で泳ぐ姿によく合っています。地域によって食文化や呼び名に違いがあり、身近な魚として昔から親しまれてきました。',
+ 'オイカワ':'オイカワは川の中流から下流にかけて、流れのある浅瀬などに暮らす小型のコイ科魚類です。藻類や水生昆虫を食べ、流れの中をすばやく泳ぎます。繁殖期の雄は青や赤紫を帯びた鮮やかな婚姻色を見せるため、普段の銀色の姿との違いも見どころです。群れで行動することも多く、身近な川の自然を感じさせる魚です。',
+ 'ナマズ':'ナマズは川や湖の底近くで暮らす魚で、口の周りにある長いひげが大きな特徴です。ひげなどの感覚器を使って周囲を探り、小魚やエビ、水生昆虫などを捕食します。夜間や薄暗い時間帯に活動する傾向があり、昼間は水底や物陰に身を潜めることがあります。大きな口と柔らかな体つきから、ほかの川魚とは異なる独特の存在感を持っています。',
+ 'ヤマメ':'ヤマメは冷たく澄んだ渓流に暮らすサケ科の魚です。体側に並ぶ楕円形の斑紋が特徴で、水生昆虫や水面に落ちた昆虫などを捕食します。警戒心が強く、流れの中で餌が流れてくる場所を見極めて定位するため、渓流釣りでは魚の隠れ場所や流れを読むことが大切です。川で一生を過ごす個体は「ヤマメ」と呼ばれ、海へ下る生活史を持つものはサクラマスとなります。',
+ 'イワナ':'イワナは山地の冷たい渓流や源流域に適応したサケ科の魚です。水温の低い環境を好み、水生昆虫や小魚などを捕食します。岩の陰や深みなどに身を寄せ、流れてくる餌を待つこともあります。体には白い斑点が散り、地域や種類によって模様や色合いに違いが見られます。渓流の上流域を象徴する魚のひとつです。',
+ 'ニジマス':'ニジマスは北米原産のサケ科魚類で、養殖や放流によって世界各地に広まりました。冷たく酸素の多い水を好み、水生昆虫や小魚などを食べます。体側に走る虹色の帯と黒い斑点が名前の由来で、成長すると力強い引きを見せるため釣りの対象として人気があります。河川だけでなく湖でも育ち、養殖魚として食卓にも広く利用されています。',
+ 'ブラックバス':'ブラックバスは北米原産の肉食性淡水魚で、日本では主にオオクチバスなどを指す呼び名として使われます。湖や池、河川のよどみ、水草や倒木などの障害物周辺に潜み、小魚やエビ、水生昆虫を捕食します。大きな口で獲物を吸い込むように捕らえ、ルアー釣りの代表的な対象魚です。地域によっては在来生態系への影響が問題となる外来種でもあります。',
+ 'サバ':'サバは沿岸から沖合を群れで回遊する青魚です。小魚や動物プランクトンなどを食べ、流線形の体で素早く泳ぎます。背中の波状模様は見分ける際の特徴のひとつです。季節や種類によって脂の量が変わり、脂がのった時期は食味が濃厚になります。鮮度が落ちやすく、保存や調理の扱いが重要な魚でもあります。',
+ 'マダイ':'マダイは日本近海の沿岸や岩礁域に暮らすタイ科の魚で、赤みを帯びた美しい体色から祝いの席にも用いられてきました。甲殻類や貝類、小魚などを食べ、成長すると比較的大型になります。しっかりした体つきと発達した歯を持ち、海底付近で餌を探します。春の「桜鯛」や秋の「紅葉鯛」など、季節と結び付いた呼び名も知られています。',
+ 'マグロ':'マグロは外洋を広く回遊する大型の魚で、種類によって大きさや分布、脂のつき方が異なります。流線形の体と発達した尾びれで長距離を泳ぎ、小魚やイカなどを捕食します。泳ぎ続ける生活に適応した筋肉を持ち、赤身の濃いうま味や部位ごとの脂の違いが食材としての大きな特徴です。ゲーム内の「大物マグロ」は大型回遊魚の迫力を表現した存在です。',
+ 'メガロドン':'メガロドンは新生代の海に生息していたと考えられる絶滅した巨大ザメです。巨大な歯の化石が世界各地から見つかっており、その歯の大きさや化石記録から非常に大型の捕食者だったことが分かっています。全身の骨格は軟骨で化石として残りにくいため、体長や姿には研究上の推定が含まれます。ゲームでは太古の海を支配した伝説級の捕食者として登場します。',
+ 'モササウルス':'モササウルス類は白亜紀の海に繁栄した大型の海生爬虫類で、恐竜そのものではありません。四肢は水をかくひれ状に変化し、長い尾を使って泳いでいました。魚やアンモナイト、ほかの海生爬虫類などを捕食した種類が知られています。種類によって体格や頭の形は異なり、化石から当時の海の食物連鎖を知る手がかりとなっています。',
+ 'シーラカンス':'シーラカンスは肉厚のひれを持つ肉鰭類の魚で、現生種は深い海の岩場などに生息しています。かつて化石だけが知られ絶滅したと考えられていましたが、20世紀に現生個体が確認され、「生きた化石」として大きな注目を集めました。ゆっくりとした遊泳や独特なひれの動きが特徴で、古代から現代まで続く魚類進化の歴史を考えるうえで重要な存在です。',
+ 'イルカ':'イルカは魚ではなく、海で暮らす哺乳類です。肺で呼吸するため定期的に水面へ上がり、子どもを産んで母乳で育てます。魚やイカなどを食べ、音を使った echolocation（反響定位）で周囲や獲物の位置を把握する能力を持ちます。群れで行動する種類も多く、魚類とは体のつくりも生活の仕方も大きく異なります。',
+ 'タツノオトシゴ':'タツノオトシゴはヨウジウオ科の魚で、海藻や海草の多い浅い海などに暮らします。馬のように見える頭部と、海藻などに巻き付けられる尾が特徴です。体を立てた姿勢で泳ぎ、小さな甲殻類などを吸い込むように食べます。雄が育児嚢（いくじのう）で卵を保護し、稚魚を出産するという、魚類の中でも珍しい繁殖方法で知られています。'
+ }
+ if(special[n]) return special[n];
+ const habitat=info?.habitat||'生息環境は魚種によって異なります';
+ const diet=info?.diet||'餌の種類は詳しく分かっていません';
+ const size=info?.size||'大きさは種類や成長段階によって異なります';
+ const feature=info?.feature||'';
+ const ancient=/メガロドン|モササウルス|ダンクルオステウス|プレシオサウルス|古代巨大ザメ|ヘリコプリオン|リヴィアタン/.test(n);
+ const phantom=/幻|竜神|幽魚|白龍|黄金鯉/.test(n);
+ if(phantom)return `${n}は、幻影の竜宮海域の深奥に姿を現す伝説の存在。光を受けるたびに体表の紋様がゆらめき、泳いだあとには星屑のような鱗粉が漂うという。普通の魚とは異なる不思議な力を宿し、出会えること自体が幸運の証。釣り上げた者には、竜宮の秘密に一歩近づく冒険が待っている。`;
+ if(ancient)return `${n}は、はるかな太古の海を生きた古代生物。現代の海では見られない独特の体つきと捕食能力を備え、当時の海の頂点に立つ存在として恐れられていた。化石に残された歯や骨、装甲などから、その巨大さと生態の一端が明らかになっている。ゲームでは、太古の海の覇者にふさわしい圧倒的な存在感を楽しもう。`;
+ return `${n}は${habitat}を主な舞台に暮らす生き物。大きさは${size}ほどで、${diet}を食べて命をつないでいる。${feature}水温や流れ、隠れ場所の変化に合わせて行動し、餌が集まる場所や身を守れる場所を使い分ける。釣り場で出会ったときは、体の輪郭や色模様、口やひれの形にも注目してみよう。そこには、この生き物が水中で生き抜くために身につけた工夫が詰まっている。`;
+}
+
 function showFishDetail(id,fish,imageSrc){
  const modal=document.getElementById('fishDetailModal'),content=document.getElementById('fishDetailContent');
  if(!modal||!content)return;
- const info=fishEncyclopediaInfo[id]||{habitat:'各釣り場',diet:'水中の小動物など',size:'魚種によって異なる',feature:fish.name+'。このゲームの釣り場に生息する魚。実際の生態情報が未登録のため、詳細は今後の図鑑更新で追加予定。'};
+ const info=fishEncyclopediaInfo[id]||{habitat:'このゲームで設定された釣り場（現実の分布域は種の同定が必要）',diet:'実際の食性は種によって異なり、名前だけでは断定できない',size:'種・成長段階・環境によって異なる',feature:fish.name+'はゲーム内の釣果として登場する生き物です。現実の生物名として複数の種や分類群を指す場合があるため、外見だけで分類を決めつけず、種を特定したうえで生息域・食性・繁殖・保全状況を確認する必要があります。'};
  const rarity=getFishRarity(id,fish);
  const safe=(v)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const source=photos[id];
  imageSrc=imageSrc||source?.url||'';
  const credit=source?'<p class="small" style="font-size:11px;margin:4px 0 10px">写真：'+safe(source.credit)+'／'+safe(source.license)+'　<a href="'+safe(source.page)+'" target="_blank" rel="noopener">素材・ライセンス情報</a></p>':'';
- content.innerHTML='<h3 id="fishDetailTitle">🐟 '+safe(fish.name)+'</h3><img alt="'+safe(fish.name)+'" src="'+safe(imageSrc)+'">'+credit+'<div class="fish-detail-grid"><b>レア度</b><span>'+safe(rarity.code+'（'+rarity.name+'）')+'</span><b>生息地</b><span>'+safe(info.habitat)+'</span><b>大きさ</b><span>'+safe(info.size)+'</span><b>食べるもの</b><span>'+safe(info.diet)+'</span><b>売値</b><span>'+Number(fish.price||0).toLocaleString()+'G</span><b>ポイント</b><span>'+Number(fish.points||0).toLocaleString()+'</span></div><p style="line-height:1.8;margin:12px 2px">'+safe(info.feature)+'</p>';
+ const food=getFishFoodInfo(fish);
+ const basic=getFishBasicExplanation(id,fish,info);
+ content.innerHTML='<h3 id="fishDetailTitle">🐟 '+safe(fish.name)+'</h3><img alt="'+safe(fish.name)+'" src="'+safe(imageSrc)+'">'+credit+'<section style="margin:12px 0;padding:12px;border:1px solid #8ab8c8;border-radius:10px;background:#12384a;color:#f3fbff"><h4 style="margin:0 0 8px">📖 基本説明・生態</h4><p style="line-height:1.9;margin:0">'+safe(basic)+'</p></section><div class="fish-detail-grid"><b>レア度</b><span>'+safe(rarity.code+'（'+rarity.name+'）')+'</span><b>生息地</b><span>'+safe(info.habitat)+'</span><b>大きさ</b><span>'+safe(info.size)+'</span><b>食べるもの</b><span>'+safe(info.diet)+'</span><b>売値</b><span>'+Number(fish.price||0).toLocaleString()+'G</span><b>ポイント</b><span>'+Number(fish.points||0).toLocaleString()+'</span></div><p style="line-height:1.8;margin:12px 2px">'+safe(info.feature)+'</p><section style="margin:14px 0;padding:12px;border:1px solid #8ab8c8;border-radius:10px;background:#102f40;color:#f3fbff"><h4 style="margin:0 0 8px">🍽️ 食べたときの特徴・食味</h4><p><b>味の評価：</b>'+safe(food.rating)+'</p><p><b>味わい：</b>'+safe(food.taste)+'</p><p><b>食感：</b>'+safe(food.texture)+'</p><p><b>おすすめ料理：</b>'+safe(food.cook)+'</p><small>※実在種は一般的な食文化の紹介。毒性・保護・衛生上の注意がある種類は、食用にせず安全と保全を優先。幻魚・古代生物の味はゲーム内の創作設定。</small></section>';
  modal.classList.add('open');
 }
 (function setupFishDetailModal(){
@@ -1230,12 +1357,31 @@ function drawFishList(){
   snapper:'data:image/jpeg;base64,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',
  };
 
- for(const [id,f] of Object.entries(fishTypes)){
+ const areaOrder=['river','river_mid','river_lower','lake','sea','sea_deep','ancient_stage','mythical_stage'];
+ const areaLabels={river:'せせらぎ川・上流',river_mid:'せせらぎ川・中流',river_lower:'せせらぎ川・下流',lake:'神秘の湖',sea:'青の入り江・沿岸',sea_deep:'青の入り江・沖合',ancient_stage:'太古の化石海域',mythical_stage:'幻影の竜宮海域'};
+ const rarityOrder={N:0,R:1,SR:2,SSR:3,UR:4,LR:5,KR:6,GR:7};
+ const fishAreaIndex={};
+ for(const areaId of areaOrder){const area=locations&&locations[areaId];(area?.fish||[]).forEach(id=>{if(fishTypes[id]&&fishAreaIndex[id]===undefined)fishAreaIndex[id]=areaOrder.indexOf(areaId);});}
+ const sortedFish=Object.entries(fishTypes).sort(([idA,a],[idB,b])=>{
+  const areaA=fishAreaIndex[idA]??99,areaB=fishAreaIndex[idB]??99;
+  if(areaA!==areaB)return areaA-areaB;
+  const rareA=rarityOrder[getFishRarity(idA,a).code]??0,rareB=rarityOrder[getFishRarity(idB,b).code]??0;
+  if(rareA!==rareB)return rareA-rareB;
+  return (Number(a.points)||0)-(Number(b.points)||0)||String(a.name).localeCompare(String(b.name),'ja');
+ });
+ let encyclopediaNo=0;
+ for(const [id,f] of sortedFish){
+  encyclopediaNo++;
   const card=document.createElement("div");
   card.className="fish-chip";
   card.tabIndex=0;card.setAttribute("role","button");card.style.cursor="pointer";
   card.style.cssText="width:calc(50% - 4px);min-width:120px;flex:1 1 125px;overflow:hidden;padding:7px;";
   const known=state.discovered.includes(id);
+  const areaIndex=fishAreaIndex[id];
+  const areaTag=document.createElement('div');
+  areaTag.textContent='No.'+String(encyclopediaNo).padStart(3,'0')+'　'+(areaLabels[areaOrder[areaIndex]]||'その他');
+  areaTag.style.cssText='font-size:10px;font-weight:bold;color:#e8f6ff;background:#24516b;border-radius:5px;padding:3px 5px;margin-bottom:4px;';
+  card.appendChild(areaTag);
   if(known){
    const photo=photos[id];
    // 写真がある魚は実物写真を表示。未確認魚種には別種画像・自作代替絵を使わず、素材検索リンクを表示。
@@ -1267,7 +1413,7 @@ function drawFishList(){
   list.appendChild(card);
  }
  const note=document.createElement("p");note.className="small";note.style.cssText="width:100%;flex-basis:100%;";
- note.textContent="生き物の名前だけでWikimedia Commonsを検索し、先頭の画像を自動表示します。魚以外や幻の生き物も名前の検索結果をそのまま採用します。写真の読み込みにはインターネット接続が必要です。カードをタップすると、その生き物の説明が開きます。レア度は N → R → SR → SSR → UR → LR → KR（古代級）→ GR（幻神級）の順です。";
+ note.textContent="生き物の名前だけでWikimedia Commonsを検索し、先頭の画像を自動表示します。魚以外や幻の生き物も名前の検索結果をそのまま採用します。写真の読み込みにはインターネット接続が必要です。カードをタップすると、その生き物の説明が開きます。図鑑No.はエリア順で、同じエリア内はレア度の低い魚から高い魚へ並びます。";
  list.appendChild(note);
 }
 
