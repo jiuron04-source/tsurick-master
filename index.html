@@ -73,7 +73,7 @@ select{width:100%;background:#edf7fa;color:#173744}
 .fish-chip{cursor:pointer;transition:transform .12s,box-shadow .12s;border:1px solid rgba(150,210,230,.35);border-radius:10px;background:rgba(8,35,57,.72)}
 .fish-chip:active{transform:scale(.98)}
 .fish-chip:focus-visible{outline:3px solid #8bd7ed;outline-offset:2px}
-#fishDetailModal{position:fixed;inset:0;z-index:10050;background:rgba(0,10,22,.82);display:none;align-items:center;justify-content:center;padding:14px;overflow-y:auto}
+#fishDetailModal{position:fixed;inset:0;z-index:11010;background:rgba(0,10,22,.82);display:none;align-items:center;justify-content:center;padding:14px;overflow-y:auto}
 #fishDetailModal.open{display:flex}
 #fishDetailCard{width:min(560px,100%);max-height:90vh;overflow:auto;background:linear-gradient(160deg,#123c5a,#071c31);color:#f4fbff;border:2px solid #77c8e8;border-radius:16px;padding:16px;box-shadow:0 12px 40px #0009}
 #fishDetailCard img{display:block;width:100%;height:190px;object-fit:contain;background:linear-gradient(#d9f4f8,#83c4d2);border-radius:10px;margin:10px 0}
@@ -141,19 +141,9 @@ footer{text-align:center;color:#aac5d0;padding:18px;font-size:12px}
 #gameMenu .menu-links a:active,#gameMenu .menu-links a:hover{background:#2c6177}
 #gameMenu .menu-links button{background:#ffe08a;color:#243541}
 html{scroll-behavior:smooth;scroll-padding-top:100px}
+#explorePanel{display:none!important}
 #quickActions,#equipmentPanel,#equippedHud,#fishingGamePanel,#gameLogPanel,#statsPanel,#slotPanel,#catchLedgerPanel,#fishingAreaPanel,#gearWorkshopPanel,#soundPanel,#explorePanel{scroll-margin-top:100px}
 @media(max-width:650px){#gameMenu .menu-links a,#gameMenu .menu-links button{font-size:13px;padding:10px 11px}}
-
-
-/* 各インターフェースを見出しバーにまとめ、押すと展開・再押下で折りたたむ */
-.interface-accordion{margin:10px 0;border:1px solid #4c91ad;border-radius:12px;overflow:hidden;background:linear-gradient(145deg,rgba(24,67,91,.97),rgba(10,39,61,.97));box-shadow:0 5px 16px rgba(0,0,0,.16)}
-.interface-accordion>summary{cursor:pointer;list-style:none;padding:13px 14px;background:linear-gradient(120deg,#16485d,#173753);color:#f4fbff;font-weight:800;line-height:1.45;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.interface-accordion>summary::-webkit-details-marker{display:none}
-.interface-accordion>summary:after{content:'＋';color:#ffe08a;font-size:20px;flex-shrink:0}
-.interface-accordion[open]>summary:after{content:'−'}
-.interface-accordion>.interface-content{padding:10px}
-.interface-accordion>.interface-content>.panel,.interface-accordion>.interface-content>.sound-panel{margin:0!important}
-.interface-accordion #statsPanel{margin:0!important}
 
 
 /* 改修：ストップボタンを楕円ゲージの中央に配置し、ゲージ全体を上へ */
@@ -180,7 +170,23 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 .skeleton-meter>div{background:rgba(155,220,245,.32)!important;border-right:1px solid rgba(220,250,255,.85);transition:width .12s linear}
 #timingPanel .orbit-help{margin:7px 0 0;color:#a9c9d8;font-size:11px}
 
-\n</style>
+\n
+/* 熱血ミニゲーム広場 */
+#heatMiniGamePanel .mini-game-card{background:rgba(8,28,42,.72);border:1px solid rgba(137,211,235,.55);border-radius:14px;padding:12px;margin:10px 0}
+#heatMiniGamePanel .mini-game-actions{display:flex;gap:8px;flex-wrap:wrap}
+#heatMiniGamePanel .mini-game-actions button{flex:1 1 110px;min-height:46px;touch-action:manipulation}
+#heatMiniGamePanel .mini-meter{height:14px;background:rgba(255,255,255,.18);border-radius:99px;overflow:hidden;margin:6px 0 10px}
+#heatMiniGamePanel .mini-meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#65e6a5,#ffe16b);transition:width .15s}
+#miniGameStatus{white-space:pre-line;line-height:1.65;min-height:3em}
+
+
+/* スマホの長押し選択・ダブルタップ拡大を抑制（スクロールは維持） */
+html,body,body button,body canvas,body img,body .mini-game-card{ -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; }
+button, a, #miniGameArena { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+input,textarea,[contenteditable="true"]{ -webkit-user-select:text; user-select:text; -webkit-touch-callout:default; }
+
+
+</style>
 
 <style>
 @media(max-width:650px){
@@ -192,6 +198,12 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
  #timingPanel .meter{height:7px!important}
  #timingPanel .orbit-help{font-size:8px!important}
 }
+</style>
+<style>
+/* 起動時の釣り画面・猫の描画領域を確実に表示 */
+#fishingGamePanel{display:block!important;visibility:visible!important;opacity:1!important;position:relative;min-height:280px;overflow:hidden}
+#fishingGamePanel #gameCanvas{display:block!important;visibility:visible!important;width:100%;height:auto;min-height:280px}
+#worldBookModal[style*="display:none"]{pointer-events:none}
 </style>
 </head>
 <body>
@@ -206,15 +218,14 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
   <summary>☰ メニュー一覧（タップで開閉・項目を押して移動）</summary>
   <div class="menu-links">
    <a href="#quickActions">💾 セーブ・ロード・売却</a>
+   <a href="#miniGameStage">🎮 ミニゲーム</a>
    <a href="#equipmentPanel">🐱 釣具装備</a>
    <a href="#fishingGamePanel">🎣 釣り画面</a>
    <a href="#gameLogPanel">📜 ゲームログ</a>
    <a href="#statsPanel">📊 所持金・レベル</a>
-   <a href="#slotPanel">🎰 ゴールドスロット</a>
    <a href="#catchLedgerPanel">🐟 釣果・売却予定額</a>
-   <a href="#fishingAreaPanel">🗺️ 釣り場・魚図鑑</a>
+   <a href="#fishingAreaPanel">🗺️ 釣り場</a>
    <a href="#gearWorkshopPanel">🛠️ 装備工房・所持品</a>
-   <a href="#explorePanel">🧭 探索モード</a>
    <a href="#consumablePanel">🪱 エサ・使い切り仕掛け</a>
    <a href="#soundPanel">🌿 自然音の設定</a>
    <button id="menuTopButton" type="button">⬆️ ページ最上部へ</button>
@@ -236,7 +247,7 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 
 
 
-<div id="worldBookModal" role="dialog" aria-modal="true" aria-labelledby="worldBookTitle" style="display:none;position:fixed;inset:0;z-index:10050;background:rgba(3,12,25,.96);overflow:auto;padding:12px;box-sizing:border-box;color:#f4f8ff"><div style="max-width:1000px;margin:0 auto;background:#102b40;border:1px solid #52758a;border-radius:16px;padding:14px;min-height:80vh;box-sizing:border-box"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 id="worldBookTitle">📖 世界の生物・発見図鑑</h2><button type="button" onclick="closeWorldBook()">閉じる ✕</button></div><p id="worldBookSummary">エリアを選んで発見記録を見よう。</p><div id="worldBookAreas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin:12px 0"></div><div id="worldBookEntries" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px"></div></div></div>
+<div id="worldBookModal" role="dialog" aria-modal="true" aria-labelledby="worldBookTitle" style="display:none;position:fixed;inset:0;z-index:10050;background:rgba(3,12,25,.96);overflow:auto;padding:12px;box-sizing:border-box;color:#f4f8ff"><div style="max-width:1000px;margin:0 auto;background:#102b40;border:1px solid #52758a;border-radius:16px;padding:14px;min-height:80vh;box-sizing:border-box"><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><h2 id="worldBookTitle">📖 世界の生物・発見図鑑</h2><button type="button" id="worldBookBackToFishing" onclick="closeWorldBook()">↩ 釣り画面に戻る</button></div><p id="worldBookSummary">エリアを選んで発見記録を見よう。</p><input id="worldBookSearch" type="search" placeholder="生き物の名前で検索…" autocomplete="off" style="display:block;width:100%;box-sizing:border-box;padding:11px 12px;margin:10px 0;background:#f4fbff;color:#17344a;border:1px solid #8ab8c8;border-radius:9px;font-size:16px"><div id="worldBookAreas" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px;margin:12px 0"></div><div id="worldBookPager" style="display:flex;align-items:center;justify-content:center;gap:12px;margin:10px 0;position:sticky;top:0;z-index:5;padding:8px;background:#102b40;border-radius:10px"></div><div id="worldBookEntries" style="display:flex;flex-direction:column;gap:5px"></div></div></div>
 <section class="panel" id="equipmentPanel" style="display:block;visibility:visible;opacity:1;margin-bottom:10px;border:2px solid #ffe08a;box-shadow:0 0 0 2px rgba(255,224,138,.16),0 5px 16px rgba(0,0,0,.2)">
  <h2>🐱 ねこちゃんの釣具装備</h2>
  <p class="small">ここでは、所持している釣り竿・リール・仕掛け・お守りを選んで装備するで。購入や修理は下の「装備工房」で行うで！</p>
@@ -309,33 +320,6 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
 </div>
 </div>
 
-<section id="slotPanel" class="panel" style="margin:12px 0;border:2px solid #e6c15a;background:linear-gradient(135deg,#17384b,#352b55);color:#f8fbff">
- <h2 style="margin-top:0">🎰 ゴールドスロット</h2>
- <div id="slotGoldDisplay" aria-live="polite" style="margin:10px 0 14px;padding:12px 16px;border:1px solid #f5d778;border-radius:12px;background:rgba(0,0,0,.28);text-align:center;font-size:18px;font-weight:bold;color:#ffe58a;box-shadow:inset 0 0 12px rgba(245,215,120,.12)">💰 所持金：読み込み中…</div>
- <p class="small">所持金を賭けてスロットに挑戦！そろった絵柄に応じてゴールドが払い戻されるで。結果は運しだいやから、使う金額は自分で決めてな。</p>
- <div id="slotReels" style="display:flex;justify-content:center;gap:10px;margin:14px 0">
-  <span class="slot-reel" style="display:grid;place-items:center;width:72px;height:76px;border-radius:12px;background:#fff7d6;color:#222;font-size:42px;border:3px solid #e6c15a">🐟</span>
-  <span class="slot-reel" style="display:grid;place-items:center;width:72px;height:76px;border-radius:12px;background:#fff7d6;color:#222;font-size:42px;border:3px solid #e6c15a">🎣</span>
-  <span class="slot-reel" style="display:grid;place-items:center;width:72px;height:76px;border-radius:12px;background:#fff7d6;color:#222;font-size:42px;border:3px solid #e6c15a">🐱</span>
- </div>
- <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end">
-  <label style="flex:1;min-width:140px">賭け金
-   <select id="slotBet" style="width:100%;margin-top:5px"><option value="10">10G</option><option value="100">100G</option><option value="1000">1,000G</option><option value="10000">1万G</option><option value="100000">10万G</option><option value="500000">50万G</option><option value="1000000">100万G</option></select>
-  </label>
-  <button id="slotSpinButton" type="button" style="background:#ffe08a;color:#352b16;font-weight:bold;flex:1;min-width:140px">🎰 スロットを回す</button>
- </div>
- <p id="slotResult" role="status" style="margin-bottom:0;font-weight:bold">7が3つなら超大当たり！絵柄の組み合わせで配当が変わるで。</p>
- <section id="slotLogPanel" aria-label="ゴールドスロットのゲームログ" style="margin-top:12px;padding:9px 10px;border-top:1px solid rgba(245,215,120,.35);background:rgba(0,0,0,.16);border-radius:8px">
-  <div style="font-weight:bold;color:#ffe58a;margin-bottom:5px">📜 スロットゲームログ</div>
-  <div id="slotLogVisible" aria-live="polite" style="min-height:2.8em;max-height:9em;overflow-y:auto;font-size:12px;line-height:1.55;overflow-wrap:anywhere">まだスロットの記録はないで。</div>
-  <details id="slotLogDetails" style="margin-top:6px;font-size:12px">
-   <summary style="cursor:pointer;color:#ffe58a;padding:4px 2px">過去ログを見る（最大100件）</summary>
-   <div id="slotLogHistory" aria-label="スロット過去ログ100件" style="max-height:240px;overflow-y:auto;padding:6px 2px;line-height:1.5;overflow-wrap:anywhere"></div>
-  </details>
- </section>
- <div class="small" style="margin-bottom:0;line-height:1.8"><strong>配当表（賭け金に対する払い戻し倍率）</strong><br>7が3つ：1,000倍<br>ドラゴンが3つ：500倍<br>ダイヤが3つ：250倍<br>王冠が3つ：100倍<br>虹が3つ：75倍<br>コインが3つ：50倍<br>猫が3つ：30倍<br>魚または釣り竿が3つ：20倍<br>同じ絵柄が2つ：2倍<br>それ以外：ハズレ（賭け金は戻らへんで）</div>
-</section>
-
 <section id="catchLedgerPanel" class="panel" style="margin:12px 0;padding:14px;border:1px solid #3e7784;background:linear-gradient(135deg,rgba(18,56,75,.96),rgba(23,72,82,.96));color:#f3fbff">
  <h2 style="margin:0 0 8px">🐟 釣った魚・売却予定額</h2>
  <p class="small" style="margin:0 0 10px">釣った魚を種類ごとに集計するで。古代魚・幻魚は種類ごとの初回売却のみ高額、2回目以降は売値が10分の1になるで。</p>
@@ -362,13 +346,34 @@ html{scroll-behavior:smooth;scroll-padding-top:100px}
  </select>
  <p id="locationInfo" class="small">小魚が多い初心者向けの川。</p>
  <div id="areaUnlockInfo" class="small" style="margin:10px 0;padding:10px;border:1px solid #56808b;border-radius:10px;background:rgba(0,0,0,.16)">釣りポイントを貯めて、新しい釣り場を解放しよう！</div>
- <h2 style="margin-top:18px">📖 世界の生物・発見図鑑（全620種類）</h2>
- <div id="fishList"></div>
- <div id="fishDetailModal" role="dialog" aria-modal="true" aria-labelledby="fishDetailTitle"><div id="fishDetailCard"><div id="fishDetailContent"></div><button id="fishDetailClose" type="button">閉じる</button></div></div>
 </section>
 
 </div>
 
+
+<section class="panel" id="heatMiniGamePanel" style="margin:12px 0;border:2px solid #e9a95b;background:linear-gradient(145deg,#18384b,#392d4d);color:#f8fbff">
+ <h2>🥊 熱血ミニゲーム広場</h2>
+ <p class="small">釣りの合間に街の遊びへ挑戦！クリアするとゲーム内ゴールドを獲得できるで。熱血物語風のオリジナルミニゲームや。</p>
+ <div class="mini-game-actions">
+  <button type="button" id="miniStartBrawl">🥊 河川敷バトル</button>
+  <button type="button" id="miniStartDash">🏃 熱血ダッシュ</button>
+  <button type="button" id="miniStartDodge">🏐 ドッジボール</button>
+  <button type="button" id="miniStartExplore">🧭 探索チャレンジ</button>
+ </div>
+ <div class="mini-game-card" id="miniGameStage">
+  <h3 id="miniGameTitle" style="margin:0 0 8px">ミニゲームを選んでな！</h3>
+  <div id="miniGameStatus">🥊 河川敷バトル：敵と戦って勝利を目指す。
+🏃 熱血ダッシュ：制限時間内に連打してゴールを目指す。
+🏐 ドッジボール：ボールが近づいた瞬間にキャッチ・投げ返す。
+🧭 探索チャレンジ：今いる釣り場を調べて、発見やアイテムを手に入れよう。</div>
+  <div id="miniGameMeters" hidden>
+   <div id="miniPlayerLabel">プレイヤー</div><div class="mini-meter"><span id="miniPlayerBar"></span></div>
+   <div id="miniEnemyLabel">相手</div><div class="mini-meter"><span id="miniEnemyBar"></span></div>
+  </div>
+  <div class="mini-game-actions" id="miniGameControls" style="margin-top:10px"></div>
+ </div>
+ <p class="small" id="miniGameReward">報酬は所持金に加算されるで。セーブも忘れずにな！</p>
+</section>
 
 <!-- 自然音コントロール -->
 <section class="sound-panel" id="soundPanel">
@@ -731,6 +736,7 @@ function tone(freq,duration,when=0,type="sine",volume=.08,slide=0){
  g.gain.exponentialRampToValueAtTime(.0001,t+duration);
  o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+duration+.03);
 }
+function playReelSound(){ startReelSound(); }
 function startReelSound(){
  const a=audioContext();if(!a||reelOsc)return;
  reelOsc=a.createOscillator();reelGain=a.createGain();
@@ -793,36 +799,36 @@ function playFanfare(){
 function say(text){addGameLog(text)}
 
 const areaUnlockDefs=[
- {id:"river",name:"清流の川",required:0},
- {id:"river_mid",name:"せせらぎ川・中流",required:500},
- {id:"river_lower",name:"せせらぎ川・下流",required:1500},
- {id:"lake",name:"神秘の湖",required:3500},
- {id:"sea",name:"青の入り江・沿岸",required:7000},
- {id:"sea_deep",name:"青の入り江・沖合",required:15000},
- {id:"ancient_stage",name:"太古の化石海域",required:30000},
- {id:"mythical_stage",name:"幻影の竜宮海域",required:50000},
- {id:"jungle",name:"アマゾン大河",required:55000},
- {id:"jungle_rapids",name:"ジャングルの激流",required:58000},
- {id:"mangrove",name:"マングローブの森",required:61000},
- {id:"swamp",name:"巨大湿地帯",required:64000},
- {id:"deepsea",name:"深海大峡谷",required:70000},
- {id:"abyss",name:"暗黒の深淵",required:76000},
- {id:"vent",name:"海底火山・熱水噴出孔",required:82000},
- {id:"bluehole",name:"ブルーホール",required:90000},
- {id:"cave_lake",name:"水晶洞窟の地底湖",required:96000},
- {id:"underwater_cave",name:"海底洞窟",required:102000},
- {id:"wreck",name:"沈没船墓場",required:110000},
- {id:"sunken_city",name:"古代海底都市",required:120000},
- {id:"temple",name:"海底神殿",required:130000},
- {id:"ice_lake",name:"氷結湖",required:140000},
- {id:"arctic",name:"北極海",required:150000},
- {id:"glacier",name:"氷河の水中洞窟",required:160000},
- {id:"volcanic_lake",name:"火山島の温泉湖",required:170000},
- {id:"coral_reef",name:"珊瑚礁の楽園",required:180000},
- {id:"kelp_forest",name:"海中森林",required:190000},
- {id:"open_ocean",name:"大洋の外洋域",required:200000},
- {id:"fossil",name:"太古の化石海岸",required:220000},
- {id:"mineral",name:"鉱石の眠る海底峡谷",required:240000}
+  {id:"river",name:"清流の川",required:0},
+  {id:"river_mid",name:"せせらぎ川・中流",required:500},
+  {id:"river_lower",name:"せせらぎ川・下流",required:1500},
+  {id:"lake",name:"神秘の湖",required:3500},
+  {id:"sea",name:"青の入り江・沿岸",required:7000},
+  {id:"sea_deep",name:"青の入り江・沖合",required:15000},
+  {id:"jungle",name:"アマゾン大河",required:55000},
+  {id:"jungle_rapids",name:"ジャングルの激流",required:60000},
+  {id:"mangrove",name:"マングローブの森",required:65000},
+  {id:"swamp",name:"巨大湿地帯",required:70000},
+  {id:"coral_reef",name:"珊瑚礁の楽園",required:75000},
+  {id:"kelp_forest",name:"海中森林",required:80000},
+  {id:"open_ocean",name:"大洋の外洋域",required:85000},
+  {id:"ice_lake",name:"氷結湖",required:90000},
+  {id:"arctic",name:"北極海",required:95000},
+  {id:"glacier",name:"氷河の水中洞窟",required:100000},
+  {id:"volcanic_lake",name:"火山島の温泉湖",required:105000},
+  {id:"bluehole",name:"ブルーホール",required:110000},
+  {id:"cave_lake",name:"水晶洞窟の地底湖",required:115000},
+  {id:"underwater_cave",name:"海底洞窟",required:120000},
+  {id:"wreck",name:"沈没船墓場",required:130000},
+  {id:"sunken_city",name:"古代海底都市",required:140000},
+  {id:"temple",name:"海底神殿",required:150000},
+  {id:"deepsea",name:"深海大峡谷",required:170000},
+  {id:"abyss",name:"暗黒の深淵",required:190000},
+  {id:"vent",name:"海底火山・熱水噴出孔",required:210000},
+  {id:"fossil",name:"太古の化石海岸",required:230000},
+  {id:"mineral",name:"鉱石の眠る海底峡谷",required:250000},
+  {id:"ancient_stage",name:"太古の化石海域",required:300000},
+  {id:"mythical_stage",name:"幻影の竜宮海域",required:500000}
 ];
 function updateAreaUnlocks(){
  const select=$("locationSelect");
@@ -1201,7 +1207,7 @@ updateAll=function(){oldUpdateAll();
 const oldDrawShop=drawShop;
 drawShop=function(){oldDrawShop();};
 const oldLoadGame=loadGame;
-loadGame=function(){oldLoadGame();state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number.isInteger(Number(state.charm))?Number(state.charm):-1;state.charm2=Number.isInteger(Number(state.charm2))?Number(state.charm2):-1;state.charm3=Number.isInteger(Number(state.charm3))?Number(state.charm3):-1;
+loadGame=function(...args){oldLoadGame(...args);state.level=Number(state.level)||1;state.exp=Number(state.exp)||0;state.reel=Number(state.reel)||0;state.tackle=Number(state.tackle)||0;state.charm=Number.isInteger(Number(state.charm))?Number(state.charm):-1;state.charm2=Number.isInteger(Number(state.charm2))?Number(state.charm2):-1;state.charm3=Number.isInteger(Number(state.charm3))?Number(state.charm3):-1;
 state.ownedRods=Array.isArray(state.ownedRods)?state.ownedRods:[0,Number(state.rod)||0];state.ownedReels=Array.isArray(state.ownedReels)?state.ownedReels:[0,Number(state.reel)||0];if(!state.ownedRods.includes(0))state.ownedRods.unshift(0);if(!state.ownedReels.includes(0))state.ownedReels.unshift(0);if(!state.ownedRods.includes(Number(state.rod)||0))state.ownedRods.push(Number(state.rod)||0);if(!state.ownedReels.includes(Number(state.reel)||0))state.ownedReels.push(Number(state.reel)||0);updateAll();};
 // 長めの「にゃーーーーーん！」をブラウザ内合成で再生。外部音源不要。
 playCatchVoice=function(isRare=false){
@@ -1475,8 +1481,9 @@ function getFishBasicExplanation(id,fish,info){
 }
 
 function showFishDetail(id,fish,imageSrc){
- const modal=document.getElementById('fishDetailModal'),content=document.getElementById('fishDetailContent');
- if(!modal||!content)return;
+ let modal=document.getElementById('fishDetailModal'),content=document.getElementById('fishDetailContent');
+ if(!modal){modal=document.createElement('div');modal.id='fishDetailModal';modal.innerHTML='<div id="fishDetailCard"><div id="fishDetailContent"></div><button id="fishDetailClose" type="button">閉じる</button></div>';document.body.appendChild(modal);modal.addEventListener('click',e=>{if(e.target===modal)modal.classList.remove('open');});modal.querySelector('#fishDetailClose').addEventListener('click',()=>modal.classList.remove('open'));}
+ content=modal.querySelector('#fishDetailContent');if(!content)return;
  const info=fishEncyclopediaInfo[id]||{habitat:'このゲームで設定された釣り場（現実の分布域は種の同定が必要）',diet:'実際の食性は種によって異なり、名前だけでは断定できない',size:'種・成長段階・環境によって異なる',feature:fish.name+'はゲーム内の釣果として登場する生き物です。現実の生物名として複数の種や分類群を指す場合があるため、外見だけで分類を決めつけず、種を特定したうえで生息域・食性・繁殖・保全状況を確認する必要があります。'};
  const rarity=getFishRarity(id,fish);
  const safe=(v)=>String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1486,7 +1493,7 @@ function showFishDetail(id,fish,imageSrc){
  const food=getFishFoodInfo(fish);
  const basic=getFishBasicExplanation(id,fish,info);
  content.innerHTML='<h3 id="fishDetailTitle">🐟 '+safe(fish.name)+'</h3><img alt="'+safe(fish.name)+'" src="'+safe(imageSrc)+'">'+credit+'<section style="margin:12px 0;padding:12px;border:1px solid #8ab8c8;border-radius:10px;background:#12384a;color:#f3fbff"><h4 style="margin:0 0 8px">📖 基本説明・生態</h4><p style="line-height:1.9;margin:0">'+safe(basic)+'</p></section><div class="fish-detail-grid"><b>レア度</b><span>'+safe(rarity.code+'（'+rarity.name+'）')+'</span><b>生息地</b><span>'+safe(info.habitat)+'</span><b>大きさ</b><span>'+safe(info.size)+'</span><b>食べるもの</b><span>'+safe(info.diet)+'</span><b>売値</b><span>'+Number(fish.price||0).toLocaleString()+'G</span><b>ポイント</b><span>'+Number(fish.points||0).toLocaleString()+'</span></div><p style="line-height:1.8;margin:12px 2px">'+safe(info.feature)+'</p><section style="margin:14px 0;padding:12px;border:1px solid #8ab8c8;border-radius:10px;background:#102f40;color:#f3fbff"><h4 style="margin:0 0 8px">🍽️ 食べたときの特徴・食味</h4><p><b>味の評価：</b>'+safe(food.rating)+'</p><p><b>味わい：</b>'+safe(food.taste)+'</p><p><b>食感：</b>'+safe(food.texture)+'</p><p><b>おすすめ料理：</b>'+safe(food.cook)+'</p><small>※実在種は一般的な食文化の紹介。毒性・保護・衛生上の注意がある種類は、食用にせず安全と保全を優先。幻魚・古代生物の味はゲーム内の創作設定。</small></section>';
- modal.classList.add('open');
+ modal.style.zIndex='11010';modal.classList.add('open');
 }
 (function setupFishDetailModal(){
  const modal=document.getElementById('fishDetailModal'),close=document.getElementById('fishDetailClose');
@@ -1529,6 +1536,7 @@ function applyCommonsImage(id,data,img,placeholder,card){
 
 function drawFishList(){
  const list=$("fishList");
+ if(!list)return; // 旧式の魚一覧欄は独立図鑑へ移行済み。存在しなくても初期化を止めない。
  list.innerHTML="";
  // 図鑑の発見状況。魚種データが増えても自動で集計する。
  if(!Array.isArray(state.discovered))state.discovered=[];
@@ -2353,8 +2361,7 @@ function drawScene(){
     }
   }
   ctx.restore();
-  // 猫ちゃんを独立したキャラクターとして描画（背景画像には含めない）
-  drawCharacter();
+  // 猫ちゃんは背景・水中演出より前面に描画するため、最後にまとめて描く。
   // ウキ・糸は投げた場所に合わせて動き、魚が掛かると波紋も強くなる
   if(bobber){
     ctx.strokeStyle="rgba(255,255,255,.95)";ctx.lineWidth=1.5;
@@ -2390,6 +2397,8 @@ function drawScene(){
     drawFish(x,y,.48+i*.08,i%2?"#6da8b0":"#9a9cae",i%2?1:-1,"deep_fish",animationTime+i,true);
     ctx.restore();
   }
+  // 猫ちゃんを必ず最前面に描画。背景や海底演出に隠れないようにする。
+  drawCharacter();
 }
 
 function drawParticles(dt){
@@ -2807,7 +2816,7 @@ requestAnimationFrame(loop);
 (function(){
  const itemDefs=[
   {id:'float',name:'基本のウキ（無限）',price:0,kind:'rig',breakChance:0,desc:'初期装備。消費・破損なし。低ランクの一般魚向け'},
-  {id:'worm',name:'ミミズ',price:350,kind:'bait',breakChance:0,desc:'川魚・小型魚向け。1投ごとに1個消費'},
+  {id:'worm',name:'ミミズ',price:10,kind:'bait',breakChance:0,desc:'川魚・小型魚向け。1投ごとに1個消費'},
   {id:'dough',name:'練りエサ',price:400,kind:'bait',breakChance:0,desc:'コイ・フナなど底魚向け。1投ごとに1個消費'},
   {id:'shrimp',name:'エビ餌',price:600,kind:'bait',breakChance:0,desc:'海の底魚・甲殻類・根魚向け。1投ごとに1個消費'},
   {id:'squid',name:'イカ餌',price:650,kind:'bait',breakChance:0,desc:'タコ・イカ・大型海魚向け。1投ごとに1個消費'},
@@ -2840,7 +2849,7 @@ requestAnimationFrame(loop);
  const oldUpdateAll=updateAll;
  updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();if(typeof updateExploreUI==='function')updateExploreUI();if(typeof renderCatchLedger==='function')renderCatchLedger();};
  const oldLoadGame=loadGame;
- loadGame=function(){oldLoadGame();ensureGearState();renderConsumables();};
+ loadGame=function(...args){oldLoadGame(...args);ensureGearState();renderConsumables();};
  function getItem(id){return itemDefs.find(x=>x.id===id)||itemDefs[0]}
  function stock(id){return Math.max(0,Number(state.consumableStock[id])||0)}
  function maxStock(id){const item=getItem(id);return item.id==='float'?Infinity:99}
@@ -2954,11 +2963,11 @@ requestAnimationFrame(loop);
   baitSel.innerHTML=baitsOnly.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stockLabel(item.id)}｜${item.price}G</option>`).join('');
   rigSel.value=state.activeRig||'float';baitSel.value=state.activeBait||'worm';
   refreshPurchaseQuantities();
-  document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
-  document.getElementById('consumableStockList').innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${stockLabel(item.id)}</strong></div>`).join('');
+  if(document.getElementById('consumableInfo'))document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
+  const consumableStockList=document.getElementById('consumableStockList');if(consumableStockList)consumableStockList.innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${stockLabel(item.id)}</strong></div>`).join('');
   const stacked=document.getElementById('stackedGearInventory');if(stacked){const rodNames=(state.ownedRods||[0]).map(i=>rods[i]?.name).filter(Boolean);const reelNames=(state.ownedReels||[0]).map(i=>reels[i]?.name).filter(Boolean);stacked.innerHTML='<strong>釣り竿（モデル別）</strong><br>'+[...new Set(rodNames)].map(n=>'🎣 '+n+' × 1本').join('<br>')+'<br><br><strong>リール（モデル別）</strong><br>'+[...new Set(reelNames)].map(n=>'⚙️ '+n+' × 1個').join('<br>')+'<br><br><strong>消耗品スタック</strong><br>'+itemDefs.filter(i=>i.id!=='float').map(i=>'🧺 '+i.name+' × '+stock(i.id)+'個').join('<br>');}
-  document.getElementById('durabilityInfo').innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに竿・リールの耐久値がそれぞれ1減るで。</small>`;
-  const rodCost=Math.round((rods[state.rod]?.price||0)*.5),reelCost=Math.round((reels[state.reel]?.price||0)*.5);document.getElementById('repairRod').textContent='🎣 竿を修理（'+rodCost+'G）';document.getElementById('repairReel').textContent='⚙️ リールを修理（'+reelCost+'G）';document.getElementById('repairRod').disabled=state.rodDurability>=100;document.getElementById('repairReel').disabled=state.reelDurability>=100;refreshWorkshopChoices();
+  const durabilityInfo=document.getElementById('durabilityInfo');if(durabilityInfo)durabilityInfo.innerHTML=`🎣 ${rods[state.rod]?.name||'木の釣り竿'}：耐久 ${state.rodDurability}/100<br>⚙️ ${reels[state.reel]?.name||'木製リール'}：耐久 ${state.reelDurability}/100<br><small>投げるたびに竿・リールの耐久値がそれぞれ1減るで。</small>`;
+  const rodCost=Math.round((rods[state.rod]?.price||0)*.5),reelCost=Math.round((reels[state.reel]?.price||0)*.5);const repairRod=document.getElementById('repairRod'),repairReel=document.getElementById('repairReel');if(repairRod){repairRod.textContent='🎣 竿を修理（'+rodCost+'G）';repairRod.disabled=state.rodDurability>=100;}if(repairReel){repairReel.textContent='⚙️ リールを修理（'+reelCost+'G）';repairReel.disabled=state.reelDurability>=100;}if(typeof refreshWorkshopChoices==='function')refreshWorkshopChoices();
  }
  function refreshPurchaseQuantities(){
   [['rigBuyQty','rigSelect'],['baitBuyQty','baitSelect']].forEach(([qtyId,selectId])=>{
@@ -3109,8 +3118,8 @@ requestAnimationFrame(loop);
    itemDefs.forEach(item=>{if(item.id!=='float')state.consumableStock[item.id]=99;});
    state.ownedRods=rods.map((_,i)=>i);state.ownedReels=reels.map((_,i)=>i);
    state.gold=Math.max(Number(state.gold)||0,99999999);
-   // デバッグボタンで累計釣りポイントを最低5万ptにして全エリアを解放する
-   state.score=Math.max(Number(state.score)||0,50000);
+   // デバッグボタンで累計釣りポイントを最低100万ptにして全エリアを解放する
+   state.score=Math.max(Number(state.score)||0,1000000);
    state.rodDurability=100;state.reelDurability=100;
    // 魚図鑑も全種類を発見済みにする（実際の釣果数・釣った履歴は増やさない）
    if(!Array.isArray(state.discovered))state.discovered=[];
@@ -3240,47 +3249,8 @@ requestAnimationFrame(loop);
 </script>
 
 <script>
-(function(){
- const targets=[
-  ['quickActions','💾 セーブ・ロード・魚の売却'],
-  ['equipmentPanel','🐱 ねこちゃんの釣具装備'],
-  ['equippedHud','🎒 装備中の釣具・初期装備'],
-  ['statsPanel','📊 所持金・釣果数・レベル・釣りポイント'],
-  ['slotPanel','🎰 ゴールドスロット'],
-  ['catchLedgerPanel','🐟 釣った魚・売却予定額'],
-  ['fishingAreaPanel','🗺️ 釣り場・魚図鑑'],
-  ['gearWorkshopPanel','🛠️ 装備工房・釣具の所持品・修理'],
-  ['consumablePanel','🪱 エサ・使い切り仕掛け・所持数'],
-  ['soundPanel','🌿 自然の音・環境音設定']
- ];
- function wrapOne(id,title){
-  const el=document.getElementById(id); if(!el||el.dataset.accordionWrapped==='1')return;
-  // Avoid wrapping the game log's status element or unrelated nested controls.
-  const details=document.createElement('details');details.className='interface-accordion';details.dataset.interfaceId=id;
-  const summary=document.createElement('summary');summary.textContent=title;
-  const content=document.createElement('div');content.className='interface-content';
-  const parent=el.parentNode;if(!parent)return;
-  parent.insertBefore(details,el);details.appendChild(summary);details.appendChild(content);content.appendChild(el);
-  el.dataset.accordionWrapped='1';
-  // Core fishing controls stay visible; other interface panels start collapsed.
-  details.open=false;
- }
- function install(){
-  targets.forEach(([id,title])=>wrapOne(id,title));
-  // Keep the user's existing menu design. Clicking a menu destination opens that interface's bar.
-  document.querySelectorAll('#gameMenu .menu-links a').forEach(a=>{
-   if(a.dataset.accordionNavBound==='1')return;
-   a.dataset.accordionNavBound='1';
-   a.addEventListener('click',()=>{
-    const id=(a.getAttribute('href')||'').slice(1);const target=document.getElementById(id);
-    const details=target&&target.closest('details.interface-accordion');if(details)details.open=true;
-    const menu=document.querySelector('#gameMenu details');if(menu)menu.open=false;
-   });
-  });
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();setTimeout(install,250);setTimeout(install,900)});
- else {install();setTimeout(install,250);setTimeout(install,900)}
-})();
+// 2026-11-03: メイン画面に折りたたみ式の一覧バーを生成しない。
+// 各機能は独立画面側の配置・既存ボタンから利用する。
 </script>
 
 
@@ -3332,33 +3302,59 @@ requestAnimationFrame(loop);
 
 
 <script>
-// 独立した図鑑画面。全カードを通常画面に並べず、選択エリアの分だけ描画する。
-function openWorldBook(){
- const modal=document.getElementById('worldBookModal'); if(!modal)return;
- modal.style.display='block'; document.body.style.overflow='hidden'; renderWorldBookAreas();
-}
+// 図鑑：名前だけの5件ログ表示。行をタップすると既存の詳細画面（画像・説明）を開く。
+function openWorldBook(){const modal=document.getElementById('worldBookModal');if(!modal)return;modal.style.display='block';document.body.style.overflow='hidden';worldBookPage=0;renderWorldBookAreas();}
 function closeWorldBook(){const modal=document.getElementById('worldBookModal');if(modal)modal.style.display='none';document.body.style.overflow='';}
+let activeWorldBookArea='',worldBookPage=0;
+function getWorldBookEntries(areaId){
+ const query=(document.getElementById('worldBookSearch')?.value||'').trim().toLocaleLowerCase('ja');let entries=[];
+ const areaIds=query?Object.keys(locations||{}):(areaId&&locations[areaId]?[areaId]:Object.keys(locations||{}));
+ areaIds.forEach(aid=>{const area=locations[aid];(area?.fish||[]).forEach(id=>{if(fishTypes[id]&&!entries.some(x=>x.id===id))entries.push({id,areaId:aid});});});
+ if(query)entries=entries.filter(x=>String(fishTypes[x.id].name||'').toLocaleLowerCase('ja').includes(query));
+ return entries;
+}
 function renderWorldBookAreas(){
- const wrap=document.getElementById('worldBookAreas'); if(!wrap)return; wrap.innerHTML='';
- const ids=Object.keys(locations||{});
- ids.forEach((areaId,index)=>{const area=locations[areaId];const btn=document.createElement('button');btn.type='button';btn.textContent='🗺️ '+(area.name||areaId)+'（'+((area.fish||[]).filter(id=>fishTypes[id]).length)+'）';btn.style.cssText='padding:10px 8px;background:#d5eafa;color:#17344a;border-radius:9px;font-size:12px;';btn.onclick=()=>renderWorldBookEntries(areaId);wrap.appendChild(btn);});
- if(ids.length)renderWorldBookEntries(ids[0]);
+ const wrap=document.getElementById('worldBookAreas');if(!wrap)return;wrap.innerHTML='';
+ const ids=Object.keys(locations||{});ids.forEach(areaId=>{const area=locations[areaId],btn=document.createElement('button');btn.type='button';btn.textContent=(area.name||areaId);btn.style.cssText='padding:7px 9px;background:#d5eafa;color:#17344a;border-radius:8px;font-size:12px;';btn.onclick=()=>{activeWorldBookArea=areaId;worldBookPage=0;renderWorldBookEntries(areaId);};wrap.appendChild(btn);});
+ if(ids.length){activeWorldBookArea=activeWorldBookArea&&locations[activeWorldBookArea]?activeWorldBookArea:ids[0];renderWorldBookEntries(activeWorldBookArea);}
+ const search=document.getElementById('worldBookSearch');if(search&&!search.dataset.bound){search.dataset.bound='1';search.addEventListener('input',()=>{worldBookPage=0;renderWorldBookEntries(activeWorldBookArea);});}
 }
 function renderWorldBookEntries(areaId){
- const area=locations[areaId];const wrap=document.getElementById('worldBookEntries');const summary=document.getElementById('worldBookSummary');if(!area||!wrap)return;wrap.innerHTML='';
- const ids=[...new Set(area.fish||[])].filter(id=>fishTypes[id]);
- const found=ids.filter(id=>(state.discovered||[]).includes(id)).length;
- summary.textContent=(area.name||areaId)+'：登録 '+ids.length+' 種／発見済み '+found+' 種';
- if(!ids.length){wrap.textContent='このエリアに登録された生物・発見物はまだありません。';return;}
- ids.forEach(id=>{const f=fishTypes[id],known=(state.discovered||[]).includes(id);const card=document.createElement('button');card.type='button';card.style.cssText='text-align:left;padding:12px;background:#173b52;color:#f4f8ff;border:1px solid #55788b;border-radius:11px;min-height:88px;';
- const name=known?f.name:'？？？？';const category=f.category||f.kind||'生物・発見物';card.innerHTML='<div style="font-size:25px;margin-bottom:5px">'+(known?'🐟':'⬛')+'</div><strong>'+name+'</strong><div style="font-size:11px;color:#b9d2e2;margin-top:4px">'+(known?category:'未発見 · 詳細未解放')+'</div>';
- card.onclick=()=>{if(!known){alert('まだ発見していない対象やで。このエリアで探索・捕獲してみよう！');return;}showFishDetail(id,f);};wrap.appendChild(card);});
+ const wrap=document.getElementById('worldBookEntries'),summary=document.getElementById('worldBookSummary'),pager=document.getElementById('worldBookPager');if(!wrap)return;wrap.innerHTML='';if(pager)pager.innerHTML='';
+ const entries=getWorldBookEntries(areaId),found=entries.filter(x=>(state.discovered||[]).includes(x.id)).length,totalPages=Math.max(1,Math.ceil(entries.length/5));worldBookPage=Math.min(worldBookPage,totalPages-1);
+ const query=(document.getElementById('worldBookSearch')?.value||'').trim();if(summary)summary.textContent=(query?'名前検索「'+query+'」':(locations[areaId]?.name||areaId||'全エリア'))+'　'+entries.length+'種類 ／ 発見済み '+found+'種類';
+ if(!entries.length){wrap.textContent='該当する生き物は見つからへんかったで。';return;}
+ entries.slice(worldBookPage*5,worldBookPage*5+5).forEach(({id})=>{const f=fishTypes[id],known=(state.discovered||[]).includes(id),row=document.createElement('button');row.type='button';row.textContent=known?f.name:'？？？？';row.style.cssText='display:block;width:100%;text-align:left;padding:8px 11px;background:#173b52;color:#f4f8ff;border:1px solid #42677d;border-radius:7px;font-size:13px;font-weight:600;min-height:36px;';row.addEventListener('click',()=>{if(!known){alert('まだ発見していない生き物やで。この釣り場で釣ってみよう！');return;}showFishDetail(id,f);});wrap.appendChild(row);});
+ if(pager){const prev=document.createElement('button');prev.type='button';prev.textContent='◀️';prev.disabled=worldBookPage===0;prev.onclick=()=>{worldBookPage--;renderWorldBookEntries(areaId);};const label=document.createElement('span');label.textContent=(worldBookPage+1)+' / '+totalPages+' ページ';label.style.cssText='font-size:13px;color:#eaf6ff;';const next=document.createElement('button');next.type='button';next.textContent='▶️';next.disabled=worldBookPage>=totalPages-1;next.onclick=()=>{worldBookPage++;renderWorldBookEntries(areaId);};pager.append(prev,label,next);}
 }
 document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('openWorldBookButton');if(b)b.addEventListener('click',openWorldBook);});
 </script>
 
-</body>
-</html>
+
+<script>
+// 探索モードをミニゲーム広場へ統合。既存の探索報酬・体力計算をそのまま利用する。
+(function(){
+ function setupExploreChallenge(){
+  const btn=document.getElementById('miniStartExplore');if(!btn||btn.dataset.bound)return;btn.dataset.bound='1';
+  btn.addEventListener('click',()=>{
+   const title=document.getElementById('miniGameTitle'),status=document.getElementById('miniGameStatus'),controls=document.getElementById('miniGameControls'),meters=document.getElementById('miniGameMeters');
+   if(title)title.textContent='🧭 探索チャレンジ';if(meters)meters.hidden=true;
+   if(status)status.textContent='現在の釣り場の周辺を探索するで。探索するたびに体力を1消費。リアルタイム1分ごとに1回復するで。';
+   if(!controls)return;controls.innerHTML='';
+   const hp=document.createElement('div');hp.id='miniExploreHp';hp.style.cssText='margin:8px 0;color:#d8f4ff;font-weight:bold;';
+   const result=document.createElement('p');result.id='miniExploreResult';result.textContent='準備できたら探索開始！';result.style.cssText='min-height:2.5em;color:#fff;';
+   const go=document.createElement('button');go.type='button';go.textContent='🔎 周辺を探索する（体力 -1）';
+   go.onclick=()=>{if(typeof exploreOnce==='function'){exploreOnce();const old=document.getElementById('exploreResult');result.textContent=old?.textContent||'探索したで！';refresh();}else result.textContent='探索機能を読み込めていないようや。';};
+   function refresh(){const h=Number(state.exploreHp)||0,m=Number(state.exploreHpMax)||100;hp.textContent='探索体力：'+h+' / '+m;go.disabled=h<=0;}
+   controls.append(hp,go,result);refresh();
+   // 探索体力は探索実行時に自動更新するため、手動更新ボタンは設けない。
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupExploreChallenge);else setupExploreChallenge();
+})();
+</script>
+
+
 
 <script>
 // v23: 正しいお守り倍率・購入制・所持品だけ装備可能
@@ -3488,6 +3484,25 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(refresh,500)});else{refresh();setInterval(refresh,500)}
 })();
 </script>
+<section class="panel" id="slotPanel" style="margin:12px auto;padding:18px;max-width:1000px;border:2px solid #d8ad4b;background:linear-gradient(145deg,#30264b,#172f48);color:#fff;border-radius:16px">
+ <h2 style="color:#ffe49a">🎰 ゴールドスロット</h2>
+ <p class="small">ゴールドを賭けて一攫千金を狙おう！3つの絵柄がそろえば大当たり、2つそろっても払い戻しやで。</p>
+ <div id="slotGoldDisplay" style="font-size:18px;font-weight:bold;color:#ffe49a;margin:10px 0">💰 所持金：読み込み中</div>
+ <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0">
+  <label for="slotBet" style="font-weight:bold">賭け金：</label>
+  <input id="slotBet" type="number" min="1" max="1000000" step="10" value="10" style="width:150px;padding:10px;border-radius:8px;font-size:16px">
+  <button id="slotSpinButton" type="button" style="background:linear-gradient(135deg,#ffe28a,#d99a32);color:#38220b;font-weight:bold;padding:12px 24px;font-size:18px">🎰 スロットを回す！</button>
+ </div>
+ <div id="slotReels" style="display:flex;justify-content:center;gap:10px;margin:18px 0">
+  <div class="slot-reel" style="width:clamp(70px,20vw,120px);height:90px;display:grid;place-items:center;background:#fff8df;color:#172033;border:4px solid #d8ad4b;border-radius:12px;font-size:48px">❔</div>
+  <div class="slot-reel" style="width:clamp(70px,20vw,120px);height:90px;display:grid;place-items:center;background:#fff8df;color:#172033;border:4px solid #d8ad4b;border-radius:12px;font-size:48px">❔</div>
+  <div class="slot-reel" style="width:clamp(70px,20vw,120px);height:90px;display:grid;place-items:center;background:#fff8df;color:#172033;border:4px solid #d8ad4b;border-radius:12px;font-size:48px">❔</div>
+ </div>
+ <p id="slotResult" role="status" aria-live="polite" style="min-height:48px;padding:12px;border-radius:9px;background:#0c1d30;font-weight:bold;line-height:1.6">賭け金を決めて「スロットを回す！」を押してな。</p>
+ <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:bold">📜 スロット履歴（最新10件）</summary><div id="slotLogVisible" style="max-height:180px;overflow:auto;padding:8px 4px"></div></details>
+ <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:bold">📚 過去の履歴（最大100件）</summary><div id="slotLogHistory" style="max-height:260px;overflow:auto;padding:8px 4px"></div></details>
+ <p class="small" style="margin-top:12px;color:#e8d8a7">配当：7️⃣ 1000倍／🐉 500倍／💎 250倍／👑 100倍／🌈 75倍／🪙 50倍／🐱 30倍／🐟・🎣 20倍。絵柄2つ一致は2倍。</p>
+</section>
 <script>
 // ゴールドスロット：高額ベット・多彩な役・大きな配当
 (function(){
@@ -3544,28 +3559,20 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
 // 更新履歴：初期版からの主な変更を時系列の折りたたみバーで表示
 (function(){
  const historyItems=[
-  ['第1段階：釣りゲームの土台','最初のHTML版を作成。釣り場を表示し、水面を操作して魚を釣る基本の遊びを組み立て。'],
-  ['第2段階：フィールド・釣り場の構成','フィールド、釣り場、つりっく迷宮など、ゲーム内の場所を切り替える構想と画面構成を整理。'],
-  ['第3段階：セーブ・ロード','ゲームの進行状況を保存し、あとから続きができるセーブ・ロード操作を追加。'],
-  ['第4段階：魚の売却とゴールド','釣った魚をまとめて売却し、ゴールドを獲得して道具購入に使う基本経済を追加・調整。'],
-  ['第5段階：釣具の購入・装備','釣り竿、リール、仕掛け、お守りを選択する装備機能を追加。竿とリールの性能差を設け、釣りの進行に活用。'],
-  ['第6段階：装備工房・修理','竿とリールの耐久値、修理機能を追加。購入済みの装備を確認し、耐久値を回復できるよう調整。'],
-  ['第7段階：エサ・消耗品の所持数','エサ、ルアー、使い切り仕掛けなどを購入・使用する仕組みを追加。同じ種類を所持数でまとめるスタック表示を整備。'],
-  ['第8段階：釣り場の解放','累計釣りポイントに応じて、清流の川から湖、沿岸、沖合へと新しいエリアを解放する仕組みを追加。'],
-  ['第9段階：魚図鑑・釣果一覧','釣った魚の記録、魚図鑑、売却予定額の確認など、コレクションと釣果の管理機能を追加・調整。'],
-  ['第10段階：釣りのタイミングゲージ','魚とのファイトにタイミング操作を取り入れ、楕円形のルーレット状ゲージで釣り上げを進める方式に改修。'],
-  ['第11段階：魚種の拡張','川魚、湖の魚、海の魚などを追加し、釣り場ごとに出会える魚の種類を広げた。'],
-  ['第12段階：古代魚・幻魚の特別エリア','太古の化石海域と幻影の竜宮海域を追加。古代魚・幻魚、専用仕掛け、高額な初回売却ボーナスを設定。'],
-  ['第13段階：ゲームログ','ゲームログを最新5行表示にし、過去ログは最大100行を確認できるように調整。スロット結果もログに記録するよう改修。'],
-  ['第14段階：自然音と音量調整','川のせせらぎや鳥の声などの環境音、音量調整を追加。音源情報も記載。'],
-  ['第15段階：ゴールドスロットの拡張','賭け金を最大100万Gまで拡大。7、ドラゴン、ダイヤ、王冠、虹、コイン、猫、魚、釣り竿などの役と配当倍率を追加。'],
-  ['第16段階：金額の単位表示','大きな所持金や配当を「1万G」「100万G」「1億G」などの単位で読みやすく表示する仕様を追加・調整。'],
-  ['第17段階：メニュー一覧ナビ','縦に長い画面を移動しやすいよう、上部に折りたたみ式メニューを追加。項目から各機能へジャンプできるようにした。'],
-  ['第18段階：更新履歴・スタック表示','更新履歴を画面から開けるようにし、所持品を種類ごとの数でまとめて確認できるように調整。'],
-  ['第19段階：一攫千金スロットのログ修正','高額ベット時にログの金額が一致しない問題を修正するため、払い戻し表示とゲームログの記録処理を見直し。'],
-  ['第20段階：今回のメニュー改善','メニュー項目を縦並びのバー形式に変更。メニュー一覧の見出しを押すと開閉でき、もう一度押すと閉じる。更新履歴も各項目を押して詳細を開閉できる形式に変更。'],
-  ['第21段階：釣り画面の情報表示・探索モード','釣り画面に竿とリールの耐久度を小さく表示。タイミングゲージを釣り画面上の猫の近くに重ねて表示するレイアウトに変更。探索画面の見出しを「探索モード」と明記し、メニュー一覧から直接移動できるように調整。']
- ];
+  ['2026年10月頃（初期開発・正確な日付不明）：釣りゲームの土台','HTML版の釣りRPGを制作開始。釣り画面、猫の釣り人、水面への仕掛け投入、魚とのファイトなど基本部分を構築。'],
+  ['2026年10月頃（初期開発・正確な日付不明）：釣り場・世界観の拡張','せせらぎ川、神秘の湖、海域など複数の釣り場を用意。釣りポイントによるエリア解放の仕組みを追加・調整。'],
+  ['2026年10月頃（初期開発・正確な日付不明）：ゴールド・魚の売却','釣った魚の売却、所持金、魚ごとの売却額を管理する仕組みを追加。古代魚・幻魚の売却価格も調整。'],
+  ['2026年10月頃（初期開発・正確な日付不明）：釣具・装備システム','釣り竿、リール、仕掛け、お守りの装備機能を追加。装備による性能差や初期装備の表示を整備。'],
+  ['2026年10月頃（初期開発・正確な日付不明）：耐久度・修理・消耗品','竿とリールの耐久度、修理、エサや使い切り仕掛けなどの管理機能を追加・調整。'],
+  ['2026年10月頃（初期開発・正確な日付不明）：生物図鑑・発見記録','釣った魚や探索で発見した生物を記録し、詳細を確認できる図鑑機能を追加。'],
+  ['2026年10月頃（初期開発・正確な日付不明）：ミニゲーム・探索','河川敷バトル、熱血ダッシュ、ドッジボール、探索チャレンジなど、釣り以外の遊びを追加。'],
+  ['2026年11月2日：釣り画面・メニュー・図鑑の修正','釣り画面の猫や表示領域を調整。メニュー操作と発見図鑑の詳細表示を修正。'],
+  ['2026年11月2日：ゴールドスロット復旧','不足していたゴールドスロットの画面部品を追加。3つのリール、賭け金入力、配当表示、履歴を復旧。'],
+  ['2026年11月2日：ミミズ価格・ショップ整理','ミミズの価格を350Gから10Gに変更。メイン画面に重複していたショップ表示を整理し、ショップ機能は独立画面側に集約。'],
+  ['2026年11月2日：メイン画面とサブ画面の分離','釣り画面をメインにし、釣具装備・ショップ・ミニゲームを独立したサブ画面に分離。セーブ・ロードの操作からサブ機能へ移動する構成に整理。'],
+  ['2026年11月2日：今回の更新（所持金表示・メニュー整理）','メイン画面の一覧型メニューバーを撤去し、必要なサブ画面ボタンは「セーブ・ロード・サブ画面」から開く方式に統一。釣り画面内に所持金を常時表示するHUDを追加。'],
+  ['2026年11月3日：メイン画面の折りたたみメニュー撤去','メイン画面に表示されていたセーブ・ロード、釣具装備、装備工房、エサ・仕掛け、装備中の釣具、釣果一覧、環境音設定などの折りたたみ式一覧バーを撤去。各機能の独立画面・既存機能は維持し、ゴールドスロットもメイン画面下部には表示しない構成に整理。']
+ ];;
  function install(){
   if(document.getElementById('updateHistoryModal'))return;
   const btn=document.getElementById('updateHistoryButton');if(!btn)return;
@@ -3633,6 +3640,276 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
  document.addEventListener('click',e=>{if(e.target?.id!=='debugAllItemsButton')return;if(debugApproved){debugApproved=false;return;}e.preventDefault();e.stopImmediatePropagation();makeDialog('🐱 デバッグ使うのかにゃーーーん？','⚠️ デバッグを使うと、お金・装備・アイテム・エリアが一気に解放されるにゃ！\nゲーム本来の面白さが完全に失われる可能性があるで。本当に実行していいかにゃ？',[{label:'YES！実行する',color:'#ffcf70',run:()=>{debugApproved=true;$id('debugAllItemsButton')?.click();}},{label:'NO！やめる',color:'#ffb3b3',run:()=>{}}]);},true);
 })();
 </script>
+
+
+<script>
+// 探索モードをミニゲーム広場へ統合。既存の探索報酬・体力計算をそのまま利用する。
+(function(){
+ function setupExploreChallenge(){
+  const btn=document.getElementById('miniStartExplore');if(!btn||btn.dataset.bound)return;btn.dataset.bound='1';
+  btn.addEventListener('click',()=>{
+   const title=document.getElementById('miniGameTitle'),status=document.getElementById('miniGameStatus'),controls=document.getElementById('miniGameControls'),meters=document.getElementById('miniGameMeters');
+   if(title)title.textContent='🧭 探索チャレンジ';if(meters)meters.hidden=true;
+   if(status)status.textContent='現在の釣り場の周辺を探索するで。探索するたびに体力を1消費。リアルタイム1分ごとに1回復するで。';
+   if(!controls)return;controls.innerHTML='';
+   const hp=document.createElement('div');hp.id='miniExploreHp';hp.style.cssText='margin:8px 0;color:#d8f4ff;font-weight:bold;';
+   const result=document.createElement('p');result.id='miniExploreResult';result.textContent='準備できたら探索開始！';result.style.cssText='min-height:2.5em;color:#fff;';
+   const go=document.createElement('button');go.type='button';go.textContent='🔎 周辺を探索する（体力 -1）';
+   go.onclick=()=>{if(typeof exploreOnce==='function'){exploreOnce();const old=document.getElementById('exploreResult');result.textContent=old?.textContent||'探索したで！';refresh();}else result.textContent='探索機能を読み込めていないようや。';};
+   function refresh(){const h=Number(state.exploreHp)||0,m=Number(state.exploreHpMax)||100;hp.textContent='探索体力：'+h+' / '+m;go.disabled=h<=0;}
+   controls.append(hp,go,result);refresh();
+   // 探索体力は探索実行時に自動更新するため、手動更新ボタンは設けない。
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupExploreChallenge);else setupExploreChallenge();
+})();
+</script>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ function setup(){
+  const title=$('miniGameTitle'),status=$('miniGameStatus'),controls=$('miniGameControls'),meters=$('miniGameMeters'),reward=$('miniGameReward');
+  if(!title||!status||!controls)return;
+  const say=(t)=>{status.textContent=t;};
+  function prize(amount){try{if(window.state){state.gold=(Number(state.gold)||0)+amount;if(typeof updateAll==='function')updateAll();if(typeof saveGame==='function')saveGame();}}catch(e){} if(reward)reward.textContent='クリア報酬 '+amount+' G！';}
+  function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);controls.appendChild(b);return b;}
+  $('miniStartBrawl')?.addEventListener('click',()=>{
+   title.textContent='🥊 河川敷じゃんけんバトル';controls.innerHTML='';if(meters)meters.hidden=true;
+   let you=0,enemy=0;const names=['グー','チョキ','パー'];const beats=[2,0,1];
+   const paint=()=>say('ねこちゃん '+you+' 対 '+enemy+' 相手\n先に4勝した方が勝ち！');
+   ['グー','チョキ','パー'].forEach((n,i)=>button(n,()=>{if(you>=4||enemy>=4)return;const e=Math.floor(Math.random()*3);let msg='あいこ！';if(i!==e){if(beats[i]===e){you++;msg='勝ち！';}else{enemy++;msg='負け…';}}paint();status.textContent+='\nあなた：'+n+' ／ 相手：'+names[e]+'\n'+msg;if(you>=4||enemy>=4){status.textContent+='\n'+(you>=4?'🏆 ねこちゃんの勝利！':'相手の勝利…');if(you>=4)prize(100);}}));paint();
+  });
+  $('miniStartDash')?.addEventListener('click',()=>{
+   title.textContent='🏃 熱血ダッシュ';controls.innerHTML='';if(meters)meters.hidden=false;let p=0,e=0,done=false;const pb=$('miniPlayerBar'),eb=$('miniEnemyBar');
+   const paint=()=>{if(pb)pb.style.width=p+'%';if(eb)eb.style.width=e+'%';say('ゴールまであと少し！\nねこちゃん '+p+'% ／ ライバル '+e+'%\n障害物が来たらジャンプ！');};
+   button('🏃 ダッシュ！',()=>{if(done)return;p=Math.min(100,p+9+Math.random()*8);e=Math.min(100,e+5+Math.random()*9);if(Math.random()<.22){p=Math.max(0,p-7);status.textContent='障害物！ジャンプのタイミングを逃した！';}paint();if(p>=100||e>=100){done=true;status.textContent=p>=e?'🏆 ゴール！ねこちゃんの勝利！':'ライバルが先にゴール…';if(p>=e)prize(120);}});
+   button('⬆️ ジャンプ',()=>{if(done)return;p=Math.min(100,p+13);e=Math.min(100,e+6);paint();if(p>=100||e>=100){done=true;status.textContent=p>=e?'🏆 ゴール！ねこちゃんの勝利！':'ライバルが先にゴール…';if(p>=e)prize(120);}});paint();
+  });
+  $('miniStartDodge')?.addEventListener('click',()=>{
+   title.textContent='🏐 ドッジボール';controls.innerHTML='';if(meters)meters.hidden=true;let round=0,score=0,active=false,timer=null;
+   const next=()=>{if(round>=5){say('5球終了！ '+score+' 回キャッチ成功！'+(score>=3?'\n🏆 チャレンジ成功！':'\n次はタイミングを合わせよう！'));if(score>=3)prize(100);return;}round++;active=false;say('第'+round+'球目！ボールが飛んでくる…');controls.innerHTML='';button('🤲 キャッチ！',()=>{if(active){score++;active=false;say('ナイスキャッチ！ '+score+'回成功');}else say('まだボールが来てない！');});setTimeout(()=>{active=true;say('ボールが目の前！今や！');},900+Math.random()*1200);button('次の球へ',()=>{if(timer)clearTimeout(timer);next();});};next();
+  });
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup);else setup();
+})();
+</script>
+
+<style>
+#dedicatedMiniScreen{position:fixed;inset:0;z-index:11000;display:none;overflow:auto;background:radial-gradient(ellipse at top,#173e59,#071725 78%);padding:12px;color:#f4f8ff}
+#dedicatedMiniScreen .screen-head{max-width:1100px;margin:0 auto 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#dedicatedMiniScreen #heatMiniGamePanel{max-width:1100px;margin:0 auto!important}
+#dedicatedMiniScreen .mini-game-card{min-height:260px}
+#worldBookModal.dedicated-book{position:fixed!important;inset:0!important;z-index:11001!important;display:none;overflow:auto;padding:12px!important;background:radial-gradient(ellipse at top,#173e59,#071725 78%)!important}
+#worldBookModal.dedicated-book>div{margin:0 auto;max-width:1000px}
+body.dedicated-screen-open{overflow:hidden}
+</style>
+<div id="dedicatedMiniScreen" aria-label="ミニゲーム画面">
+ <div class="screen-head"><h2 style="margin:4px 0">🎮 ミニゲーム広場</h2><button type="button" id="closeMiniScreen">↩ 釣り画面へ戻る</button></div>
+</div>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ let previousMainDisplay='',previousHeaderDisplay='',previousNavDisplay='';
+ function main(){return document.querySelector('main');}
+ function enterScreen(kind){
+  const m=main(),h=document.querySelector('body>header'),n=$('gameMenu');
+  if(m){previousMainDisplay=m.style.display;m.style.display='none';}
+  if(h){previousHeaderDisplay=h.style.display;h.style.display='none';}
+  if(n){previousNavDisplay=n.style.display;n.style.display='none';}
+  document.body.classList.add('dedicated-screen-open');
+  if(kind==='mini'){
+   const screen=$('dedicatedMiniScreen'),panel=$('heatMiniGamePanel');
+   if(screen&&panel){screen.style.display='block';screen.appendChild(panel);panel.style.display='block';}
+  }
+ }
+ window.closeDedicatedScreen=function(){
+  const m=main(),h=document.querySelector('body>header'),n=$('gameMenu'),screen=$('dedicatedMiniScreen'),panel=$('heatMiniGamePanel');
+  if(screen&&panel){screen.style.display='none';if(m)m.appendChild(panel);}
+  if(m)m.style.display=previousMainDisplay||'';
+  if(h)h.style.display=previousHeaderDisplay||'';
+  if(n)n.style.display=previousNavDisplay||'';
+  document.body.classList.remove('dedicated-screen-open');
+ };
+ window.openDedicatedMiniScreen=function(){enterScreen('mini');const p=$('heatMiniGamePanel');if(p)p.style.display='block';};
+ window.openWorldBook=function(){
+  const modal=$('worldBookModal');if(!modal)return;
+  // 図鑑をmainの外へ移動し、メイン画面とは独立して表示
+  if(modal.parentElement!==document.body)document.body.appendChild(modal);
+  modal.classList.add('dedicated-book');enterScreen('book');modal.style.display='block';
+  if(typeof worldBookPage!=='undefined')worldBookPage=0;
+  if(typeof renderWorldBookAreas==='function')renderWorldBookAreas();
+ };
+ window.closeWorldBook=function(){const modal=$('worldBookModal');if(modal)modal.style.display='none';const m=document.querySelector('main');const h=document.querySelector('body>header');const n=$('gameMenu');if(m)m.style.display='block';if(h)h.style.display='';if(n)n.style.display='';document.body.style.overflow='';document.body.classList.remove('dedicated-screen-open');};
+ document.addEventListener('DOMContentLoaded',()=>{
+  const book=$('openWorldBookButton');if(book){book.addEventListener('click',e=>{e.preventDefault();openWorldBook();});}
+  const close=$('closeMiniScreen');if(close)close.addEventListener('click',closeDedicatedScreen);
+  const menu=$('gameMenu');if(menu){const links=menu.querySelector('.menu-links');if(links&&!$('openMiniScreenMenu')){const b=document.createElement('button');b.id='openMiniScreenMenu';b.type='button';b.textContent='🎮 ミニゲーム広場';b.addEventListener('click',openDedicatedMiniScreen);links.appendChild(b);}}
+  const quick=$('quickActions');if(quick&&!$('openMiniScreenButton')){const b=document.createElement('button');b.id='openMiniScreenButton';b.type='button';b.textContent='🎮 ミニゲーム';b.style.background='#ffd28a';b.style.color='#38220b';b.addEventListener('click',openDedicatedMiniScreen);quick.appendChild(b);}
+  const panel=$('heatMiniGamePanel');if(panel){panel.style.display='none';}
+ });
+ //探索結果を専用ミニゲーム画面内にも確実に表示し、元の探索処理を呼ぶ
+ document.addEventListener('click',e=>{if(e.target&&e.target.id==='miniStartExplore'){
+  setTimeout(()=>{
+   const controls=$('miniGameControls');if(!controls)return;
+   let box=$('miniExploreScreenStatus');if(!box){box=document.createElement('div');box.id='miniExploreScreenStatus';box.style.cssText='margin-top:12px;padding:12px;border:1px solid #70a9bc;border-radius:10px;background:#102f40;color:#fff;';controls.appendChild(box);}
+   const hp=Number(window.state?.exploreHp??100),max=Number(window.state?.exploreHpMax??100);
+   box.innerHTML='<strong>探索体力：'+hp+' / '+max+'</strong><p>現在の釣り場の周辺を探索するで。1回につき体力を1消費するで。</p>';
+   const go=document.createElement('button');go.type='button';go.textContent='🔎 周辺を探索する';go.addEventListener('click',()=>{if(typeof window.exploreOnce==='function'){window.exploreOnce();}else if(typeof exploreOnce==='function'){exploreOnce();}const result=$('exploreResult');const hpNow=Number(window.state?.exploreHp??0);box.innerHTML='<strong>探索体力：'+hpNow+' / '+max+'</strong><p>'+(result?.textContent||'探索を実行したで。')+'</p>';});box.appendChild(go);
+  },80);
+ }});
+})();
+</script>
+
+
+<style>
+#dedicatedGearScreen,#dedicatedMiniScreen{position:fixed;inset:0;z-index:11000;overflow:auto;background:radial-gradient(ellipse at top,#173e59,#071725 78%);padding:12px;color:#f4f8ff;display:none}
+#dedicatedGearScreen .screen-head,#dedicatedMiniScreen .screen-head{max-width:1100px;margin:0 auto 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#dedicatedGearScreen .gear-screen-grid{max-width:1100px;margin:auto;display:grid;gap:12px}
+#dedicatedGearScreen .gear-screen-grid>.panel{margin:0!important}
+#dedicatedMiniScreen #slotPanel{max-width:1100px;margin:14px auto!important}
+#miniVisualMonitor{max-width:1100px;margin:12px auto;padding:12px;border:2px solid #8bd5ef;border-radius:16px;background:linear-gradient(#102c40,#071522);box-shadow:inset 0 0 28px #1b6680}
+#miniVisualScene{height:190px;position:relative;overflow:hidden;border-radius:12px;background:linear-gradient(#73b8d0 0 48%,#d9c18a 49% 60%,#397b69 61%);display:flex;align-items:end;justify-content:space-evenly}
+.mini-actor{font-size:76px;filter:drop-shadow(0 5px 3px #17313b);animation:miniBob 1.2s ease-in-out infinite alternate;transform-origin:bottom}
+.mini-actor.rival{animation-delay:.35s;transform:scaleX(-1)}
+#miniVisualCaption{padding:8px;text-align:center;color:#e6f8ff;font-weight:bold}
+@keyframes miniBob{from{translate:0 0}to{translate:0 -7px}}
+</style>
+<div id="dedicatedGearScreen" aria-label="装備・ショップ画面"><div class="screen-head"><h2>🐱 装備・ショップ</h2><button type="button" id="closeGearScreen">↩ 釣り画面へ戻る</button></div><div class="gear-screen-grid" id="gearScreenContent"></div></div>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);let moved={};
+ function moveTo(node,parent){if(node&&parent&&!moved[node.id]){moved[node.id]={parent:node.parentElement,next:node.nextSibling};parent.appendChild(node);}}
+ function restore(id){const n=$(id),r=moved[id];if(n&&r&&r.parent){r.parent.insertBefore(n,r.next&&r.next.parentNode===r.parent?r.next:null);delete moved[id];}}
+ function openGear(){const screen=$('dedicatedGearScreen'),box=$('gearScreenContent');if(!screen||!box)return;const main=document.querySelector('main');if(main)main.style.display='none';const h=document.querySelector('body>header');if(h)h.style.display='none';const nav=$('gameMenu');if(nav)nav.style.display='none';['equipmentPanel','equippedHud','gearWorkshopPanel','consumablePanel','charmShopArea'].forEach(id=>moveTo($(id),box));screen.style.display='block';document.body.classList.add('dedicated-screen-open');}
+ function closeGear(){['equipmentPanel','equippedHud','gearWorkshopPanel','consumablePanel','charmShopArea'].forEach(restore);$('dedicatedGearScreen').style.display='none';const main=document.querySelector('main');if(main)main.style.display='';const h=document.querySelector('body>header');if(h)h.style.display='';const nav=$('gameMenu');if(nav)nav.style.display='';document.body.classList.remove('dedicated-screen-open');}
+ window.openGearScreen=openGear;
+ document.addEventListener('DOMContentLoaded',()=>{
+  const box=$('miniVisualMonitor');if(!$('miniVisualMonitor')){const m=document.createElement('div');m.id='miniVisualMonitor';m.innerHTML='<div id="miniVisualScene"><span class="mini-actor" aria-label="釣り画面の猫をイメージした猫キャラクター">🐱</span><span class="mini-actor rival">🐟</span></div><div id="miniVisualCaption">🐱 猫の冒険広場へようこそ！ゲームを選んでな。</div>';const stage=$('miniGameStage');if(stage)stage.before(m);}
+  const screen=$('dedicatedMiniScreen'),slot=$('slotPanel');if(screen&&slot)screen.appendChild(slot);
+  const close=$('closeGearScreen');if(close)close.onclick=closeGear;
+  const links=$('gameMenu')?.querySelector('.menu-links');if(links&&!$('openGearScreenButton')){const b=document.createElement('button');b.id='openGearScreenButton';b.type='button';b.textContent='🐱 装備・ショップ';b.onclick=openGear;links.appendChild(b);}
+  const slotBtn=document.createElement('button');slotBtn.type='button';slotBtn.textContent='🎰 ゴールドスロット';slotBtn.onclick=()=>{if(typeof window.openDedicatedMiniScreen==='function')window.openDedicatedMiniScreen();setTimeout(()=>{$('slotPanel')?.scrollIntoView({behavior:'smooth',block:'start'});},80);};$('heatMiniGamePanel')?.querySelector('.mini-game-actions')?.appendChild(slotBtn);
+  const cap=$('miniVisualCaption');document.addEventListener('click',e=>{if(e.target.closest('#miniStartBrawl'))cap.textContent='🥊 猫 vs ライバル！タイミングよく技を選ぼう！';else if(e.target.closest('#miniStartDash'))cap.textContent='🏃 猫がライバルとゴールを目指してダッシュ！';else if(e.target.closest('#miniStartDodge'))cap.textContent='🏐 猫にボールが飛んでくる！タイミングよくキャッチ！';else if(e.target.closest('#miniStartExplore'))cap.textContent='🧭 猫が釣り場を探索中…発見を目指そう！';});
+  // 探索は専用ボタンから既存の正式な探索ボタンを呼び出す（状態・報酬処理を共有）
+  const explore=$('miniStartExplore');if(explore){explore.addEventListener('click',()=>{setTimeout(()=>{const go=$('miniGameControls')?.querySelector('button');if(go&&go.textContent.includes('探索する')){go.onclick=()=>{$('exploreButton')?.click();const r=$('exploreResult');const out=$('miniExploreResult');if(out&&r)out.textContent=r.textContent;const hp=$('miniExploreHp');if(hp&&$('exploreHpLabel'))hp.textContent=$('exploreHpLabel').textContent;};}},0);});}
+ });
+})();
+</script>
+
+<script>
+// 起動時は必ず通常の釣り画面から開始する。独立画面はボタン操作時だけ開く。
+document.addEventListener('DOMContentLoaded',()=>{
+  const main=document.querySelector('main'); if(main) main.style.display='';
+  const header=document.querySelector('body>header'); if(header) header.style.display='';
+  const menu=document.getElementById('gameMenu'); if(menu) menu.style.display='';
+  ['dedicatedGearScreen','dedicatedMiniScreen','worldBookModal'].forEach(id=>{const el=document.getElementById(id); if(el) el.style.display='none';});
+  document.body.classList.remove('dedicated-screen-open');
+});
+</script>
+
+<style>
+/* 画面構成の最終整理：メインは釣り、機能は独立したサブ画面へ */
+#equipmentPanel{display:block!important;visibility:visible!important;opacity:1!important}
+#statsPanel{display:none!important}
+#gameMenu{display:none!important}
+#dedicatedEquipmentScreen,#dedicatedShopScreen,#dedicatedMiniScreen{position:fixed;inset:0;z-index:11010;overflow:auto;background:radial-gradient(ellipse at top,#173e59,#071725 78%);padding:12px;color:#f4f8ff;display:none;box-sizing:border-box}
+#dedicatedEquipmentScreen .screen-head,#dedicatedShopScreen .screen-head,#dedicatedMiniScreen .screen-head{max-width:1100px;margin:0 auto 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+#dedicatedEquipmentScreen .screen-content,#dedicatedShopScreen .screen-content{max-width:1100px;margin:0 auto;display:grid;gap:12px}
+#dedicatedEquipmentScreen .screen-content>.panel,#dedicatedShopScreen .screen-content>.panel{margin:0!important}
+#subMenuPanel{display:none;width:100%;margin-top:8px;padding:10px;border:1px solid #669bb2;border-radius:12px;background:linear-gradient(145deg,#173d53,#0b2639);box-sizing:border-box}
+#subMenuPanel .sub-menu-buttons{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#subMenuPanel button{min-height:46px;margin:0}
+#openSubMenuButton{width:100%;min-height:48px;font-weight:800;background:linear-gradient(120deg,#ffe08a,#ffbd70);color:#263747}
+@media(max-width:420px){#subMenuPanel .sub-menu-buttons{grid-template-columns:1fr}}
+#catchLedgerPanel #sellFishFromLedgerButton{display:none!important}
+</style>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ let activeScreen=null;
+ function hideMain(){const m=document.querySelector('main'),h=document.querySelector('body>header'),f=document.querySelector('body>footer');if(m)m.style.display='none';if(h)h.style.display='none';if(f)f.style.display='none';document.body.classList.add('dedicated-screen-open');}
+ function showMain(){const m=document.querySelector('main'),h=document.querySelector('body>header'),f=document.querySelector('body>footer');if(m)m.style.display='';if(h)h.style.display='';if(f)f.style.display='';['dedicatedEquipmentScreen','dedicatedShopScreen','dedicatedMiniScreen'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});const book=$('worldBookModal');if(book)book.style.display='none';document.body.classList.remove('dedicated-screen-open');activeScreen=null;}
+ function open(id){const e=$(id);if(!e)return;hideMain();['dedicatedEquipmentScreen','dedicatedShopScreen','dedicatedMiniScreen'].forEach(x=>{const n=$(x);if(n)n.style.display=x===id?'block':'none';});const book=$('worldBookModal');if(book)book.style.display='none';activeScreen=id;window.scrollTo(0,0);}
+ function move(id,parent){const n=$(id);if(n&&parent&&n.parentElement!==parent)parent.appendChild(n);}
+ function build(){
+  const main=document.querySelector('main');if(!main)return;
+  // 古いページ内メニューは廃止
+  const nav=$('gameMenu');if(nav)nav.remove();
+  // 独立画面の器を用意
+  if(!$('dedicatedEquipmentScreen')){const e=document.createElement('div');e.id='dedicatedEquipmentScreen';e.innerHTML='<div class="screen-head"><h2>🐱 釣具装備</h2><button type="button" id="closeEquipmentScreen">↩ 釣り画面へ戻る</button></div><div class="screen-content" id="equipmentScreenContent"></div>';document.body.appendChild(e);}
+  if(!$('dedicatedShopScreen')){const e=document.createElement('div');e.id='dedicatedShopScreen';e.innerHTML='<div class="screen-head"><h2>🛒 ショップ</h2><button type="button" id="closeShopScreen">↩ 釣り画面へ戻る</button></div><div class="screen-content" id="shopScreenContent"></div>';document.body.appendChild(e);}
+  const gearBox=$('equipmentScreenContent'),shopBox=$('shopScreenContent'),mini=$('dedicatedMiniScreen');
+  // 独立画面へ機能を移動（IDは維持して既存プログラムとの連携を保つ）
+  move('equipmentPanel',gearBox);
+  move('gearWorkshopPanel',shopBox);move('consumablePanel',shopBox);move('charmShopArea',shopBox);
+  move('heatMiniGamePanel',mini);move('explorePanel',mini);move('slotPanel',mini);
+  // 図鑑モーダルはmainから切り離す
+  move('worldBookModal',document.body);
+  // 釣り場パネルをpanelsラッパーからメイン直下へ
+  move('fishingAreaPanel',main);
+  // メイン画面の構成を指定どおりに並べ替える
+  const keep=['quickActions','fishingGamePanel','equippedHud','catchLedgerPanel','fishingAreaPanel','soundPanel','debugAllItemsPanel'];
+  keep.forEach(id=>{const n=$(id);if(n&&n.parentElement!==main)main.appendChild(n);else if(n)main.appendChild(n);});
+  // 古いラッパーや、メインに残る不要な統計表示を整理
+  main.querySelectorAll(':scope > .panels').forEach(n=>n.remove());
+  const stats=$('statsPanel');if(stats)stats.style.display='none';
+  const ledgerSell=$('sellFishFromLedgerButton');if(ledgerSell)ledgerSell.remove();
+  // 所持金は釣り画面内に常時表示。既存の gold ID を移動するため、ゲーム側の更新処理と連動する。
+  const fishing=$('fishingGamePanel');
+  const goldValue=$('gold');
+  if(fishing&&goldValue){
+   let hud=$('fishingGoldHud');
+   if(!hud){hud=document.createElement('div');hud.id='fishingGoldHud';hud.innerHTML='<span>💰 所持金</span> <strong id="fishingGoldValue"></strong>';fishing.appendChild(hud);}
+   const value=$('fishingGoldValue');if(value&&goldValue.parentElement!==hud)value.replaceWith(goldValue);
+   goldValue.id='gold';goldValue.style.cssText='font-size:inherit;color:inherit';
+   if(goldValue.parentElement!==hud)hud.appendChild(goldValue);
+  }
+  // メイン画面には一覧型ナビゲーションを残さず、サブ画面起動ボタン1つだけにする。
+  const oldNav=$('gameMenu');if(oldNav)oldNav.remove();
+  // サブメニューを作り、既存のセーブ/ロード/図鑑/売却ボタンをそこへ集約
+  const quick=$('quickActions');if(quick){
+   const actionButtons=['saveButton','loadButton','openWorldBookButton','sellButton'].map(id=>$(id)).filter(Boolean);
+   quick.innerHTML='';
+   const trigger=document.createElement('button');trigger.id='openSubMenuButton';trigger.type='button';trigger.textContent='💾 セーブ・ロード・サブ画面 ▼';trigger.setAttribute('aria-expanded','false');trigger.style.cssText='display:block;width:100%;max-width:420px;margin:8px auto;padding:12px 16px;border:2px solid #83cce8;border-radius:12px;background:#153f55;color:#f4fbff;font-size:16px;font-weight:700;';
+   const panel=document.createElement('div');panel.id='subMenuPanel';panel.innerHTML='<div class="sub-menu-buttons" id="subMenuButtons"></div>';
+   quick.appendChild(trigger);quick.appendChild(panel);
+   const buttons=$('subMenuButtons');
+   actionButtons.forEach(b=>buttons.appendChild(b));
+   const miniBtn=document.createElement('button');miniBtn.type='button';miniBtn.textContent='🎮 ミニゲーム';miniBtn.style.background='#ffd28a';miniBtn.style.color='#38220b';miniBtn.onclick=()=>open('dedicatedMiniScreen');buttons.appendChild(miniBtn);
+   const gearBtn=document.createElement('button');gearBtn.type='button';gearBtn.textContent='🐱 釣具装備';gearBtn.onclick=()=>open('dedicatedEquipmentScreen');buttons.appendChild(gearBtn);
+   const shopBtn=document.createElement('button');shopBtn.type='button';shopBtn.textContent='🛒 ショップ';shopBtn.style.background='#b9f0d0';shopBtn.style.color='#17384b';shopBtn.onclick=()=>open('dedicatedShopScreen');buttons.appendChild(shopBtn);
+   trigger.onclick=()=>{const opening=panel.style.display!=='block';panel.style.display=opening?'block':'none';trigger.textContent=opening?'💾 セーブ・ロード・サブ画面 ▲':'💾 セーブ・ロード・サブ画面 ▼';trigger.setAttribute('aria-expanded',String(opening));};
+   ['saveButton','loadButton','openWorldBookButton','sellButton'].forEach(id=>{const b=$(id);if(b)b.addEventListener('click',()=>{panel.style.display='none';});});
+  }
+  // 戻る操作を統一
+  const ce=$('closeEquipmentScreen');if(ce)ce.onclick=showMain;
+  const cs=$('closeShopScreen');if(cs)cs.onclick=showMain;
+  const cm=$('closeMiniScreen');if(cm){cm.onclick=showMain;cm.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();showMain();},true);}
+  // 旧画面関数を新しい独立画面へ接続
+  window.openGearScreen=()=>open('dedicatedEquipmentScreen');
+  window.openShopScreen=()=>open('dedicatedShopScreen');
+  window.openDedicatedMiniScreen=()=>open('dedicatedMiniScreen');
+  window.closeDedicatedScreen=showMain;
+  window.openWorldBook=function(){const b=$('worldBookModal');if(!b)return;hideMain();b.style.display='block';activeScreen='worldBookModal';if(typeof worldBookPage!=='undefined')worldBookPage=0;if(typeof renderWorldBookAreas==='function')renderWorldBookAreas();};
+  window.closeWorldBook=showMain;
+  // 既存の装備・ショップ用旧画面は表示しない
+  const old=$('dedicatedGearScreen');if(old)old.style.display='none';
+  if(mini)mini.style.display='none';
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',build,{once:true});else build();
+})();
+</script>
+
+
+<style>
+/* メイン画面の所持金HUD：釣り画面上に常時表示 */
+#fishingGoldHud{position:absolute;z-index:30;top:58px;right:8px;display:flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #f2d27a;border-radius:9px;background:rgba(22,35,48,.92);color:#fff2bd;font-size:clamp(12px,2vw,16px);font-weight:700;box-shadow:0 2px 8px #0007;pointer-events:none}
+#fishingGoldHud strong{font-variant-numeric:tabular-nums}
+#subMenuPanel{display:none;max-width:760px;margin:8px auto;padding:10px;border:1px solid #83cce8;border-radius:12px;background:rgba(8,31,46,.96)}
+#subMenuButtons{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+#quickActions{display:block!important;background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;margin:8px auto!important}
+#gameMenu,.menu-links,.menu-list-bar,.listup-bar{display:none!important}
+</style>
 
 </body>
 </html>
