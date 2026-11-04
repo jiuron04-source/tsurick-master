@@ -254,7 +254,7 @@ input,textarea,[contenteditable="true"]{ -webkit-user-select:text; user-select:t
  <div class="gear-grid">
   <label>🎣 ロッド<select id="gearRod"></select></label>
   <label>⚙️ リール<select id="gearReel"></select></label>
-  <label>🪝 仕掛け<select id="gearTackle"></select></label>
+  <label>🪝 釣り仕掛け（魚種別）<select id="gearRig"></select></label>
   <label>🐾 お守り①<select id="gearCharm"></select></label>
   <label>🐾 お守り②（別系統）<select id="gearCharm2"></select></label>
   <label>🐾 お守り③（別系統）<select id="gearCharm3"></select></label>
@@ -312,6 +312,7 @@ input,textarea,[contenteditable="true"]{ -webkit-user-select:text; user-select:t
 
 <div class="stats game-stats" id="statsPanel">
  <div class="stat"><span>所持金</span><strong id="gold">100G</strong></div>
+ <div class="stat"><span>ミニゲームコイン</span><strong id="coinBalance">0 C</strong></div>
  <div class="stat"><span>釣った魚</span><strong id="caught">0匹</strong></div>
  <div class="stat"><span>猫レベル</span><strong id="levelLabel">Lv.1</strong></div>
  <div class="stat"><span>経験値</span><strong id="expLabel">0 / 100</strong></div>
@@ -353,12 +354,22 @@ input,textarea,[contenteditable="true"]{ -webkit-user-select:text; user-select:t
 
 <section class="panel" id="heatMiniGamePanel" style="margin:12px 0;border:2px solid #e9a95b;background:linear-gradient(145deg,#18384b,#392d4d);color:#f8fbff">
  <h2>🥊 熱血ミニゲーム広場</h2>
- <p class="small">釣りの合間に街の遊びへ挑戦！クリアするとゲーム内ゴールドを獲得できるで。熱血物語風のオリジナルミニゲームや。</p>
+ <p class="small">釣りの合間にミニゲームで遊ぼう！成功報酬は専用通貨のコイン。スロットなどミニゲーム内で使えるで。</p>
+ <div id="miniCurrencyPanel" style="margin:12px 0;padding:12px;border:1px solid #f0d28a;border-radius:12px;background:rgba(0,0,0,.22)">
+  <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:18px;font-weight:bold;margin-bottom:10px"><span>💰 所持金：<strong id="miniGoldBalance">100G</strong></span><span>🪙 コイン：<strong id="miniCoinBalance">0 C</strong></span></div>
+  <strong>🔄 両替所</strong>
+  <p class="small" style="margin:5px 0 8px">100コイン → 10G（最大1億口） ／ 100G → 100コイン（最大100万口）</p>
+  <label for="exchangeLots" class="small">両替する口数（1口＝上記レート）</label>
+  <input id="exchangeLots" type="number" min="1" max="100000000" step="1" value="1" inputmode="numeric" style="width:140px;padding:9px;border-radius:8px;margin:5px">
+  <div class="mini-game-actions"><button type="button" id="exchangeCoinsToGold">🪙 100コイン単位でGに換金</button><button type="button" id="exchangeGoldToCoins">💰 100G単位でコインに換金</button></div>
+  <p id="exchangeMessage" class="small" aria-live="polite">コインはミニゲーム専用通貨やで。</p>
+ </div>
  <div class="mini-game-actions">
   <button type="button" id="miniStartBrawl">🥊 河川敷バトル</button>
   <button type="button" id="miniStartDash">🏃 熱血ダッシュ</button>
   <button type="button" id="miniStartDodge">🏐 ドッジボール</button>
   <button type="button" id="miniStartExplore">🧭 探索チャレンジ</button>
+  <button type="button" id="miniStartTimingFishing">🎯 タイミング釣り</button>
  </div>
  <div class="mini-game-card" id="miniGameStage">
   <h3 id="miniGameTitle" style="margin:0 0 8px">ミニゲームを選んでな！</h3>
@@ -372,7 +383,7 @@ input,textarea,[contenteditable="true"]{ -webkit-user-select:text; user-select:t
   </div>
   <div class="mini-game-actions" id="miniGameControls" style="margin-top:10px"></div>
  </div>
- <p class="small" id="miniGameReward">報酬は所持金に加算されるで。セーブも忘れずにな！</p>
+ <p class="small" id="miniGameReward">ミニゲームの成功報酬はコインで受け取れるで！</p>
 </section>
 
 <!-- 自然音コントロール -->
@@ -672,7 +683,7 @@ const baits=[
 ];
 
 const freshState=()=>({
- gold:100,caught:0,score:0,rod:0,bait:0,
+ gold:100,coins:0,caught:0,score:0,rod:0,bait:0,
  inventory:[],discovered:[],location:"river",specialFishSold:{}
 });
 
@@ -876,6 +887,10 @@ function formatGoldAmount(value){
 function updateAll(){
  updateAreaUnlocks();
  $("gold").textContent=formatGoldAmount(state.gold);
+ const coinValue=Math.max(0,Math.floor(Number(state.coins)||0));
+ const coinText=coinValue.toLocaleString("ja-JP")+" C";
+ ["coinBalance","miniCoinBalance"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=coinText;});
+ const miniGold=document.getElementById("miniGoldBalance");if(miniGold)miniGold.textContent=formatGoldAmount(state.gold);
  $("caught").textContent=state.caught+"匹";
  $("score").textContent=state.score;
  $("rodName").textContent=currentRod().name;
@@ -1651,7 +1666,7 @@ function drawFishList(){
   list.appendChild(card);
  }
  const note=document.createElement("p");note.className="small";note.style.cssText="width:100%;flex-basis:100%;";
- note.textContent="初めて釣り上げた魚だけが発見済みになり、写真・生息地・大きさ・食性・希少度・解説が解放されます。未発見の魚はシルエットと？？？で表示。発見記録は通常のセーブデータに保存されます。図鑑No.はエリア順、同じエリア内はレア度順です。写真の表示にはインターネット接続が必要です。";
+ note.textContent="初めて釣り上げた魚だけが発見済みになり、写真・生息地・大きさ・食性・希少度・解説が解放されます。未発見の魚はシルエットと？？？で表示されますが、購入ボタンから売却額の100倍で購入できます。購入しても発見記録や釣った履歴は増えません。発見記録は通常のセーブデータに保存されます。図鑑No.はエリア順、同じエリア内はレア度順です。写真の表示にはインターネット接続が必要です。";
  list.appendChild(note);
 }
 
@@ -1821,6 +1836,7 @@ function loadGame(slot=1){
   delete loaded.__saveMeta;
   tsuricLastTick=Date.now();
   state={...freshState(),...loaded};
+  state.coins=Math.max(0,Math.floor(Number(state.coins)||0));
   state.specialFishSold=state.specialFishSold&&typeof state.specialFishSold==="object"?state.specialFishSold:{};
   if(!locations[state.location])state.location="river";
   state.rod=Math.max(0,Math.min(rods.length-1,Number(state.rod)||0));
@@ -2433,7 +2449,7 @@ function castAt(x,y){
    bobber.x=target.x;bobber.y=target.y;
    phase="waiting";
    say("🌊 ウキが浮いている……魚が来るのを待とう！");
-   waitTimer=setTimeout(()=>{if(phase==="waiting")triggerBite()},2500+Math.random()*3000);
+   waitTimer=setTimeout(()=>{if(phase==="waiting")triggerBite()},80);
   }
  }
  requestAnimationFrame(animateCast);
@@ -2494,40 +2510,19 @@ function triggerBite(){
  const id=weightedFish();
  if(!id || !fishTypes[id]){
   resetFishing(false);
-  say("🐟 この仕掛けで狙える魚が見つからへんかったで。専用エリアでは対応する仕掛けを選んでな。");
+  say("🐟 この仕掛けで狙える魚が見つからへんかったで。エサや仕掛けを確認してな。");
   return;
  }
  const f=fishTypes[id];
  const needed=Math.max(1,(4.5+f.power*1.5)*currentLocation().difficulty-(Number(currentRod().power)||0)*.25);
- const ancient=["coelacanth","megalodon","dunkleosteus","mosasaurus","plesiosaur","ancient_shark","helicoprion","livyatan"].includes(id);
+ const ancient=ancientFishIds.has(String(id).toLowerCase());
  biteFish={id,type:f,needed:Math.max(3.5,needed)*(ancient?1.55:1),ancient};
- // いきなりウキが沈むのではなく、魚が近づき、餌をつついてから食いつく
- approachFish=waterFish.length?waterFish.reduce((best,fish)=>{
-  const d=Math.hypot(fish.x-bobber.x,fish.y-bobber.y);
-  return !best||d<best.d?{fish,d}:best;
- },null).fish:null;
- if(approachFish)approachFish.kind=id;
- phase="approach";progress=0;tension=.08;lineWear=0;lastSurge=-10;fishSurge=0;fightClock=0;
- say("🐟 水中で魚が仕掛けに近づいてきた……まだ巻かずに様子を見よう！");
- waitTimer=setTimeout(()=>{
-  if(phase!=="approach")return;
-  phase="nibble";say("👀 魚が餌をつついている……ウキの動きをよく見て！");
-  if(bobber){bobber.y+=2;splash(bobber.x,bobber.y)}
-  waitTimer=setTimeout(()=>{
-   if(phase!=="nibble")return;
-   // 食いつき後はフッキング待ち。上スワイプで魚を掛ける。
-   phase="hook";reeling=false;stopReelSound();
-   tension=.12;lineWear=0;progress=0;fightClock=0;
-   $("timingPanel").classList.add("active");
-   $("timingRarity").textContent="🐟 "+f.name+" が食いついた！上にスワイプしてフッキング！";
-   $("timingRound").textContent="フッキング待ち";
-   
-   if(bobber){bobber.y+=12;splash(bobber.x,bobber.y)}
-   say("‼️ ウキが沈んだ！画面を上にスワイプしてフッキングや！");
-   // 反応が遅れた場合は魚が離れる
-   waitTimer=setTimeout(()=>{if(phase==="hook"){say("🐟 アタリに気づくのが遅れて魚が離れてしもた……");resetFishing(false)}},5000);
-  },1100);
- },1800);
+ approachFish=null;
+ phase="bite";reeling=false;progress=0;tension=.12;lineWear=0;lastSurge=-10;fishSurge=0;fightClock=0;
+ if(bobber){bobber.y+=10;splash(bobber.x,bobber.y);}
+ $("timingPanel").classList.remove("active");
+ say("🎣 「"+f.name+"」がすぐに掛かったで！フリック不要。そのまま画面を長押しして巻き上げよう！");
+ tone(720,.08,0,"triangle",.04);
 }
 
 function playDedenSound(){
@@ -2547,9 +2542,7 @@ function playDedenSound(){
 }
 
 function startReeling(){
- if(phase==="approach"||phase==="nibble"||phase==="waiting"||phase==="hook"){
-  say(phase==="hook"?"ウキが沈んだで！先に上へスワイプしてフッキングや！":"まだやで！ウキが沈むまで待とう！");return;
- }
+ if(phase==="waiting"||phase==="casting")return;
  if(phase!=="bite"&&phase!=="reel")return;
  reeling=true;phase="reel";playReelSound();
 
@@ -2820,6 +2813,7 @@ requestAnimationFrame(loop);
   {id:'dough',name:'練りエサ',price:400,kind:'bait',breakChance:0,desc:'コイ・フナなど底魚向け。1投ごとに1個消費'},
   {id:'shrimp',name:'エビ餌',price:600,kind:'bait',breakChance:0,desc:'海の底魚・甲殻類・根魚向け。1投ごとに1個消費'},
   {id:'squid',name:'イカ餌',price:650,kind:'bait',breakChance:0,desc:'タコ・イカ・大型海魚向け。1投ごとに1個消費'},
+  {id:'all_bait',name:'万能エサ',price:1800,kind:'bait',breakChance:0,desc:'ウキ釣り専用。釣り場・魚種・レア度を問わず全ての魚が対象。1投ごとに1個消費'},
   {id:'sabiki',name:'サビキ仕掛け',price:350,kind:'rig',breakChance:0,desc:'アジ・イワシなど群れの小魚向け。消耗品'},
   {id:'cast',name:'投げ釣り仕掛け',price:500,kind:'rig',breakChance:0,desc:'キス・カレイなど砂地の魚向け。消耗品'},
   {id:'worm_lure',name:'ワーム',price:650,kind:'lure',breakChance:.12,desc:'ブラックバス・根魚向け。使用時12%で破損'},
@@ -2847,9 +2841,9 @@ requestAnimationFrame(loop);
  }
  ensureGearState();
  const oldUpdateAll=updateAll;
- updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();if(typeof updateExploreUI==='function')updateExploreUI();if(typeof renderCatchLedger==='function')renderCatchLedger();};
+ updateAll=function(){ensureGearState();oldUpdateAll();renderConsumables();if(typeof updateExploreUI==='function')updateExploreUI();if(typeof renderCatchLedger==='function')renderCatchLedger();if(typeof window.refreshCharmEquipment==='function')window.refreshCharmEquipment();};
  const oldLoadGame=loadGame;
- loadGame=function(...args){oldLoadGame(...args);ensureGearState();renderConsumables();};
+ loadGame=function(...args){oldLoadGame(...args);ensureGearState();renderConsumables();if(typeof window.refreshCharmEquipment==='function')window.refreshCharmEquipment();};
  function getItem(id){return itemDefs.find(x=>x.id===id)||itemDefs[0]}
  function stock(id){return Math.max(0,Number(state.consumableStock[id])||0)}
  function maxStock(id){const item=getItem(id);return item.id==='float'?Infinity:99}
@@ -2866,6 +2860,7 @@ requestAnimationFrame(loop);
   return 'fresh';
  }
  function matches(id,item){
+  if(item&&item.id==='all_bait')return true;
   const g=fishGroup(id,fishTypes[id]);
   if(item.id==='float')return ['fresh','sea','bottom'].includes(g)&&getFishRarity(id,fishTypes[id]).code==='N';
   if(item.id==='worm')return ['fresh','predator'].includes(g)&&!['carp','crucian','koi'].includes(id);
@@ -2892,22 +2887,22 @@ requestAnimationFrame(loop);
   const rig=activeRig(),bait=activeBait();
   const usesBait=rig.id==='float';
   const pool=(currentLocation()&&Array.isArray(currentLocation().fish))?currentLocation().fish:[];
+  // 万能エサを付けたウキ釣りは、通常魚・レア魚・古代魚・幻魚を含め全魚種が対象。
+  if(rig.id==='float'&&bait.id==='all_bait')return pool.filter(id=>!!fishTypes[id]);
   // にゃんこ秘伝仕掛けは、どの釣り場でも全魚種に対応。
   if(rig.id==='nyanko_secret' || tackles[state.tackle]?.name==='にゃんこ秘伝仕掛け'){
    return pool.filter(id=>!!fishTypes[id]);
   }
   // 専用エリアでは専用仕掛けに加え、ほかの通常仕掛けでも対象の魚を狙える。
   if(state.location==='ancient_stage'){
-   return pool.filter(id=>!!fishTypes[id]&&ancientFishIds.has(String(id).toLowerCase()));
+   return pool.filter(id=>!!fishTypes[id]&&ancientFishIds.has(String(id).toLowerCase())&&matches(id,rig));
   }
   if(state.location==='mythical_stage'){
-   return pool.filter(id=>!!fishTypes[id]&&mythicalFishIds.has(String(id).toLowerCase()));
+   return pool.filter(id=>!!fishTypes[id]&&mythicalFishIds.has(String(id).toLowerCase())&&matches(id,rig));
   }
   return pool.filter(id=>{
    if(!fishTypes[id])return false;
    if(usesBait&&!matches(id,bait))return false;
-   const rarity=getFishRarity(id,fishTypes[id]).code;
-   if(rig.id==='float')return !['KR','GR'].includes(rarity);
    return matches(id,rig);
   });
  }
@@ -2959,9 +2954,24 @@ requestAnimationFrame(loop);
   const rigSel=document.getElementById('rigSelect'),baitSel=document.getElementById('baitSelect');if(!rigSel||!baitSel)return;
   const rigs=itemDefs.filter(x=>['rig','lure','special'].includes(x.kind));
   const baitsOnly=itemDefs.filter(x=>x.kind==='bait');
+  const previousRigPurchase=rigSel.value;
   rigSel.innerHTML=rigs.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stockLabel(item.id)}｜${item.price}G</option>`).join('');
   baitSel.innerHTML=baitsOnly.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stockLabel(item.id)}｜${item.price}G</option>`).join('');
-  rigSel.value=state.activeRig||'float';baitSel.value=state.activeBait||'worm';
+  rigSel.value=rigs.some(item=>item.id===previousRigPurchase)?previousRigPurchase:(state.activeRig||'float');baitSel.value=state.activeBait||'worm';
+  const gearRig=document.getElementById('gearRig');
+  if(gearRig){
+   const usableRigs=rigs.filter(item=>item.id==='float'||stock(item.id)>0);
+   gearRig.innerHTML=usableRigs.map(item=>`<option value="${item.id}">${item.name}｜所持 ${stockLabel(item.id)}</option>`).join('');
+   if(!usableRigs.some(item=>item.id===(state.activeRig||'float')))state.activeRig='float';
+   gearRig.value=state.activeRig||'float';
+   gearRig.onchange=()=>{state.activeRig=gearRig.value;rigSel.value=state.activeRig;renderConsumables();say('🪝 '+activeRig().name+'を装備したで！');};
+  }
+  const hudTackle=document.getElementById('hudTackle');if(hudTackle)hudTackle.textContent=activeRig().name;
+  const gearInfo=document.getElementById('gearInfo');if(gearInfo){
+   const old=gearInfo.innerHTML;
+   if(!old.includes('現在の釣り仕掛け'))gearInfo.innerHTML='<strong>現在の釣り仕掛け</strong><br>'+activeRig().name+'（所持 '+stockLabel(activeRig().id)+'）<br>'+old;
+   else gearInfo.innerHTML='<strong>現在の釣り仕掛け</strong><br>'+activeRig().name+'（所持 '+stockLabel(activeRig().id)+'）<br>'+old.substring(old.indexOf('<br>')+4);
+  }
   refreshPurchaseQuantities();
   if(document.getElementById('consumableInfo'))document.getElementById('consumableInfo').textContent='使用中：'+activeRig().name+' ＋ '+activeBait().name+'。ウキ釣りのときだけエサを使い、投げるたび1個消費。ウキ釣り以外ではエサを消費せず、仕掛けの相性で魚を狙うで。通常仕掛けは1投ごとに消費、ルアー・ワーム・エギ等は表示された確率で破損。';
   const consumableStockList=document.getElementById('consumableStockList');if(consumableStockList)consumableStockList.innerHTML=itemDefs.map(item=>`<div class="shop-item"><span>${item.name}<br><small>${item.desc}</small></span><strong>${stockLabel(item.id)}</strong></div>`).join('');
@@ -2981,7 +2991,7 @@ requestAnimationFrame(loop);
   });
  }
  function buyConsumable(which){
-  ensureGearState();const isRig=which==='rig';const id=isRig?state.activeRig:state.activeBait;const item=getItem(id);const n=stock(item.id);
+  ensureGearState();const isRig=which==='rig';const selected=document.getElementById(isRig?'rigSelect':'baitSelect');const id=isRig?(selected?.value||state.activeRig):(selected?.value||state.activeBait);const item=getItem(id);const n=stock(item.id);
   const qtyEl=document.getElementById(isRig?'rigBuyQty':'baitBuyQty');const qty=Math.max(0,Number(qtyEl?.value)||0);
   if(item.id==='float'){say('基本のウキは無限に使えるから購入不要やで！');return}
   if(item.id==='fossil'||item.id==='dragon'){say('🔒 '+item.name+'は購入できへんで！専用エリアで探索して見つけよう！');return}
@@ -3094,10 +3104,10 @@ requestAnimationFrame(loop);
   installExplorePanel();
   if(document.getElementById('consumablePanel'))return;
   const panel=document.createElement('section');panel.id='consumablePanel';panel.className='panel';panel.style.marginTop='10px';
-  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="rigBuyQty" style="margin-top:4px"></select></label><button id="buyRigButton" type="button" style="margin-top:6px">🛒 選択中の仕掛けを購入</button><p class="small" style="margin-top:6px">通常の仕掛け・ルアーはここで購入。古代魚・化石仕掛けと幻魚・龍神仕掛けは専用エリアで探索して入手。通常仕掛けでも古代魚・幻魚を狙えて、にゃんこ秘伝仕掛けは全魚種に対応するで。消耗品（エサ・仕掛け・ルアーなど）は種類ごとにまとめて所持数を表示（最大99個）。同じ種類を買い足すと別枠に増えず、同じスタックに加算されるで。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="baitBuyQty" style="margin-top:4px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを購入</button><p class="small">スタック方式：同じ種類のエサ・使い切り仕掛け・ルアーは1枠にまとまり、各種類99個まで持てるで。買い足すと所持数に加算、使うと1個減るで。</p><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
+  panel.innerHTML=`<h2>🪱 エサ・使い切り仕掛け</h2><p class="small">ウキ釣りのときだけエサを使い、投げるたびに1個消費。ルアー・ワーム・エギなどウキ釣り以外ではエサを使わず、仕掛けで魚を狙うで。</p><label style="display:block;font-weight:bold;color:#ffe6a8">🎣 仕掛け<select id="rigSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="rigBuyQty" style="margin-top:4px"></select></label><button id="buyRigButton" type="button" style="margin-top:6px">🛒 選択中の仕掛けを購入</button><p class="small" style="margin-top:6px">通常の仕掛け・ルアーはここで購入。古代魚・化石仕掛けと幻魚・龍神仕掛けは専用エリアで探索して入手。仕掛けごとに狙える魚が異なるで。古代魚・化石仕掛けは古代魚専用、幻魚・龍神仕掛けは幻魚専用。にゃんこ秘伝仕掛けは全魚種に対応するで。消耗品（エサ・仕掛け・ルアーなど）は種類ごとにまとめて所持数を表示（最大99個）。同じ種類を買い足すと別枠に増えず、同じスタックに加算されるで。</p><label style="display:block;font-weight:bold;color:#ffe6a8;margin-top:12px">🪱 魚の好物（エサ）<select id="baitSelect" style="margin-top:6px"></select></label><label style="display:block;margin-top:6px">購入数<select id="baitBuyQty" style="margin-top:4px"></select></label><button id="buyBaitButton" style="margin-top:6px">🛒 選択中のエサを購入</button><p class="small">スタック方式：同じ種類のエサ・使い切り仕掛け・ルアーは1枠にまとまり、各種類99個まで持てるで。買い足すと所持数に加算、使うと1個減るで。</p><p id="consumableInfo" class="small"></p><div id="consumableStockList" style="margin-top:8px"></div>`;
   const workshop=document.createElement('section');workshop.id='gearWorkshopPanel';workshop.className='panel';workshop.style.marginTop='10px';workshop.innerHTML=`<h2>🛠️ 装備工房</h2><p class="small">釣り竿・リールはモデルごとに1本ずつ所持し、購入済みのモデルは所持品一覧にまとめて表示するで。エサ・使い切り仕掛け・ルアーは種類ごとにスタック（最大99個）。所持している竿・リールは「ねこちゃんの釣具装備」で切り替え可能。修理費は購入価格の半額や。</p><div class="gear-grid"><label>🎣 購入する釣り竿<select id="buyRodSelect"></select><button id="buyRodGearButton" type="button" style="margin-top:6px">釣り竿を購入</button></label><label>⚙️ 購入するリール<select id="buyReelSelect"></select><button id="buyReelGearButton" type="button" style="margin-top:6px">リールを購入</button></label></div><h3 style="margin-top:16px">🎒 釣具の所持品（種類ごとにまとめて表示）</h3><div id="stackedGearInventory" class="small" style="padding:8px;border:1px solid #56808b;border-radius:8px;background:rgba(0,0,0,.14)"></div><h3 style="margin-top:16px">🔧 耐久・修理</h3><div id="durabilityInfo" class="small"></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button id="repairRod">🎣 竿を修理（費用確認中）</button><button id="repairReel">⚙️ リールを修理（費用確認中）</button></div><p class="small">修理すると耐久値が100/100に戻るで。</p>`;
   const gear=document.getElementById('equipmentPanel');gear.parentNode.insertBefore(workshop,gear.nextSibling);workshop.parentNode.insertBefore(panel,workshop.nextSibling);
-  document.getElementById('rigSelect').addEventListener('change',e=>{state.activeRig=e.target.value;renderConsumables()});
+  document.getElementById('rigSelect').addEventListener('change',()=>{refreshPurchaseQuantities()});
   document.getElementById('baitSelect').addEventListener('change',e=>{state.activeBait=e.target.value;renderConsumables()});
   document.getElementById('buyBaitButton').addEventListener('click',()=>buyConsumable('bait'));
   document.getElementById('buyRigButton').addEventListener('click',()=>buyConsumable('rig'));
@@ -3226,7 +3236,7 @@ requestAnimationFrame(loop);
    });
   }catch(e){console.error('お守り表示調整',e)}
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(refresh,500)});else{refresh();setInterval(refresh,500)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 })();
 </script>
 <script>
@@ -3324,8 +3334,35 @@ function renderWorldBookEntries(areaId){
  const entries=getWorldBookEntries(areaId),found=entries.filter(x=>(state.discovered||[]).includes(x.id)).length,totalPages=Math.max(1,Math.ceil(entries.length/5));worldBookPage=Math.min(worldBookPage,totalPages-1);
  const query=(document.getElementById('worldBookSearch')?.value||'').trim();if(summary)summary.textContent=(query?'名前検索「'+query+'」':(locations[areaId]?.name||areaId||'全エリア'))+'　'+entries.length+'種類 ／ 発見済み '+found+'種類';
  if(!entries.length){wrap.textContent='該当する生き物は見つからへんかったで。';return;}
- entries.slice(worldBookPage*5,worldBookPage*5+5).forEach(({id})=>{const f=fishTypes[id],known=(state.discovered||[]).includes(id),row=document.createElement('button');row.type='button';row.textContent=known?f.name:'？？？？';row.style.cssText='display:block;width:100%;text-align:left;padding:8px 11px;background:#173b52;color:#f4f8ff;border:1px solid #42677d;border-radius:7px;font-size:13px;font-weight:600;min-height:36px;';row.addEventListener('click',()=>{if(!known){alert('まだ発見していない生き物やで。この釣り場で釣ってみよう！');return;}showFishDetail(id,f);});wrap.appendChild(row);});
+ entries.slice(worldBookPage*5,worldBookPage*5+5).forEach(({id})=>{
+  const f=fishTypes[id],known=(state.discovered||[]).includes(id);
+  const line=document.createElement('div');line.style.cssText='display:flex;gap:7px;align-items:stretch;margin:0 0 6px;';
+  const row=document.createElement('button');row.type='button';row.textContent=known?f.name:'？？？？';row.style.cssText='display:block;flex:1;min-width:0;text-align:left;padding:8px 11px;background:#173b52;color:#f4f8ff;border:1px solid #42677d;border-radius:7px;font-size:13px;font-weight:600;min-height:40px;';row.addEventListener('click',()=>{if(!known){alert('まだ発見していない生き物やで。この釣り場で釣ってみよう！');return;}showFishDetail(id,f);});line.appendChild(row);
+  {
+   const unit=typeof getEffectiveSellPrice==='function'?getEffectiveSellPrice(id,f):Math.max(0,Number(f.price)||0);
+   const purchasePrice=Math.max(1,Math.floor(unit*100));
+   const buy=document.createElement('button');buy.type='button';buy.textContent='購入 '+purchasePrice.toLocaleString('ja-JP')+'G';
+   buy.title='売却額の100倍で購入';buy.style.cssText='flex:0 0 auto;max-width:46%;padding:7px 9px;background:#f2d27b;color:#382b13;border:1px solid #c59b3c;border-radius:7px;font-size:11px;font-weight:bold;white-space:normal;';
+   buy.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();buyFishFromWorldBook(id);});line.appendChild(buy);
+  }
+  wrap.appendChild(line);
+ });
  if(pager){const prev=document.createElement('button');prev.type='button';prev.textContent='◀️';prev.disabled=worldBookPage===0;prev.onclick=()=>{worldBookPage--;renderWorldBookEntries(areaId);};const label=document.createElement('span');label.textContent=(worldBookPage+1)+' / '+totalPages+' ページ';label.style.cssText='font-size:13px;color:#eaf6ff;';const next=document.createElement('button');next.type='button';next.textContent='▶️';next.disabled=worldBookPage>=totalPages-1;next.onclick=()=>{worldBookPage++;renderWorldBookEntries(areaId);};pager.append(prev,label,next);}
+}
+function buyFishFromWorldBook(id){
+ const fish=fishTypes[id];
+ if(!fish){if(typeof say==='function')say('この魚は購入できへんで！');return;}
+ const salePrice=typeof getEffectiveSellPrice==='function'?getEffectiveSellPrice(id,fish):Math.max(0,Number(fish.price)||0);
+ const price=Math.max(1,Math.floor(salePrice*100));
+ state.gold=Math.max(0,Math.floor(Number(state.gold)||0));
+ if(state.gold<price){if(typeof say==='function')say(fish.name+'の購入には'+price.toLocaleString('ja-JP')+'G必要やで。所持金が足りへん！');else alert('所持金が足りません。');return;}
+ state.gold-=price;
+ if(!Array.isArray(state.inventory))state.inventory=[];
+ state.inventory.push(id);
+ if(typeof updateAll==='function')updateAll();
+ try{localStorage.setItem('tsuric_master_plus_save',JSON.stringify(state));}catch(e){}
+ if(typeof say==='function')say('🐟 '+fish.name+'を'+price.toLocaleString('ja-JP')+'Gで購入したで！魚の持ち物に追加したで。');
+ renderWorldBookEntries(activeWorldBookArea);
 }
 document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementById('openWorldBookButton');if(b)b.addEventListener('click',openWorldBook);});
 </script>
@@ -3404,6 +3441,8 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
  }
  function setupCharmSlots(){
   const first=document.getElementById('gearCharm'),second=document.getElementById('gearCharm2'),third=document.getElementById('gearCharm3');if(!first||!second||!third)return false;
+  // 旧式の単一お守り用 onchange が選択肢を上書きしないよう解除し、3枠専用処理に統一。
+  first.onchange=null;second.onchange=null;third.onchange=null;
   const owned=getOwnedIndices();
   function fill(sel,selected,isSecond){
    const expected=owned.length+(isSecond?1:1);
@@ -3431,6 +3470,7 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
   if(!third.dataset.v26Handler){third.addEventListener('change',()=>{const next=Number(third.value),a=list[Number(state.charm)],b=list[Number(state.charm2)],c=list[next];if(next>=0&&!getOwnedIndices().includes(next)){third.value=String(state.charm3);return;}if(next>=0&&c&&((a&&a.type===c.type)||(b&&b.type===c.type))){third.value=String(state.charm3);if(typeof say==='function')say('同じ系統のお守りは同時に装備できへんで！');return;}state.charm3=next;refreshCharmText();if(typeof updateAll==='function')try{updateAll()}catch(e){};if(typeof saveGame==='function')try{saveGame()}catch(e){}});third.dataset.v26Handler='1';}
   refreshCharmText();return true;
  }
+ window.refreshCharmEquipment=function(){try{setupCharmSlots();refreshCharmText();}catch(e){console.error('お守り装備更新',e);}};
  function refreshCharmText(){
   const a=list[Number(state.charm)],b=list[Number(state.charm2)],c=list[Number(state.charm3)],names=[a&&a.name,b&&b.name,c&&c.name].filter(Boolean).join(' ＋ ')||'なし';
   ['hudCharm','statusCharm'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=names});
@@ -3465,7 +3505,7 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
  function setup(){if(!Array.isArray(state.ownedCharms))state.ownedCharms=[];installCharmShop();setupCharmSlots();refreshCharmText();}
  // デバッグボタンでは全お守りを購入済み扱いにする
  document.addEventListener('click',e=>{if(e.target&&e.target.id==='debugAllItemsButton'){state.ownedCharms=list.map((_,i)=>i);state.charm=0;state.charm2=10;state.charm3=20;setTimeout(setup,0);if(typeof saveGame==='function')try{saveGame()}catch(err){}}});
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setup();setInterval(setup,700)});else{setup();setInterval(setup,700)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
 </script>
 <script>
@@ -3481,36 +3521,42 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
    });
   }catch(e){console.error('お守り表示調整',e)}
  }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refresh();setInterval(refresh,500)});else{refresh();setInterval(refresh,500)}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
 })();
 </script>
 <section class="panel" id="slotPanel" style="margin:12px auto;padding:18px;max-width:1000px;border:2px solid #d8ad4b;background:linear-gradient(145deg,#30264b,#172f48);color:#fff;border-radius:16px">
- <h2 style="color:#ffe49a">🎰 ゴールドスロット</h2>
- <p class="small">ゴールドを賭けて一攫千金を狙おう！3つの絵柄がそろえば大当たり、2つそろっても払い戻しやで。</p>
- <div id="slotGoldDisplay" style="font-size:18px;font-weight:bold;color:#ffe49a;margin:10px 0">💰 所持金：読み込み中</div>
+ <h2 style="color:#ffe49a">🎰 コインスロット</h2>
+ <p class="small">1回の賭けコインと連続抽選回数（1～1,000回）を指定してまとめて抽選！必要コインを全額持っている場合だけ開始できるで。3つ揃いは大当たり、2つ揃いも払い戻しやで。</p>
+ <div id="slotGoldDisplay" style="font-size:18px;font-weight:bold;color:#ffe49a;margin:10px 0">🪙 コイン：読み込み中</div>
  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0">
-  <label for="slotBet" style="font-weight:bold">賭け金：</label>
-  <input id="slotBet" type="number" min="1" max="1000000" step="10" value="10" style="width:150px;padding:10px;border-radius:8px;font-size:16px">
-  <button id="slotSpinButton" type="button" style="background:linear-gradient(135deg,#ffe28a,#d99a32);color:#38220b;font-weight:bold;padding:12px 24px;font-size:18px">🎰 スロットを回す！</button>
+  <label for="slotBet" style="font-weight:bold">1回の賭けコイン：</label>
+  <input id="slotBet" type="number" min="1" max="1000000" step="1" value="10" inputmode="numeric" style="width:125px;padding:10px;border-radius:8px;font-size:16px">
+  <label for="slotRounds" style="font-weight:bold">連続抽選回数：</label>
+  <input id="slotRounds" type="number" min="1" max="1000" step="1" value="1" inputmode="numeric" style="width:110px;padding:10px;border-radius:8px;font-size:16px">
+  <button id="slotSpinButton" type="button" style="background:linear-gradient(135deg,#ffe28a,#d99a32);color:#38220b;font-weight:bold;padding:12px 24px;font-size:18px">🎰 連続抽選する！</button>
  </div>
+ <div id="slotRequiredCoins" style="margin:8px 0;padding:10px;border-radius:9px;background:rgba(0,0,0,.24);font-weight:bold">必要コイン：10 C（1回分）</div>
  <div id="slotReels" style="display:flex;justify-content:center;gap:10px;margin:18px 0">
   <div class="slot-reel" style="width:clamp(70px,20vw,120px);height:90px;display:grid;place-items:center;background:#fff8df;color:#172033;border:4px solid #d8ad4b;border-radius:12px;font-size:48px">❔</div>
   <div class="slot-reel" style="width:clamp(70px,20vw,120px);height:90px;display:grid;place-items:center;background:#fff8df;color:#172033;border:4px solid #d8ad4b;border-radius:12px;font-size:48px">❔</div>
   <div class="slot-reel" style="width:clamp(70px,20vw,120px);height:90px;display:grid;place-items:center;background:#fff8df;color:#172033;border:4px solid #d8ad4b;border-radius:12px;font-size:48px">❔</div>
  </div>
- <p id="slotResult" role="status" aria-live="polite" style="min-height:48px;padding:12px;border-radius:9px;background:#0c1d30;font-weight:bold;line-height:1.6">賭け金を決めて「スロットを回す！」を押してな。</p>
+ <p id="slotResult" role="status" aria-live="polite" style="min-height:48px;padding:12px;border-radius:9px;background:#0c1d30;font-weight:bold;line-height:1.6">賭けコインを決めて「スロットを回す！」を押してな。</p>
  <details style="margin-top:12px"><summary style="cursor:pointer;font-weight:bold">📜 スロット履歴（最新10件）</summary><div id="slotLogVisible" style="max-height:180px;overflow:auto;padding:8px 4px"></div></details>
  <details style="margin-top:8px"><summary style="cursor:pointer;font-weight:bold">📚 過去の履歴（最大100件）</summary><div id="slotLogHistory" style="max-height:260px;overflow:auto;padding:8px 4px"></div></details>
- <p class="small" style="margin-top:12px;color:#e8d8a7">配当：7️⃣ 1000倍／🐉 500倍／💎 250倍／👑 100倍／🌈 75倍／🪙 50倍／🐱 30倍／🐟・🎣 20倍。絵柄2つ一致は2倍。</p>
+ <p class="small" style="margin-top:12px;color:#e8d8a7">配当：7️⃣ 1000倍／🐉 500倍／💎 250倍／👑 100倍／🌈 75倍／🪙 50倍／🐱 30倍／🐟・🎣 20倍。絵柄2つ一致は2倍。7️⃣・🐉・👑は出現率を大幅に下げた超レア絵柄やで！</p>
 </section>
 <script>
-// ゴールドスロット：高額ベット・多彩な役・大きな配当
+// コインスロット：コインベット・多彩な役・大きな配当
 (function(){
  const symbols=['🐟','🎣','🐱','🪙','💎','7️⃣','🐉','👑','🌈'];
+ // 高額当選の3絵柄は極端に出にくくする。通常絵柄=1、7=0.05、龍神=0.03、王冠=0.02。
+ const symbolWeights={'🐟':1,'🎣':1,'🐱':1,'🪙':1,'💎':1,'🌈':1,'7️⃣':0.05,'🐉':0.03,'👑':0.02};
+ const drawSymbol=()=>{let r=Math.random()*symbols.reduce((sum,s)=>sum+symbolWeights[s],0);for(const s of symbols){r-=symbolWeights[s];if(r<0)return s;}return symbols[0];};
  const multipliers={'7️⃣':1000,'🐉':500,'💎':250,'👑':100,'🌈':75,'🪙':50,'🐱':30,'🐟':20,'🎣':20};
  const $slot=id=>document.getElementById(id);
- const money=n=>typeof formatGoldAmount==='function'?formatGoldAmount(n):Math.floor(Number(n)||0).toLocaleString('ja-JP')+'G';
- const refreshSlotGold=()=>{const el=$slot('slotGoldDisplay');if(el)el.textContent='💰 所持金：'+money(state.gold);};
+ const money=n=>Math.floor(Number(n)||0).toLocaleString('ja-JP')+' C';
+ const refreshSlotGold=()=>{const el=$slot('slotGoldDisplay');if(el)el.textContent='🪙 コイン：'+money(state.coins)+' ／ 💰 所持金：'+(typeof formatGoldAmount==='function'?formatGoldAmount(state.gold):state.gold+'G');};
  const slotLogEntries=[];
  const addSlotLog=(message)=>{
   slotLogEntries.push(String(message));
@@ -3523,42 +3569,85 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
  if(typeof window.updateAll==='function'&&!window.updateAll.__slotGoldWrapped){const originalUpdateAll=window.updateAll;const wrappedUpdateAll=function(){const value=originalUpdateAll.apply(this,arguments);refreshSlotGold();return value;};wrappedUpdateAll.__slotGoldWrapped=true;window.updateAll=wrappedUpdateAll;}
  refreshSlotGold();
  function spin(){
-  const betEl=$slot('slotBet'),button=$slot('slotSpinButton'),reels=$slot('slotReels'),result=$slot('slotResult');
-  if(!betEl||!button||!reels||!result)return;
-  const bet=Math.min(1000000,Math.max(1,Math.floor(Number(betEl.value)||10)));
-  const gold=Math.max(0,Math.floor(Number(state.gold)||0));
-  if(gold<bet){result.textContent=`所持金が足りへんで！ 今は ${money(gold)} や。`;if(typeof say==='function')say('スロットを回すには所持金が足りへんで！');return;}
-  state.gold=gold-bet;
-  const resultSymbols=Array.from({length:3},()=>symbols[Math.floor(Math.random()*symbols.length)]);
-  reels.querySelectorAll('.slot-reel').forEach((el,i)=>{el.textContent=resultSymbols[i];});
-  let multiplier=0,message=`ハズレ！ 賭け金 ${money(bet)} を失ったで。`;
-  if(resultSymbols.every(x=>x===resultSymbols[0])){
-   multiplier=multipliers[resultSymbols[0]]||20;
-   const payout=bet*multiplier;
-   state.gold+=payout;
-   message=`大当たり！ ${resultSymbols.join(' ')} ／ ${money(bet)} × ${multiplier.toLocaleString('ja-JP')}倍！ ${money(payout)} 払い戻し！`;
-  }else if(resultSymbols[0]===resultSymbols[1]||resultSymbols[1]===resultSymbols[2]||resultSymbols[0]===resultSymbols[2]){
-   multiplier=2;
-   const payout=Math.floor(bet*multiplier);
-   state.gold+=payout;
-   message=`当たり！同じ絵柄が2つ！ ${money(bet)} × 2倍＝${money(payout)} 払い戻し！`;
+  const betEl=$slot('slotBet'),roundsEl=$slot('slotRounds'),button=$slot('slotSpinButton'),reels=$slot('slotReels'),result=$slot('slotResult');
+  if(!betEl||!roundsEl||!button||!reels||!result)return;
+  const rawBet=Number(betEl.value),rawRounds=Number(roundsEl.value);
+  const bet=Math.floor(rawBet),rounds=Math.floor(rawRounds);
+  if(!Number.isFinite(rawBet)||!Number.isInteger(rawBet)||rawBet<1||rawBet>1000000){result.textContent='1回の賭けコインは1～1,000,000の整数で入力してな。';return;}
+  if(!Number.isFinite(rawRounds)||!Number.isInteger(rawRounds)||rounds<1||rounds>1000){result.textContent='連続抽選回数は1～1,000回の整数で入力してな。';return;}
+  const required=bet*rounds;
+  const coins=Math.max(0,Math.floor(Number(state.coins)||0));
+  const requiredEl=$slot('slotRequiredCoins');
+  if(requiredEl)requiredEl.textContent=`必要コイン：${money(required)}（${money(bet)} × ${rounds.toLocaleString('ja-JP')}回）`;
+  // 必要額を全額用意できる場合だけ開始。足りない場合は1回も抽選しない。
+  if(!Number.isSafeInteger(required)||coins<required){
+   result.textContent=`コインが足りへんで！ ${rounds.toLocaleString('ja-JP')}回分には ${money(required)} 必要やけど、所持コインは ${money(coins)} や。両替所で交換してな。`;
+   if(typeof say==='function')say('必要なコインが足りないため、抽選できへんで！');
+   return;
   }
+  state.coins=coins-required;
+  let totalPayout=0,wins=0,jackpots=0,pairs=0,lastSymbols=['❔','❔','❔'];
+  // 連続抽選は画面アニメーションを繰り返さず一括処理し、1000回でも重くならないようにする。
+  for(let i=0;i<rounds;i++){
+   const resultSymbols=Array.from({length:3},drawSymbol);
+   lastSymbols=resultSymbols;
+   let multiplier=0;
+   if(resultSymbols.every(x=>x===resultSymbols[0])){multiplier=multipliers[resultSymbols[0]]||20;jackpots++;}
+   else if(resultSymbols[0]===resultSymbols[1]||resultSymbols[1]===resultSymbols[2]||resultSymbols[0]===resultSymbols[2]){multiplier=2;pairs++;}
+   if(multiplier>0){wins++;totalPayout+=bet*multiplier;}
+  }
+  reels.querySelectorAll('.slot-reel').forEach((el,i)=>{el.textContent=lastSymbols[i];});
+  state.coins+=totalPayout;
+  const net=totalPayout-required;
+  const message=`${rounds.toLocaleString('ja-JP')}回連続抽選完了！ 賭け総額 ${money(required)} ／ 当たり ${wins.toLocaleString('ja-JP')}回（3つ揃い ${jackpots.toLocaleString('ja-JP')}回・2つ揃い ${pairs.toLocaleString('ja-JP')}回）／ 払戻 ${money(totalPayout)} ／ ${net>=0?'プラス':'マイナス'}${money(Math.abs(net))}。`;
   result.textContent=message;
   addSlotLog(message);
   refreshSlotGold();
-  // スロットの結果も通常のゲームログに記録し、最新5行に表示する（重複記録を防ぐ）
   if(typeof updateAll==='function')updateAll();
   try{localStorage.setItem('tsuric_master_plus_save',JSON.stringify(state));}catch(e){}
   if(typeof say==='function')say(message);else if(typeof window.gameLogAdd==='function')window.gameLogAdd(message);
  }
+ // 入力変更時に必要コインを即時表示
+ const updateRequired=()=>{const bet=Math.floor(Number($slot('slotBet')?.value)||0),rounds=Math.floor(Number($slot('slotRounds')?.value)||0),el=$slot('slotRequiredCoins');if(el){if(bet>=1&&rounds>=1&&rounds<=1000)el.textContent=`必要コイン：${money(bet*rounds)}（${money(bet)} × ${rounds.toLocaleString('ja-JP')}回）`;else el.textContent='必要コイン：入力を確認してな';}};
+ ['slotBet','slotRounds'].forEach(id=>$slot(id)?.addEventListener('input',updateRequired));
+ updateRequired();
  const install=()=>{const b=$slot('slotSpinButton');if(b&&!b.dataset.slotHandler){b.addEventListener('click',spin);b.dataset.slotHandler='1';}};
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
 })();
 </script>
+
+<script>
+// ミニゲーム専用コインとゴールドの両替。旧セーブにも coins=0 を補完する。
+(function(){
+ const $=id=>document.getElementById(id);
+ function refresh(){
+  if(typeof state==='undefined')return;
+  state.coins=Math.max(0,Math.floor(Number(state.coins)||0));
+  const g=$('miniGoldBalance'),c=$('miniCoinBalance'),mainC=$('coinBalance');
+  if(g)g.textContent=typeof formatGoldAmount==='function'?formatGoldAmount(state.gold):Math.floor(Number(state.gold)||0)+'G';
+  const ct=state.coins.toLocaleString('ja-JP')+' C';if(c)c.textContent=ct;if(mainC)mainC.textContent=ct;
+  const slot=$('slotGoldDisplay');if(slot)slot.textContent='🪙 コイン：'+ct+' ／ 💰 所持金：'+(typeof formatGoldAmount==='function'?formatGoldAmount(state.gold):state.gold+'G');
+ }
+ function persist(){if(typeof updateAll==='function')updateAll();refresh();if(typeof saveGame==='function')saveGame();try{localStorage.setItem('tsuric_master_plus_save',JSON.stringify(state));}catch(e){}}
+ function lots(max){const n=Math.floor(Number($('exchangeLots')?.value)||0);return Math.max(1,Math.min(max,n));}
+ function message(t){const el=$('exchangeMessage');if(el)el.textContent=t;if(typeof say==='function')say(t);}
+ function bind(){
+  const toGold=$('exchangeCoinsToGold'),toCoins=$('exchangeGoldToCoins');
+  if(toGold&&!toGold.dataset.bound){toGold.dataset.bound='1';toGold.addEventListener('click',()=>{const n=lots(100000000),need=n*100,gain=n*10;state.coins=Math.max(0,Math.floor(Number(state.coins)||0));if(state.coins<need){message('コインが足りへんで！ '+need+'コイン必要や。');return;}state.coins-=need;state.gold=(Number(state.gold)||0)+gain;persist();message(need+'コインを'+gain+'Gに換金したで！');});}
+  if(toCoins&&!toCoins.dataset.bound){toCoins.dataset.bound='1';toCoins.addEventListener('click',()=>{const n=lots(1000000),need=n*100,gain=n*100;state.gold=Math.max(0,Math.floor(Number(state.gold)||0));if(state.gold<need){message('所持金が足りへんで！ '+need+'G必要や。');return;}state.gold-=need;state.coins=(Number(state.coins)||0)+gain;persist();message(need+'Gを'+gain+'コインに換金したで！');});}
+  refresh();
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+ const oldUpdate=window.updateAll;if(typeof oldUpdate==='function'&&!oldUpdate.__currencyRefresh){const wrapped=function(){const r=oldUpdate.apply(this,arguments);refresh();return r;};wrapped.__currencyRefresh=true;window.updateAll=wrapped;}
+})();
+</script>
+
 <script>
 // 更新履歴：初期版からの主な変更を時系列の折りたたみバーで表示
 (function(){
  const historyItems=[
+  ['2026年11月4日：図鑑から魚を購入・両替上限拡張','未発見の魚も含め、図鑑掲載の全魚種を売却額の100倍で購入可能に変更。コイン→Gの両替は最大1億口、G→コインは最大100万口。'],
+  ['2026年11月4日：ミニゲーム専用コイン・両替所','ミニゲーム報酬をコインに統一。100コイン→10G、100G→100コインの両替に対応し、所持金とコインを常時表示。スロットの賭け通貨もコインに変更。'],
   ['2026年10月頃（初期開発・正確な日付不明）：釣りゲームの土台','HTML版の釣りRPGを制作開始。釣り画面、猫の釣り人、水面への仕掛け投入、魚とのファイトなど基本部分を構築。'],
   ['2026年10月頃（初期開発・正確な日付不明）：釣り場・世界観の拡張','せせらぎ川、神秘の湖、海域など複数の釣り場を用意。釣りポイントによるエリア解放の仕組みを追加・調整。'],
   ['2026年10月頃（初期開発・正確な日付不明）：ゴールド・魚の売却','釣った魚の売却、所持金、魚ごとの売却額を管理する仕組みを追加。古代魚・幻魚の売却価格も調整。'],
@@ -3567,11 +3656,12 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
   ['2026年10月頃（初期開発・正確な日付不明）：生物図鑑・発見記録','釣った魚や探索で発見した生物を記録し、詳細を確認できる図鑑機能を追加。'],
   ['2026年10月頃（初期開発・正確な日付不明）：ミニゲーム・探索','河川敷バトル、熱血ダッシュ、ドッジボール、探索チャレンジなど、釣り以外の遊びを追加。'],
   ['2026年11月2日：釣り画面・メニュー・図鑑の修正','釣り画面の猫や表示領域を調整。メニュー操作と発見図鑑の詳細表示を修正。'],
-  ['2026年11月2日：ゴールドスロット復旧','不足していたゴールドスロットの画面部品を追加。3つのリール、賭け金入力、配当表示、履歴を復旧。'],
+  ['2026年11月2日：ゴールドスロット復旧','不足していたスロット画面の部品を追加。3つのリール、賭け金入力、配当表示、履歴を復旧。'],
   ['2026年11月2日：ミミズ価格・ショップ整理','ミミズの価格を350Gから10Gに変更。メイン画面に重複していたショップ表示を整理し、ショップ機能は独立画面側に集約。'],
   ['2026年11月2日：メイン画面とサブ画面の分離','釣り画面をメインにし、釣具装備・ショップ・ミニゲームを独立したサブ画面に分離。セーブ・ロードの操作からサブ機能へ移動する構成に整理。'],
   ['2026年11月2日：今回の更新（所持金表示・メニュー整理）','メイン画面の一覧型メニューバーを撤去し、必要なサブ画面ボタンは「セーブ・ロード・サブ画面」から開く方式に統一。釣り画面内に所持金を常時表示するHUDを追加。'],
-  ['2026年11月3日：メイン画面の折りたたみメニュー撤去','メイン画面に表示されていたセーブ・ロード、釣具装備、装備工房、エサ・仕掛け、装備中の釣具、釣果一覧、環境音設定などの折りたたみ式一覧バーを撤去。各機能の独立画面・既存機能は維持し、ゴールドスロットもメイン画面下部には表示しない構成に整理。']
+  ['2026年11月3日：メイン画面の折りたたみメニュー撤去','メイン画面に表示されていたセーブ・ロード、釣具装備、装備工房、エサ・仕掛け、装備中の釣具、釣果一覧、環境音設定などの折りたたみ式一覧バーを撤去。各機能の独立画面・既存機能は維持し、ゴールドスロットもメイン画面下部には表示しない構成に整理。'],
+  ['2026年11月4日：仕掛け装備と魚種別の釣り分けを修正','釣具装備画面に所持中の仕掛けを選ぶ専用欄を追加。装備した仕掛けを実際の釣り判定に連動させ、基本のウキ仕掛けは一般的なNランク魚を中心にし、サビキ・投げ釣り・ルアー・古代魚用・幻魚用などは仕掛けごとの対象魚だけを狙うよう修正。']
  ];;
  function install(){
   if(document.getElementById('updateHistoryModal'))return;
@@ -3671,7 +3761,7 @@ document.addEventListener('DOMContentLoaded',()=>{const b=document.getElementByI
   const title=$('miniGameTitle'),status=$('miniGameStatus'),controls=$('miniGameControls'),meters=$('miniGameMeters'),reward=$('miniGameReward');
   if(!title||!status||!controls)return;
   const say=(t)=>{status.textContent=t;};
-  function prize(amount){try{if(window.state){state.gold=(Number(state.gold)||0)+amount;if(typeof updateAll==='function')updateAll();if(typeof saveGame==='function')saveGame();}}catch(e){} if(reward)reward.textContent='クリア報酬 '+amount+' G！';}
+  function prize(amount){try{if(window.state){state.coins=(Number(state.coins)||0)+amount;if(typeof updateAll==='function')updateAll();if(typeof saveGame==='function')saveGame();}}catch(e){} if(reward)reward.textContent='クリア報酬 '+amount+' コイン！';}
   function button(label,fn){const b=document.createElement('button');b.type='button';b.textContent=label;b.addEventListener('click',fn);controls.appendChild(b);return b;}
   $('miniStartBrawl')?.addEventListener('click',()=>{
    title.textContent='🥊 河川敷じゃんけんバトル';controls.innerHTML='';if(meters)meters.hidden=true;
@@ -3730,7 +3820,7 @@ body.dedicated-screen-open{overflow:hidden}
   if(n)n.style.display=previousNavDisplay||'';
   document.body.classList.remove('dedicated-screen-open');
  };
- window.openDedicatedMiniScreen=function(){enterScreen('mini');const p=$('heatMiniGamePanel');if(p)p.style.display='block';};
+ window.openDedicatedMiniScreen=function(){enterScreen('mini');const p=$('heatMiniGamePanel');if(p){p.style.display='block';p.hidden=false;}const s=$('dedicatedMiniScreen');if(s)s.style.display='block';};
  window.openWorldBook=function(){
   const modal=$('worldBookModal');if(!modal)return;
   // 図鑑をmainの外へ移動し、メイン画面とは独立して表示
@@ -3829,7 +3919,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  let activeScreen=null;
  function hideMain(){const m=document.querySelector('main'),h=document.querySelector('body>header'),f=document.querySelector('body>footer');if(m)m.style.display='none';if(h)h.style.display='none';if(f)f.style.display='none';document.body.classList.add('dedicated-screen-open');}
  function showMain(){const m=document.querySelector('main'),h=document.querySelector('body>header'),f=document.querySelector('body>footer');if(m)m.style.display='';if(h)h.style.display='';if(f)f.style.display='';['dedicatedEquipmentScreen','dedicatedShopScreen','dedicatedMiniScreen'].forEach(id=>{const e=$(id);if(e)e.style.display='none';});const book=$('worldBookModal');if(book)book.style.display='none';document.body.classList.remove('dedicated-screen-open');activeScreen=null;}
- function open(id){const e=$(id);if(!e)return;hideMain();['dedicatedEquipmentScreen','dedicatedShopScreen','dedicatedMiniScreen'].forEach(x=>{const n=$(x);if(n)n.style.display=x===id?'block':'none';});const book=$('worldBookModal');if(book)book.style.display='none';activeScreen=id;window.scrollTo(0,0);}
+ function open(id){const e=$(id);if(!e)return;hideMain();['dedicatedEquipmentScreen','dedicatedShopScreen','dedicatedMiniScreen'].forEach(x=>{const n=$(x);if(n)n.style.display=x===id?'block':'none';});if(id==='dedicatedMiniScreen'&&$('heatMiniGamePanel'))$('heatMiniGamePanel').style.display='block';if(id==='dedicatedEquipmentScreen'&&typeof window.refreshCharmEquipment==='function')window.refreshCharmEquipment();const book=$('worldBookModal');if(book)book.style.display='none';activeScreen=id;window.scrollTo(0,0);}
  function move(id,parent){const n=$(id);if(n&&parent&&n.parentElement!==parent)parent.appendChild(n);}
  function build(){
   const main=document.querySelector('main');if(!main)return;
@@ -3842,7 +3932,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   // 独立画面へ機能を移動（IDは維持して既存プログラムとの連携を保つ）
   move('equipmentPanel',gearBox);
   move('gearWorkshopPanel',shopBox);move('consumablePanel',shopBox);move('charmShopArea',shopBox);
-  move('heatMiniGamePanel',mini);move('explorePanel',mini);move('slotPanel',mini);
+  move('heatMiniGamePanel',mini);move('explorePanel',mini);
+  const miniPanel=$('heatMiniGamePanel');if(miniPanel){miniPanel.style.display='block';miniPanel.hidden=false;}
+  if(miniPanel&&$('slotPanel')&&$('slotPanel').parentElement!==miniPanel)miniPanel.appendChild($('slotPanel'));
   // 図鑑モーダルはmainから切り離す
   move('worldBookModal',document.body);
   // 釣り場パネルをpanelsラッパーからメイン直下へ
@@ -3911,5 +4003,112 @@ document.addEventListener('DOMContentLoaded',()=>{
 #gameMenu,.menu-links,.menu-list-bar,.listup-bar{display:none!important}
 </style>
 
+
+<style>
+#timingFishingBoard{margin:12px auto;padding:16px;max-width:760px;border:2px solid #79c9e8;border-radius:14px;background:linear-gradient(145deg,#102d43,#183d50);color:#fff}
+#timingFishingTrack{height:34px;position:relative;margin:20px 4px 14px;border:2px solid #d9edf7;border-radius:10px;background:linear-gradient(90deg,#b84b4b 0 43%,#54c78b 43% 57%,#b84b4b 57%);overflow:hidden}
+#timingFishingMarker{position:absolute;top:-3px;left:0;width:5px;height:38px;background:#fff36b;box-shadow:0 0 9px #fff;transform:translateX(-50%)}
+#timingFishingTap{width:100%;min-height:58px;font-size:20px;font-weight:bold;background:linear-gradient(135deg,#ffe28a,#e89c38);color:#35210b;touch-action:manipulation}
+</style>
+<script>
+(function(){
+ const $=id=>document.getElementById(id);
+ function setupTimingFishing(){
+  const actions=document.querySelector('#heatMiniGamePanel .mini-game-actions');
+  if(!actions)return;
+  let b=$('miniStartTimingFishing');
+  if(!b){b=document.createElement('button');b.type='button';b.id='miniStartTimingFishing';b.textContent='🎯 タイミング釣り';actions.appendChild(b);}
+  if(b.dataset.bound==='1')return;
+  b.dataset.bound='1';
+  b.addEventListener('click',startGame);
+ }
+ function startGame(){
+  if(window.__timingFishingTimer){clearInterval(window.__timingFishingTimer);window.__timingFishingTimer=null;}
+  const title=$('miniGameTitle'),status=$('miniGameStatus'),controls=$('miniGameControls'),meters=$('miniGameMeters'),reward=$('miniGameReward');
+  if(!title||!status||!controls)return;
+  title.textContent='🎯 タイミング釣りチャレンジ';if(meters)meters.hidden=true;
+  controls.innerHTML='<div id="timingFishingBoard"><p>黄色い針が中央の緑色ゾーンに来た瞬間にタップ！全5回で勝負や。</p><div id="timingFishingTrack"><span id="timingFishingMarker"></span></div><p id="timingFishingRound">スタートを押してな！</p><button type="button" id="timingFishingTap">▶ 第1回スタート</button></div>';
+  const marker=$('timingFishingMarker'),roundText=$('timingFishingRound'),tap=$('timingFishingTap');
+  let round=0,score=0,pos=0,dir=1,running=false,finished=false;
+  const stopTimer=()=>{if(window.__timingFishingTimer){clearInterval(window.__timingFishingTimer);window.__timingFishingTimer=null;}};
+  const update=()=>{if(marker)marker.style.left=pos+'%';};
+  const beginRound=()=>{
+   round++;pos=0;dir=1;running=true;
+   roundText.textContent='第'+round+'回 ／ 成功 '+score+'回';
+   status.textContent='緑色ゾーン（43〜57%）に入った瞬間にタップ！';
+   tap.textContent='🎣 今や！タップ！';
+   stopTimer();
+   window.__timingFishingTimer=setInterval(()=>{
+    pos+=dir*2.4;
+    if(pos>=100){pos=100;dir=-1;}else if(pos<=0){pos=0;dir=1;}
+    update();
+   },30);
+  };
+  const finish=()=>{
+   finished=true;running=false;stopTimer();
+   const prize=score===5?250:score>=3?140:score>=1?60:0;
+   try{if(prize>0&&typeof state!=='undefined'){state.coins=(Number(state.coins)||0)+prize;if(typeof updateAll==='function')updateAll();if(typeof saveGame==='function')saveGame();}}catch(e){console.error('タイミング釣り報酬エラー',e);}
+   roundText.textContent='終了！ '+score+' / 5 回成功';
+   status.textContent='🎯 '+score+'回成功！ '+(prize?'報酬 '+prize+' コインを獲得！':'今回は報酬なし。また挑戦してな！');
+   tap.textContent='もう一度遊ぶ';
+   if(reward)reward.textContent=prize?'タイミング釣り報酬 '+prize+' コイン！':'タイミング釣り終了！';
+  };
+  tap.onclick=()=>{
+   if(finished){startGame();return;}
+   if(!running){beginRound();return;}
+   const hit=pos>=43&&pos<=57;
+   if(hit)score++;
+   running=false;stopTimer();
+   status.textContent=hit?'✨ ナイス！緑色ゾーンに命中！':'💦 惜しい！針の位置 '+Math.round(pos)+'%';
+   if(round>=5){finish();return;}
+   roundText.textContent='第'+round+'回終了 ／ 成功 '+score+'回';
+   tap.textContent='次の回へ';
+  };
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupTimingFishing,{once:true});else setupTimingFishing();
+})();
+</script>
+
+
+<script>
+// 追加ミニゲーム：タップだけで遊べる「お魚タップ」と「宝箱チャレンジ」。
+(function(){
+ const $=id=>document.getElementById(id);
+ function setupTapGames(){
+  const actions=document.querySelector('#heatMiniGamePanel .mini-game-actions');
+  if(!actions)return;
+  const add=(id,label,fn)=>{let b=$(id);if(!b){b=document.createElement('button');b.type='button';b.id=id;b.textContent=label;actions.appendChild(b);}if(b.dataset.tapGameBound!=='1'){b.addEventListener('click',fn);b.dataset.tapGameBound='1';}};
+  add('miniStartFishTap','🐟 お魚タップ',startFishTap);
+  add('miniStartTreasure','🧰 宝箱チャレンジ',startTreasure);
+ }
+ function show(title,description,html){
+  if($('miniGameTitle'))$('miniGameTitle').textContent=title;
+  if($('miniGameStatus'))$('miniGameStatus').textContent=description;
+  if($('miniGameMeters'))$('miniGameMeters').hidden=true;
+  if($('miniGameControls'))$('miniGameControls').innerHTML=html;
+ }
+ function rewardGold(amount,label){
+  try{if(typeof state!=='undefined'){state.coins=(Number(state.coins)||0)+amount;if(typeof updateAll==='function')updateAll();if(typeof saveGame==='function')saveGame();}}catch(e){console.error('ミニゲーム報酬',e);}
+  if($('miniGameStatus'))$('miniGameStatus').textContent=label+' '+amount+'コイン獲得！';
+  if($('miniGameReward'))$('miniGameReward').textContent=label+' '+amount+'コイン！';
+ }
+ function startFishTap(){
+  if(window.__fishTapTimer)clearInterval(window.__fishTapTimer);
+  let score=0,time=15,ended=false;
+  show('🐟 お魚タップ','15秒間、出てくる魚をタップ！たくさん捕まえるほど報酬アップ。','<div id="fishTapBoard" style="text-align:center;padding:12px;border:1px solid #7cc5df;border-radius:12px;background:#0b2c40"><div style="font-size:18px;margin-bottom:8px">残り <strong id="fishTapTime">15</strong> 秒　捕獲 <strong id="fishTapScore">0</strong> 匹</div><button type="button" id="fishTapTarget" style="font-size:54px;min-width:120px;min-height:100px">🐟</button><p>魚を見つけたらタップ！</p></div>');
+  const target=$('fishTapTarget');const fish=['🐟','🐠','🐡','🦈','🦑','🐙','🦀'];
+  target.onclick=()=>{if(ended)return;score++;$('fishTapScore').textContent=score;target.textContent=fish[Math.floor(Math.random()*fish.length)];target.style.transform='scale(1.12)';setTimeout(()=>{if(target)target.style.transform='';},70);};
+  window.__fishTapTimer=setInterval(()=>{time--;if($('fishTapTime'))$('fishTapTime').textContent=time;if(time<=0){ended=true;clearInterval(window.__fishTapTimer);window.__fishTapTimer=null;const prize=score*5;rewardGold(prize,'🐾 '+score+'匹捕獲！');if($('miniGameControls'))$('miniGameControls').insertAdjacentHTML('beforeend','<button type="button" id="fishTapAgain">もう一度遊ぶ</button>');$('fishTapAgain')?.addEventListener('click',startFishTap);}},1000);
+ }
+ function startTreasure(){
+  const prizes=[0,30,60,100,180,300];const chosen=prizes[Math.floor(Math.random()*prizes.length)];
+  show('🧰 宝箱チャレンジ','3つの宝箱から1つをタップ！中身は開けてからのお楽しみ。','<div id="treasureBoard" style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;padding:18px"><button type="button" class="treasurePick" style="font-size:48px;min-width:82px;min-height:90px">🎁</button><button type="button" class="treasurePick" style="font-size:48px;min-width:82px;min-height:90px">🎁</button><button type="button" class="treasurePick" style="font-size:48px;min-width:82px;min-height:90px">🎁</button></div>');
+  document.querySelectorAll('.treasurePick').forEach((b,i)=>b.addEventListener('click',()=>{if(b.dataset.opened)return;document.querySelectorAll('.treasurePick').forEach(x=>x.disabled=true);b.textContent=chosen?'💰':'🪨';rewardGold(chosen,'🎉 宝箱'+(i+1)+'を開封！');if($('miniGameControls'))$('miniGameControls').insertAdjacentHTML('beforeend','<button type="button" id="treasureAgain">もう一度挑戦</button>');$('treasureAgain')?.addEventListener('click',startTreasure);}));
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setupTapGames,{once:true});else setupTapGames();
+})();
+</script>
+
+<!-- 更新：2026年11月4日 万能エサ・即時フッキング・お守り装備復旧・ミニゲーム追加 -->
 </body>
 </html>
